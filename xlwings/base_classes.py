@@ -1,3 +1,8 @@
+# Sentinel for "attribute not supplied" in Borders.set(). Shared by main.Borders and
+# the engine implementations; always compare by identity (``value is _UNSET``).
+_UNSET = object()
+
+
 class Apps:
     def keys(self):
         raise NotImplementedError()
@@ -509,6 +514,10 @@ class Range:
         raise NotImplementedError()
 
     @property
+    def borders(self):
+        raise NotImplementedError()
+
+    @property
     def column_width(self):
         raise NotImplementedError()
 
@@ -953,6 +962,105 @@ class Font:
 
     async def get_color(self):
         raise NotImplementedError("Font.get_color() is only supported in xlwings Lite")
+
+
+class Border:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def line_style(self):
+        raise NotImplementedError()
+
+    @line_style.setter
+    def line_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def weight(self):
+        raise NotImplementedError()
+
+    @weight.setter
+    def weight(self, value):
+        raise NotImplementedError()
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    async def get_line_style(self):
+        raise NotImplementedError(
+            "Border.get_line_style() is only supported in xlwings Lite"
+        )
+
+    async def get_weight(self):
+        raise NotImplementedError(
+            "Border.get_weight() is only supported in xlwings Lite"
+        )
+
+    async def get_color(self):
+        raise NotImplementedError(
+            "Border.get_color() is only supported in xlwings Lite"
+        )
+
+
+class Borders:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def line_style(self):
+        raise NotImplementedError()
+
+    @line_style.setter
+    def line_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def weight(self):
+        raise NotImplementedError()
+
+    @weight.setter
+    def weight(self, value):
+        raise NotImplementedError()
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    async def get_line_style(self):
+        raise NotImplementedError(
+            "Borders.get_line_style() is only supported in xlwings Lite"
+        )
+
+    async def get_weight(self):
+        raise NotImplementedError(
+            "Borders.get_weight() is only supported in xlwings Lite"
+        )
+
+    async def get_color(self):
+        raise NotImplementedError(
+            "Borders.get_color() is only supported in xlwings Lite"
+        )
+
+    def __getitem__(self, key):
+        raise NotImplementedError()
+
+    def set(self, which="all", *, line_style=_UNSET, weight=_UNSET, color=_UNSET):
+        raise NotImplementedError()
+
+    def clear(self, which="everything"):
+        raise NotImplementedError()
 
 
 class Characters:
