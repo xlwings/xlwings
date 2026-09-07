@@ -9,7 +9,7 @@ authors = [
     { name = "Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com" },
 ]
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "pywin32 >= 224;platform_system=='Windows'",
     "psutil >= 2.0.0;platform_system=='Darwin'",
@@ -21,8 +21,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -96,10 +94,10 @@ exclude = ["xlwings/js/tsconfig.json", "xlwings/js/excel.d.ts"]
 module-name = "xlwings.xlwingslib"
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py311"]
 
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.11"
 typeCheckingMode = "basic"
 include = ["xlwings"]
 exclude = [
@@ -113,7 +111,7 @@ exclude = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py311"
 line-length = 88
 fix = true
 unfixable = [

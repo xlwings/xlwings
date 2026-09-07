@@ -5,10 +5,11 @@
 * xlwings (Open Source) requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
 * xlwings PRO offers additional features:
     * [File Reader](pro/reader.md#xlwings-reader) (new in v0.28.0): Runs additionally on Linux and doesn't require an installation of Excel.
-* xlwings requires at least Python 3.9.
+* xlwings requires at least Python 3.11.
 
 Here are previous versions of xlwings that support older versions of Python:
 
+* Python 3.9 and 3.10: 0.37.0
 * Python 3.8: 0.31.10
 * Python 3.7: 0.30.9
 * Python 3.6: 0.25.3

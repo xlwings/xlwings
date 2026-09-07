@@ -85,8 +85,7 @@ def _unwrap_optional_hint(hint):
     Restricted to unions on purpose: unwrapping any generic would turn
     `list[int]` into `int`.
     """
-    # types.UnionType (the `X | None` form) only exists on Python 3.10+.
-    union_types = {Union, getattr(types, "UnionType", Union)}
+    union_types = {Union, types.UnionType}
     if get_origin(hint) not in union_types:
         return hint
     members = [arg for arg in get_args(hint) if arg is not type(None)]
@@ -257,7 +256,7 @@ def xlfunc(f: None = ..., **kwargs: Any) -> Callable[[_F], _F]:
 def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
     def inner(f: _F) -> _F:
         if not hasattr(f, "__xlfunc__"):
-            type_hints = get_type_hints(f, include_extras=True)  # requires Python 3.9
+            type_hints = get_type_hints(f, include_extras=True)
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlargs = xlf["args"] = []
