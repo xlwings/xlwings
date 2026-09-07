@@ -156,7 +156,7 @@ def extract_type_and_annotations(type_hint):
 def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
     def inner(f: _F) -> _F:
         if not hasattr(f, "__xlfunc__"):
-            type_hints = get_type_hints(f, include_extras=True)  # requires Python 3.9
+            type_hints = get_type_hints(f, include_extras=True)
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlf["sub"] = False
