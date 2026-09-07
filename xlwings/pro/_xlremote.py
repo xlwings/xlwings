@@ -3027,9 +3027,11 @@ class Border(base_classes.Border):
         nothing to gain from fetching them individually.
 
         Office.js reports one value per side even when the segments differ
-        from cell to cell (the first segment's, as measured on Excel for Mac,
-        2026-09-07), so unlike the desktop engines this can't return None for
-        a mixed side.
+        from cell to cell, so unlike the desktop engines this can't return
+        None for a mixed side. Measured on Excel for Mac, 2026-09-07: an edge
+        reports its first segment's value, and an inside border reads "none"
+        as soon as the range's cells don't share the same border formatting,
+        even though every cell's own borders are intact.
         """
         return (await self.parent._get_range_data("borders"))[self.side]
 

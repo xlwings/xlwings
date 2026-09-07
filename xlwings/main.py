@@ -5398,8 +5398,10 @@ class Border:
         """Fetch the line style on demand.
 
         `"none"` for a missing border. Unlike the desktop engines, Office.js
-        doesn't detect a side whose segments differ from cell to cell: it
-        reports the first segment's value rather than `None`.
+        doesn't detect a side whose segments differ from cell to cell: an edge
+        reports its first segment's value rather than `None`, and an inside
+        border of a range whose cells don't share the same border formatting
+        reads `"none"` even though every cell's own borders are intact.
 
         Requires xlwings Lite.
         """
