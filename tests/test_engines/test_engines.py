@@ -2920,6 +2920,37 @@ def test_borders_async_getters_ignore_diagonals(book, getter, expected):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 @pytest.mark.parametrize(
+    "address,missing_sides",
+    [
+        ("A1", ["inside_vertical", "inside_horizontal"]),
+        ("A1:C1", ["inside_horizontal"]),
+        ("A1:A3", ["inside_vertical"]),
+    ],
+)
+@pytest.mark.parametrize(
+    "getter,expected",
+    [
+        ("get_line_style", "continuous"),
+        ("get_weight", "thin"),
+        ("get_color", (255, 0, 0)),
+    ],
+)
+def test_borders_async_getters_ignore_nonexistent_inside_borders(
+    book, address, missing_sides, getter, expected
+):
+    fake = _fake_borders(
+        {
+            side: {"line_style": "none", "weight": None, "color": None}
+            for side in missing_sides
+        }
+    )
+    borders = book.sheets[0].range(address).borders
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(getattr(borders, getter)()) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
     "getter,override",
     [
         ("get_line_style", {"line_style": "double"}),

@@ -1786,10 +1786,10 @@ class Borders(base_classes.Borders):
         return Border(self.parent, side, None)
 
     def _common_value(self, attribute):
-        """The value the six grid sides share, or None if they differ."""
-        values = {
-            getattr(self[side], attribute) for side in base_classes.BORDER_GRID_SIDES
-        }
+        """The value the existing grid sides share, or None if they differ."""
+        if self.xl is None:
+            return None
+        values = {getattr(self[side], attribute) for side in self._grid_sides()}
         return values.pop() if len(values) == 1 else None
 
     @property

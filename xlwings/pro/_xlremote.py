@@ -3089,9 +3089,9 @@ class Borders(base_classes.Borders):
         return Border(self.parent, side, self._api)
 
     async def _common_value(self, attribute):
-        """The value the six grid sides share, or None if they differ."""
+        """The value the existing grid sides share, or None if they differ."""
         borders = await self.parent._get_range_data("borders")
-        values = {borders[side][attribute] for side in base_classes.BORDER_GRID_SIDES}
+        values = {borders[side][attribute] for side in self._grid_sides()}
         return values.pop() if len(values) == 1 else None
 
     async def get_line_style(self):

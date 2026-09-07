@@ -79,7 +79,7 @@ def test_weight_round_trip(rng, side, weight):
     assert rng.borders[side].line_style == "continuous"
 
 
-@pytest.mark.parametrize("side", GRID_SIDES)
+@pytest.mark.parametrize("side", ALL_SIDES)
 def test_color_round_trip(rng, side):
     rng.borders[side].line_style = "continuous"
     rng.borders[side].color = (255, 0, 0)
@@ -88,17 +88,6 @@ def test_color_round_trip(rng, side):
     assert rng.borders[side].color == (0, 255, 0)
     rng.borders[side].color = 0xFF0000  # Excel's BGR integer: blue
     assert rng.borders[side].color == (0, 0, 255)
-
-
-@pytest.mark.skipif(sys.platform != "darwin", reason="measured on macOS only")
-@pytest.mark.parametrize("side", DIAGONALS)
-def test_diagonal_color_is_ignored_on_mac(rng, side):
-    # Measured 2026-09-07: Excel for Mac accepts the write without an error,
-    # but the colour doesn't take and the diagonal stays black. If this test
-    # starts failing, Excel has started honouring it, which isn't a regression.
-    rng.borders[side].line_style = "continuous"
-    rng.borders[side].color = (255, 0, 0)
-    assert rng.borders[side].color != (255, 0, 0)
 
 
 def test_enums_are_accepted(rng):
@@ -168,6 +157,69 @@ def test_collection_getters_ignore_diagonals(rng):
     rng.borders["diagonal_down"].weight = "thick"
     assert rng.borders.line_style == "continuous"
     assert rng.borders.weight == "thin"
+
+
+@pytest.mark.parametrize("address", ["B2", "B2:D2", "B2:B4", "B2:D4"])
+def test_collection_getters_ignore_nonexistent_inside_borders(rng, address):
+    borders = rng.sheet[address].borders
+    borders.set(line_style="continuous", weight="medium", color="#ff0000")
+    assert borders.line_style == "continuous"
+    assert borders.weight == "medium"
+    assert borders.color == (255, 0, 0)
+    borders["edge_top"].color = "#00ff00"
+    assert borders.color is None
+    borders.clear()
+    assert borders.line_style == "none"
+    assert borders.color is None
+
+
+@pytest.mark.parametrize(
+    "side,cell,cell_side",
+    [
+        ("edge_top", "C2", "edge_top"),
+        ("edge_bottom", "C4", "edge_bottom"),
+        ("edge_left", "B3", "edge_left"),
+        ("edge_right", "D3", "edge_right"),
+        ("inside_vertical", "C3", "edge_right"),
+        ("inside_horizontal", "C3", "edge_bottom"),
+        ("diagonal_down", "C3", "diagonal_down"),
+        ("diagonal_up", "C3", "diagonal_up"),
+    ],
+)
+@pytest.mark.parametrize(
+    "attribute,value,initial",
+    [
+        ("line_style", "double", "continuous"),
+        ("line_style", None, "continuous"),
+        ("weight", "thick", "thin"),
+        ("color", "#00ff00", (255, 0, 0)),
+    ],
+)
+def test_border_getters_none_when_segments_differ(
+    rng, side, cell, cell_side, attribute, value, initial
+):
+    borders = rng.borders
+    borders.set("everything", line_style="continuous", weight="thin", color="#ff0000")
+    border = borders[side]
+    assert getattr(border, attribute) == initial
+    setattr(rng.sheet[cell].borders[cell_side], attribute, value)
+    assert getattr(border, attribute) is None
+    if side in GRID_SIDES:
+        assert getattr(borders, attribute) is None
+    # Reuse the same wrapper after restoring uniform formatting.
+    borders.set(side, line_style="continuous", weight="thin", color="#ff0000")
+    assert getattr(border, attribute) == initial
+
+
+def test_edge_getters_ignore_other_cells(rng):
+    rng.borders.set("edge_top", line_style="continuous", weight="thin", color="#ff0000")
+    rng.sheet["C3"].borders.set(
+        "edge_top", line_style="double", weight="thick", color="#00ff00"
+    )
+    border = rng.borders["edge_top"]
+    assert border.line_style == "continuous"
+    assert border.weight == "thin"
+    assert border.color == (255, 0, 0)
 
 
 def test_set_groups(rng):

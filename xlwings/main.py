@@ -5379,9 +5379,6 @@ class Border:
         for a removed border or if the range's cells don't all agree. Setting
         the colour of a removed border makes it visible.
 
-        Note that Excel on macOS silently ignores the colour of the two
-        diagonal borders: the assignment succeeds, but they stay black.
-
         ```pycon
         >>> sheet['A1'].borders['edge_bottom'].color = (255, 0, 0)  # or '#ff0000'
         >>> sheet['A1'].borders['edge_bottom'].color
@@ -5435,6 +5432,8 @@ class Borders:
     borders" means in Excel's ribbon), and reading one returns their common
     value, or `None` if they differ. The two diagonals never take part in the
     collection-level attributes; use `borders["diagonal_up"]` etc. for them.
+    Reads ignore `"inside_vertical"` for a single-column range and
+    `"inside_horizontal"` for a single-row range, since those borders don't exist.
 
     Use `set()` to write several attributes in one go or to target a group of
     sides, and `clear()` to remove borders.

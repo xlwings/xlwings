@@ -1030,6 +1030,16 @@ class Border:
 
 
 class Borders:
+    def _grid_sides(self):
+        """Grid sides that exist for this range's dimensions."""
+        nrows, ncols = self.parent.shape
+        return tuple(
+            side
+            for side in BORDER_GRID_SIDES
+            if (side != "inside_vertical" or ncols > 1)
+            and (side != "inside_horizontal" or nrows > 1)
+        )
+
     @property
     def api(self):
         raise NotImplementedError()
