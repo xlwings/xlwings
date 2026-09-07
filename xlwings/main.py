@@ -5397,8 +5397,9 @@ class Border:
     async def get_line_style(self) -> str | None:
         """Fetch the line style on demand.
 
-        `"none"` for a missing border, `None` if the range's cells don't all
-        agree.
+        `"none"` for a missing border. Unlike the desktop engines, Office.js
+        doesn't detect a side whose segments differ from cell to cell: it
+        reports the first segment's value rather than `None`.
 
         Requires xlwings Lite.
         """
@@ -5407,7 +5408,8 @@ class Border:
     async def get_weight(self) -> str | None:
         """Fetch the weight on demand.
 
-        `None` if the range's cells don't all agree.
+        Office.js doesn't detect a side whose segments differ from cell to
+        cell, see {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
@@ -5416,7 +5418,9 @@ class Border:
     async def get_color(self) -> tuple[int, int, int] | None:
         """Fetch the colour on demand, as an RGB tuple.
 
-        `None` for a removed border or if the range's cells don't all agree.
+        `None` for a removed border. Office.js doesn't detect a side whose
+        segments differ from cell to cell, see
+        {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
@@ -5515,7 +5519,9 @@ class Borders:
     async def get_line_style(self) -> str | None:
         """Fetch the common line style of the six grid sides on demand.
 
-        `None` if the sides or the range's cells don't all agree.
+        `None` if the sides differ. Segments that differ from cell to cell
+        within a side aren't detected on Office.js, see
+        {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
@@ -5524,7 +5530,9 @@ class Borders:
     async def get_weight(self) -> str | None:
         """Fetch the common weight of the six grid sides on demand.
 
-        `None` if the sides or the range's cells don't all agree.
+        `None` if the sides differ. Segments that differ from cell to cell
+        within a side aren't detected on Office.js, see
+        {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
@@ -5534,7 +5542,9 @@ class Borders:
         """Fetch the common colour of the six grid sides on demand, as an RGB
         tuple.
 
-        `None` if the sides or the range's cells don't all agree.
+        `None` if the sides differ. Segments that differ from cell to cell
+        within a side aren't detected on Office.js, see
+        {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """

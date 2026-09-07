@@ -3025,6 +3025,11 @@ class Border(base_classes.Border):
 
         The client returns all eight sides in one round-trip, so there's
         nothing to gain from fetching them individually.
+
+        Office.js reports one value per side even when the segments differ
+        from cell to cell (the first segment's, as measured on Excel for Mac,
+        2026-09-07), so unlike the desktop engines this can't return None for
+        a mixed side.
         """
         return (await self.parent._get_range_data("borders"))[self.side]
 
@@ -3089,7 +3094,11 @@ class Borders(base_classes.Borders):
         return Border(self.parent, side, self._api)
 
     async def _common_value(self, attribute):
-        """The value the existing grid sides share, or None if they differ."""
+        """The value the existing grid sides share, or None if they differ.
+
+        Only the sides are compared: Office.js doesn't report segments that
+        differ within a side, see Border._get_border().
+        """
         borders = await self.parent._get_range_data("borders")
         values = {borders[side][attribute] for side in self._grid_sides()}
         return values.pop() if len(values) == 1 else None

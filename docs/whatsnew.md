@@ -4,7 +4,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.38.0 (unreleased)
 
-- All engines: Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`. Line styles, weights and colours are set via lowercase strings (`rng.borders.line_style = "continuous"`) with optional enums `xw.BorderIndex`, `xw.BorderLineStyle` and `xw.BorderWeight` for autocomplete. On xlwings Lite and xlwings Server, reading requires the async API (`await myrange.borders["edge_top"].get_line_style()`), and only the Office.js add-in applies border actions (not Office Scripts, VBA or Google Apps Script).
+- All engines: Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`. Line styles, weights and colours are set via lowercase strings (`rng.borders.line_style = "continuous"`) with optional enums `xw.BorderIndex`, `xw.BorderLineStyle` and `xw.BorderWeight` for autocomplete. On xlwings Lite and xlwings Server, reading requires the async API (`await myrange.borders["edge_top"].get_line_style()`), and only the Office.js add-in applies border actions (not Office Scripts, VBA or Google Apps Script). Office.js also doesn't detect a side whose segments differ from cell to cell: where the desktop engines read `None`, it reports the first segment's value.
 
 ## v0.37.0 (Sep 1, 2026)
 
