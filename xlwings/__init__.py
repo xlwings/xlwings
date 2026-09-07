@@ -225,6 +225,9 @@ __all__ = (
     "App",
     "Book",
     "BookAsync",
+    "BorderIndex",
+    "BorderLineStyle",
+    "BorderWeight",
     "Chart",
     "Engine",
     "Name",
@@ -423,3 +426,4 @@ else:
 # This follows the Office Script/Office.js convention to make the constants available
 # in the top-level namespace. Should be done for all constants with xlwings 1.0.
 from .constants import ObjectHandleIcons  # noqa: F401
+from .enums import BorderIndex, BorderLineStyle, BorderWeight  # noqa: F401

@@ -1845,6 +1845,10 @@ class Range(base_classes.Range):
     def font(self):
         return Font(self, self.sheet.book.api)
 
+    @property
+    def borders(self):
+        return Borders(self, self.sheet.book.api)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -2991,6 +2995,170 @@ class PageSetup(base_classes.PageSetup):
     def print_area(self, value):
         self.sheet.api["print_area"] = value
         self.sheet.append_json_action(func="setPrintArea", args=[value])
+
+
+class Border(base_classes.Border):
+    """One side of a range's borders on this engine.
+
+    Writes queue a `setBorderProperty` action with the side name, the
+    attribute and its value; the client maps the snake_case names onto the
+    Office.js `BorderIndex`/`BorderLineStyle`/`BorderWeight` strings. A
+    `line_style` of None asks the client to remove the border.
+    """
+
+    def __init__(self, parent, side, api):
+        self.parent = parent
+        self.side = side
+        self._api = api
+
+    @property
+    def api(self):
+        return self._api
+
+    def append_json_action(self, attribute, value):
+        self.parent.append_json_action(
+            func="setBorderProperty", args=[self.side, attribute, value]
+        )
+
+    async def _get_border(self):
+        """All three attributes of this side, out of the single "borders" read.
+
+        The client returns all eight sides in one round-trip, so there's
+        nothing to gain from fetching them individually.
+        """
+        return (await self.parent._get_range_data("borders"))[self.side]
+
+    async def get_line_style(self):
+        return (await self._get_border())["line_style"]
+
+    async def get_weight(self):
+        return (await self._get_border())["weight"]
+
+    async def get_color(self):
+        color = (await self._get_border())["color"]
+        return utils.hex_to_rgb(color) if color else None
+
+    def _sync_read_error(self, getter):
+        return NotImplementedError(
+            "Reading border attributes synchronously isn't supported on this "
+            f"engine. Use 'await myrange.borders[{self.side!r}].{getter}()' to "
+            "fetch it on demand."
+        )
+
+    @property
+    def line_style(self):
+        raise self._sync_read_error("get_line_style")
+
+    @line_style.setter
+    def line_style(self, value):
+        self.append_json_action("line_style", value)
+
+    @property
+    def weight(self):
+        raise self._sync_read_error("get_weight")
+
+    @weight.setter
+    def weight(self, value):
+        self.append_json_action("weight", value)
+
+    @property
+    def color(self):
+        raise self._sync_read_error("get_color")
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if color_or_rgb is None:
+            # Unlike a fill, a border has no "no colour": removal is line_style
+            raise ValueError(
+                "Border color can't be None. To remove a border, set "
+                "line_style=None or use clear()."
+            )
+        self.append_json_action("color", _color_to_hex(color_or_rgb))
+
+
+class Borders(base_classes.Borders):
+    def __init__(self, parent, api):
+        self.parent = parent
+        self._api = api
+
+    @property
+    def api(self):
+        return self._api
+
+    def __getitem__(self, side):
+        return Border(self.parent, side, self._api)
+
+    async def _common_value(self, attribute):
+        """The value the six grid sides share, or None if they differ."""
+        borders = await self.parent._get_range_data("borders")
+        values = {borders[side][attribute] for side in base_classes.BORDER_GRID_SIDES}
+        return values.pop() if len(values) == 1 else None
+
+    async def get_line_style(self):
+        return await self._common_value("line_style")
+
+    async def get_weight(self):
+        return await self._common_value("weight")
+
+    async def get_color(self):
+        color = await self._common_value("color")
+        return utils.hex_to_rgb(color) if color else None
+
+    def _sync_read_error(self, getter):
+        return NotImplementedError(
+            "Reading border attributes synchronously isn't supported on this "
+            f"engine. Use 'await myrange.borders.{getter}()' to fetch it on demand."
+        )
+
+    @property
+    def line_style(self):
+        raise self._sync_read_error("get_line_style")
+
+    @line_style.setter
+    def line_style(self, value):
+        self.set(base_classes.BORDER_GRID_SIDES, line_style=value)
+
+    @property
+    def weight(self):
+        raise self._sync_read_error("get_weight")
+
+    @weight.setter
+    def weight(self, value):
+        self.set(base_classes.BORDER_GRID_SIDES, weight=value)
+
+    @property
+    def color(self):
+        raise self._sync_read_error("get_color")
+
+    @color.setter
+    def color(self, color_or_rgb):
+        self.set(base_classes.BORDER_GRID_SIDES, color=color_or_rgb)
+
+    def set(
+        self,
+        which,
+        *,
+        line_style=base_classes._UNSET,
+        weight=base_classes._UNSET,
+        color=base_classes._UNSET,
+    ):
+        # `which` arrives validated and expanded by main.Borders. One action
+        # per supplied attribute per side, in the documented order colour,
+        # weight, line style, which the client applies as-is.
+        if color is not base_classes._UNSET:
+            # Convert once, so an invalid colour raises before anything queues
+            color = _color_to_hex(color)
+        for side in which:
+            border = self[side]
+            if color is not base_classes._UNSET:
+                border.append_json_action("color", color)
+            if weight is not base_classes._UNSET:
+                border.weight = weight
+            if line_style is not base_classes._UNSET:
+                border.line_style = line_style
+
+    def clear(self, which):
+        self.set(which, line_style=None)
 
 
 class Font(base_classes.Font):

@@ -1,6 +1,26 @@
+from typing import Any
+
 # Sentinel for "attribute not supplied" in Borders.set(). Shared by main.Borders and
 # the engine implementations; always compare by identity (``value is _UNSET``).
-_UNSET = object()
+# Typed as Any so that it can be the default of a typed keyword argument.
+_UNSET: Any = object()
+
+# Border side names in canonical order. main.Borders validates and expands the
+# user-facing selectors into these before calling an engine, so engines only
+# ever see the canonical names. The first six are the grid sides that the
+# collection-level properties read and write; the diagonals are reachable
+# individually only.
+BORDER_SIDES = (
+    "edge_top",
+    "edge_bottom",
+    "edge_left",
+    "edge_right",
+    "inside_vertical",
+    "inside_horizontal",
+    "diagonal_down",
+    "diagonal_up",
+)
+BORDER_GRID_SIDES = BORDER_SIDES[:6]
 
 
 class Apps:
