@@ -178,10 +178,13 @@ def test_set_groups(rng):
     for side in INSIDE + DIAGONALS:
         assert rng.borders[side].line_style == "none"
 
-    rng.borders.set("inside", line_style="dot", weight="hairline")
+    # "medium dashed" is one of Excel's built-in border styles, so both
+    # attributes survive. Something like dot + hairline wouldn't: Excel
+    # would keep the style and reset the weight to thin.
+    rng.borders.set("inside", line_style="dash", weight="medium")
     for side in INSIDE:
-        assert rng.borders[side].line_style == "dot"
-        assert rng.borders[side].weight == "hairline"
+        assert rng.borders[side].line_style == "dash"
+        assert rng.borders[side].weight == "medium"
     for side in OUTSIDE:
         assert rng.borders[side].line_style == "double"
 
