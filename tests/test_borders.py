@@ -1,8 +1,15 @@
 """Round-trip tests for Range.borders against a real Excel (Windows and macOS).
 
 Some expectations encode what Excel actually does rather than what was asked
-for. They were measured on Excel for Mac on 2026-09-07; re-measure before
-assuming other hosts or versions behave the same.
+for. They were measured on Excel for Mac on 2026-09-07 and on Excel for
+Windows on 2026-09-08; re-measure before assuming other hosts or versions
+behave the same.
+
+The getters return what Excel reports for the range, without reading the
+individual cells. Excel doesn't flag a range whose cells disagree, so a
+mixed range reports one of its values rather than None on both hosts, and a
+multi-cell range reports no colour for its diagonals even when one was set.
+Read a single cell for an unambiguous answer.
 """
 
 import sys
@@ -79,7 +86,7 @@ def test_weight_round_trip(rng, side, weight):
     assert rng.borders[side].line_style == "continuous"
 
 
-@pytest.mark.parametrize("side", ALL_SIDES)
+@pytest.mark.parametrize("side", GRID_SIDES)
 def test_color_round_trip(rng, side):
     rng.borders[side].line_style = "continuous"
     rng.borders[side].color = (255, 0, 0)
@@ -88,6 +95,26 @@ def test_color_round_trip(rng, side):
     assert rng.borders[side].color == (0, 255, 0)
     rng.borders[side].color = 0xFF0000  # Excel's BGR integer: blue
     assert rng.borders[side].color == (0, 0, 255)
+
+
+@pytest.mark.parametrize("side", DIAGONALS)
+def test_diagonal_color_reaches_the_cells(rng, side):
+    # Excel reports no colour for a multi-cell range's diagonals even though
+    # the colour was applied: the cells themselves have it.
+    rng.borders[side].line_style = "continuous"
+    rng.borders[side].color = (255, 0, 0)
+    assert rng.borders[side].color is None
+    assert rng.sheet["C3"].borders[side].color == (255, 0, 0)
+
+
+@pytest.mark.parametrize("side", DIAGONALS)
+def test_diagonal_color_round_trip_on_a_single_cell(rng, side):
+    cell = rng.sheet["C3"]
+    cell.borders[side].line_style = "continuous"
+    cell.borders[side].color = (255, 0, 0)
+    assert cell.borders[side].color == (255, 0, 0)
+    cell.borders[side].color = "#00ff00"
+    assert cell.borders[side].color == (0, 255, 0)
 
 
 def test_enums_are_accepted(rng):
@@ -187,28 +214,31 @@ def test_collection_getters_ignore_nonexistent_inside_borders(rng, address):
     ],
 )
 @pytest.mark.parametrize(
-    "attribute,value,initial",
+    "attribute,value,initial,written",
+    # "written" is what the changed cell reads back, which differs from the
+    # value that was set: a removed border reads "none", a colour a tuple.
     [
-        ("line_style", "double", "continuous"),
-        ("line_style", None, "continuous"),
-        ("weight", "thick", "thin"),
-        ("color", "#00ff00", (255, 0, 0)),
+        ("line_style", "double", "continuous", "double"),
+        ("line_style", None, "continuous", "none"),
+        ("weight", "thick", "thin", "thick"),
+        ("color", "#00ff00", (255, 0, 0), (0, 255, 0)),
     ],
 )
-def test_border_getters_none_when_segments_differ(
-    rng, side, cell, cell_side, attribute, value, initial
+def test_border_getters_report_the_range_value_when_segments_differ(
+    rng, side, cell, cell_side, attribute, value, initial, written
 ):
+    # Excel doesn't flag a range whose cells disagree: the getter keeps
+    # reporting the range-level value. Read a single cell for the truth.
     borders = rng.borders
     borders.set("everything", line_style="continuous", weight="thin", color="#ff0000")
     border = borders[side]
-    assert getattr(border, attribute) == initial
+    # A multi-cell range reports no colour for its diagonals, see
+    # test_diagonal_color_reaches_the_cells.
+    diagonal_color = attribute == "color" and side in DIAGONALS
+    assert getattr(border, attribute) == (None if diagonal_color else initial)
     setattr(rng.sheet[cell].borders[cell_side], attribute, value)
-    assert getattr(border, attribute) is None
-    if side in GRID_SIDES:
-        assert getattr(borders, attribute) is None
-    # Reuse the same wrapper after restoring uniform formatting.
-    borders.set(side, line_style="continuous", weight="thin", color="#ff0000")
-    assert getattr(border, attribute) == initial
+    assert getattr(border, attribute) == (None if diagonal_color else initial)
+    assert getattr(rng.sheet[cell].borders[cell_side], attribute) == written
 
 
 def test_edge_getters_ignore_other_cells(rng):

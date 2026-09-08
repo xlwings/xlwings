@@ -1729,8 +1729,13 @@ class Border(base_classes.Border):
 
     @property
     def line_style(self):
+        """The line style Excel reports for the range as a whole.
+
+        Excel doesn't flag a range whose cells disagree, so a mixed range
+        reports one of its values rather than None. Read a single cell to
+        get an unambiguous answer.
+        """
         if self.xl is not None:
-            # COM returns Null (None) if the range's cells don't agree
             value = self.xl.LineStyle
             return None if value is None else _BORDER_LINE_STYLE_FROM_XL.get(value)
 
@@ -1741,6 +1746,7 @@ class Border(base_classes.Border):
 
     @property
     def weight(self):
+        # Like line_style, a mixed range reports one of its values, not None
         if self.xl is not None:
             value = self.xl.Weight
             return None if value is None else _BORDER_WEIGHT_FROM_XL.get(value)
@@ -1752,6 +1758,13 @@ class Border(base_classes.Border):
 
     @property
     def color(self):
+        """The color Excel reports for the range as a whole.
+
+        Like line_style, a mixed range isn't flagged. Diagonals are a
+        further special case: on a multi-cell range Excel reports no color
+        for them even right after one was set, so this returns None. Read
+        the diagonal of a single cell to get its color.
+        """
         if self.xl is not None:
             if self.xl.ColorIndex == ColorIndex.xlColorIndexNone:
                 return None
@@ -1786,7 +1799,12 @@ class Borders(base_classes.Borders):
         return Border(self.parent, side, None)
 
     def _common_value(self, attribute):
-        """The value the existing grid sides share, or None if they differ."""
+        """The value the existing grid sides share, or None if they differ.
+
+        This compares the sides against each other. It can't detect cells
+        that disagree within one side, because the per-side getters don't
+        report that on Windows.
+        """
         if self.xl is None:
             return None
         values = {getattr(self[side], attribute) for side in self._grid_sides()}

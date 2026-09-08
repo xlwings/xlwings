@@ -1395,68 +1395,26 @@ class Border(base_classes.Border):
     def api(self):
         return self.xl
 
-    def _segments(self):
-        """Read each cell segment: Excel for Mac's range-level getters can
-        hide mixed values or report defaults, notably for diagonal colors.
+    def _value(self, attribute):
+        """The value Excel reports for the range as a whole.
+
+        Excel doesn't flag a range whose cells disagree, so a mixed range
+        reports one of its values rather than None, and a multi-cell range
+        reports no color for its diagonals even right after one was set.
+        Read a single cell to get an unambiguous answer.
         """
-        row, col, nrows, ncols = self.parent.coords
-        side = self.side
-        if (
-            (nrows, ncols) == (1, 1)
-            or (side == "inside_vertical" and ncols == 1)
-            or (side == "inside_horizontal" and nrows == 1)
-        ):
-            yield self.xl
-            return
-
-        rows = range(row, row + nrows)
-        cols = range(col, col + ncols)
-        if side == "edge_top":
-            rows = rows[:1]
-        elif side == "edge_bottom":
-            rows = rows[-1:]
-        elif side == "edge_left":
-            cols = cols[:1]
-        elif side == "edge_right":
-            cols = cols[-1:]
-        elif side == "inside_vertical":
-            cols = cols[:-1]
-            side = "edge_right"
-        elif side == "inside_horizontal":
-            rows = rows[:-1]
-            side = "edge_bottom"
-
-        for r in rows:
-            for c in cols:
-                yield self.parent.sheet.xl.cells[f"{col_name(c)}{r}"].get_border(
-                    which_border=getattr(kw, side)
-                )
-
-    def _common_value(self, attribute):
         if self.xl is None:
             return None
-        common = base_classes._UNSET
-        for segment in self._segments():
-            if (
-                attribute == "color"
-                and segment.color_index.get() == kw.color_index_none
-            ):
-                value = None
-            else:
-                value = getattr(segment, attribute).get()
-                if value == kw.missing_value:
-                    value = None
-                elif attribute == "color":
-                    value = tuple(value)
-            if common is base_classes._UNSET:
-                common = value
-            elif value != common:
-                return None
-        return common if common is not base_classes._UNSET else None
+        if attribute == "color" and self.xl.color_index.get() == kw.color_index_none:
+            return None
+        value = getattr(self.xl, attribute).get()
+        if value == kw.missing_value:
+            return None
+        return tuple(value) if attribute == "color" else value
 
     @property
     def line_style(self):
-        return _BORDER_LINE_STYLE_FROM_KW.get(self._common_value("line_style"))
+        return _BORDER_LINE_STYLE_FROM_KW.get(self._value("line_style"))
 
     @line_style.setter
     def line_style(self, value):
@@ -1466,7 +1424,7 @@ class Border(base_classes.Border):
     @property
     def weight(self):
         # The dictionary's "weight" is the enum; "line_weight" is a plain int
-        return _BORDER_WEIGHT_FROM_KW.get(self._common_value("weight"))
+        return _BORDER_WEIGHT_FROM_KW.get(self._value("weight"))
 
     @weight.setter
     def weight(self, value):
@@ -1475,7 +1433,7 @@ class Border(base_classes.Border):
 
     @property
     def color(self):
-        return self._common_value("color")
+        return self._value("color")
 
     @color.setter
     def color(self, color_or_rgb):

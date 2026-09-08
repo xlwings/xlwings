@@ -5320,8 +5320,9 @@ class Border:
         One of `"continuous"`, `"dash"`, `"dash_dot"`, `"dash_dot_dot"`,
         `"dot"`, `"double"`, `"slant_dash_dot"` or `"none"` (or the members of
         `xw.BorderLineStyle`). Setting it to `None` or `"none"` removes the
-        border. Reads `"none"` for a missing border and `None` if the range's
-        cells don't all agree.
+        border. Reads `"none"` for a missing border. Excel doesn't flag a
+        range whose cells don't all agree, so a mixed range reports one of
+        its values; read a single cell for an unambiguous answer.
 
         Excel's border attributes influence one another, so a line style may
         change the weight (and vice versa), and setting a weight or colour on a
@@ -5351,8 +5352,10 @@ class Border:
         """Returns or sets the weight (str).
 
         One of `"hairline"`, `"thin"`, `"medium"` or `"thick"` (or the members
-        of `xw.BorderWeight`). Reads `None` if the range's cells don't all
-        agree. Setting the weight of a removed border makes it visible.
+        of `xw.BorderWeight`). A range whose cells don't all agree reports
+        one of its values, see
+        {attr}`line_style <xlwings.main.Border.line_style>`. Setting the
+        weight of a removed border makes it visible.
 
         ```pycon
         >>> sheet['A1'].borders['edge_bottom'].weight = 'thick'
@@ -5376,8 +5379,11 @@ class Border:
         To set the colour, use an RGB tuple `(255, 0, 0)`, a hex string like
         `'#ff0000'` or an Excel colour constant. Unlike `Range.color`, `None`
         isn't accepted: remove a border via `line_style = None`. Reads `None`
-        for a removed border or if the range's cells don't all agree. Setting
-        the colour of a removed border makes it visible.
+        for a removed border. A range whose cells don't all agree reports one
+        of its values, see {attr}`line_style <xlwings.main.Border.line_style>`,
+        and a multi-cell range reads `None` for its diagonals even when a
+        colour was set. Setting the colour of a removed border makes it
+        visible.
 
         ```pycon
         >>> sheet['A1'].borders['edge_bottom'].color = (255, 0, 0)  # or '#ff0000'
