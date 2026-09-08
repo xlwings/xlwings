@@ -197,7 +197,36 @@ texinfo_domain_indices = False
 # Autodocs (recommended settings by Furo)
 
 autodoc_typehints = "description"
-autodoc_typehints_description_target = "documented"
+autodoc_typehints_description_target = "documented_params"
+
+
+def _hide_impl_signature(
+    app, what, name, obj, options, signature, return_annotation
+):
+    """Drop the ``impl`` parameter from class signatures.
+
+    ``impl`` is the engine-specific implementation object and never meant to be
+    passed by users, so it's noise in the docs. Classes that take nothing else
+    render as ``class Foo`` without parentheses.
+    """
+    if what != "class":
+        return None
+    import inspect
+
+    from sphinx.util.inspect import stringify_signature
+
+    try:
+        sig = inspect.signature(obj.__init__)
+    except (TypeError, ValueError):
+        return None
+    params = list(sig.parameters.values())[1:]  # drop self
+    if not any(p.name == "impl" for p in params):
+        return None
+    params = [p for p in params if p.name != "impl"]
+    if not params:
+        return "", return_annotation
+    sig = sig.replace(parameters=params, return_annotation=inspect.Signature.empty)
+    return stringify_signature(sig, show_annotation=False), return_annotation
 
 
 def _prepare_markdown_doctree(app, doctree, docname):
@@ -228,5 +257,6 @@ def _add_markdown_twin_flag(app, pagename, templatename, context, doctree):
 
 
 def setup(app):
+    app.connect("autodoc-process-signature", _hide_impl_signature)
     app.connect("doctree-resolved", _prepare_markdown_doctree)
     app.connect("html-page-context", _add_markdown_twin_flag)

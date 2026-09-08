@@ -49,13 +49,27 @@ def _rst_inline_to_md(text: str) -> str:
     return re.sub(r"``(.*?)``", r"`\1`", text)
 
 
-def _md_inline_to_rst(text: str) -> str:
-    """Convert MD single backticks to RST double backticks.
+_MYST_ROLE = re.compile(r"\{([\w:.\-]+)\}`([^`]+)`")
 
-    Used for content that stays as native RST (field lists).
-    Avoids converting already-double backticks.
+
+def _md_inline_to_rst(text: str) -> str:
+    """Convert MD inline markup to RST for content that stays as native RST.
+
+    Used for field lists (e.g. napoleon's ``:param:`` output). MyST roles like
+    ``{meth}`x``` become RST roles ``:meth:`x```, and remaining single backticks
+    become RST double backticks. Avoids converting already-double backticks.
     """
-    return re.sub(r"(?<!`)(`)(?!`)(.+?)(?<!`)(`)", r"``\2``", text)
+    roles: list[str] = []
+
+    def _stash_role(match: re.Match) -> str:
+        roles.append(f":{match.group(1)}:`{match.group(2)}`")
+        return f"\x00{len(roles) - 1}\x00"
+
+    text = _MYST_ROLE.sub(_stash_role, text)
+    text = re.sub(r"(?<!`)(`)(?!`)(.+?)(?<!`)(`)", r"``\2``", text)
+    for i, role in enumerate(roles):
+        text = text.replace(f"\x00{i}\x00", role)
+    return text
 
 
 def _is_rst_field(line: str) -> bool:

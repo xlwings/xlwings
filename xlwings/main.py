@@ -2146,13 +2146,13 @@ class Range:
         Examples:
             ```pycon
             >>> rng = sheet["A1:D10"]
-            >>> rng.borders.line_style = "continuous"  # all six grid sides
+            >>> rng.borders.line_style = "continuous"  # edges + inside borders
             >>> rng.borders["edge_bottom"].weight = "thick"
             >>> rng.borders.set("outside", line_style="double", color="#ff0000")
             >>> rng.borders.clear()
             ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return Borders(impl=self.impl.borders)
@@ -5151,7 +5151,7 @@ class Font:
         return await self.impl.get_size()
 
     async def get_color(self) -> tuple[int, int, int] | None:
-        """Fetch the font colour on demand, as an RGB tuple.
+        """Fetch the font color on demand, as an RGB tuple.
 
         `None` if unset or if the range's cells don't all agree.
 
@@ -5249,9 +5249,9 @@ def _border_weight(value: Any) -> str:
 
 
 def _border_color(value: Any) -> tuple[int, int, int]:
-    """Normalize the colour forms `Range.color` accepts into an RGB tuple.
+    """Normalize the color forms `Range.color` accepts into an RGB tuple.
 
-    Unlike `Range.color`, `None` isn't a valid border colour: removing a border
+    Unlike `Range.color`, `None` isn't a valid border color: removing a border
     is what `line_style=None`/`clear()` are for.
     """
     if value is None:
@@ -5290,13 +5290,22 @@ class Border:
     """A single side of a range's borders, accessed via
     {class}`Borders <xlwings.main.Borders>`:
 
-    * `mysheet['A1:D10'].borders['edge_bottom']`
+    `mysheet['A1:D10'].borders['edge_bottom']`
 
-    Side names are `"edge_top"`, `"edge_bottom"`, `"edge_left"`, `"edge_right"`,
-    `"inside_vertical"`, `"inside_horizontal"`, `"diagonal_down"` and
-    `"diagonal_up"`, or the members of `xw.BorderIndex`.
+    Side names are
 
-    ```{versionadded} 0.38.0
+    * `"edge_top"`
+    * `"edge_bottom"`
+    * `"edge_left"`
+    * `"edge_right"`
+    * `"inside_vertical"`
+    * `"inside_horizontal"`
+    * `"diagonal_down"`
+    * `"diagonal_up"`
+
+    or the members of `xw.BorderIndex`.
+
+    ```{versionadded} 0.37.1
     ```
     """
 
@@ -5308,7 +5317,7 @@ class Border:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.api
@@ -5325,7 +5334,7 @@ class Border:
         its values; read a single cell for an unambiguous answer.
 
         Excel's border attributes influence one another, so a line style may
-        change the weight (and vice versa), and setting a weight or colour on a
+        change the weight (and vice versa), and setting a weight or color on a
         removed border makes it visible again. Getters always report the
         resulting native values.
 
@@ -5338,7 +5347,7 @@ class Border:
         'none'
         ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.line_style
@@ -5363,7 +5372,7 @@ class Border:
         'thick'
         ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.weight
@@ -5374,15 +5383,15 @@ class Border:
 
     @property
     def color(self) -> tuple[int, int, int] | None:
-        """Returns or sets the colour (tuple).
+        """Returns or sets the color (tuple).
 
-        To set the colour, use an RGB tuple `(255, 0, 0)`, a hex string like
-        `'#ff0000'` or an Excel colour constant. Unlike `Range.color`, `None`
+        To set the color, use an RGB tuple `(255, 0, 0)`, a hex string like
+        `'#ff0000'` or an Excel color constant. Unlike `Range.color`, `None`
         isn't accepted: remove a border via `line_style = None`. Reads `None`
         for a removed border. A range whose cells don't all agree reports one
         of its values, see {attr}`line_style <xlwings.main.Border.line_style>`,
         and a multi-cell range reads `None` for its diagonals even when a
-        colour was set. Setting the colour of a removed border makes it
+        color was set. Setting the color of a removed border makes it
         visible.
 
         ```pycon
@@ -5391,7 +5400,7 @@ class Border:
         (255, 0, 0)
         ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.color
@@ -5404,11 +5413,11 @@ class Border:
         """Fetch the line style on demand.
 
         `"none"` for a missing border. No engine detects a side whose
-        segments differ from cell to cell, but Office.js reports a different
-        value than the desktop engines do: an edge reports its first
-        segment's value rather than the range's, and an inside border of a
-        range whose cells don't share the same border formatting reads
-        `"none"` even though every cell's own borders are intact.
+        segments differ from cell to cell, but xlwings Lite and xlwings Server
+        report a different value than the desktop engines do: an edge reports
+        its first segment's value rather than the range's, and an inside
+        border of a range whose cells don't share the same border formatting
+        reads `"none"` even though every cell's own borders are intact.
 
         Requires xlwings Lite.
         """
@@ -5417,18 +5426,19 @@ class Border:
     async def get_weight(self) -> str | None:
         """Fetch the weight on demand.
 
-        Office.js reports a mixed side differently than the desktop engines,
-        see {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
+        xlwings Lite and xlwings Server report a mixed side differently than
+        the desktop engines, see
+        {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
         return await self.impl.get_weight()
 
     async def get_color(self) -> tuple[int, int, int] | None:
-        """Fetch the colour on demand, as an RGB tuple.
+        """Fetch the color on demand, as an RGB tuple.
 
-        `None` for a removed border. Office.js reports a mixed side
-        differently than the desktop engines, see
+        `None` for a removed border. xlwings Lite and xlwings Server report a
+        mixed side differently than the desktop engines, see
         {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -5439,31 +5449,22 @@ class Border:
 class Borders:
     """The borders of a range, accessed via `myrange.borders`.
 
-    The collection has the same three attributes as an individual
-    {class}`Border <xlwings.main.Border>`. Setting one of them writes it to the
-    six grid sides (the four edges and the two inside borders, i.e. what "all
-    borders" means in Excel's ribbon), and reading one returns their common
-    value, or `None` if they differ. The two diagonals never take part in the
-    collection-level attributes; use `borders["diagonal_up"]` etc. for them.
-    Reads ignore `"inside_vertical"` for a single-column range and
-    `"inside_horizontal"` for a single-row range, since those borders don't exist.
-
     Use `set()` to write several attributes in one go or to target a group of
     sides, and `clear()` to remove borders.
 
     ```pycon
     >>> rng = sheet["A1:D10"]
-    >>> rng.borders.line_style = "continuous"   # all six grid sides
+    >>> rng.borders.line_style = "continuous"
     >>> rng.borders.weight = "thin"
     >>> rng.borders.color = "#000000"
     >>> rng.borders["edge_bottom"].weight = "thick"
     >>> rng.borders.set("outside", line_style="double", color=(255, 0, 0))
     >>> rng.borders.clear("inside")
-    >>> rng.borders.clear()                     # all eight sides
+    >>> rng.borders.clear()
     >>> [border.line_style for border in rng.borders]  # 8 sides, in table order
     ```
 
-    ```{versionadded} 0.38.0
+    ```{versionadded} 0.37.1
     ```
     """
 
@@ -5475,18 +5476,19 @@ class Borders:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.api
 
     @property
     def line_style(self) -> str | None:
-        """Returns or sets the line style of the six grid sides, see
+        """Returns or sets the line style of the four edges and the two inside
+        borders, i.e. Excel's "All Borders", see
         {attr}`Border.line_style <xlwings.main.Border.line_style>`. Reads the
-        common value, or `None` if the sides differ.
+        common value, or `None` if they differ.
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.line_style
@@ -5497,11 +5499,12 @@ class Borders:
 
     @property
     def weight(self) -> str | None:
-        """Returns or sets the weight of the six grid sides, see
+        """Returns or sets the weight of the four edges and the two inside
+        borders, i.e. Excel's "All Borders", see
         {attr}`Border.weight <xlwings.main.Border.weight>`. Reads the common
-        value, or `None` if the sides differ.
+        value, or `None` if they differ.
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.weight
@@ -5512,11 +5515,12 @@ class Borders:
 
     @property
     def color(self) -> tuple[int, int, int] | None:
-        """Returns or sets the colour of the six grid sides, see
+        """Returns or sets the color of the four edges and the two inside
+        borders, i.e. Excel's "All Borders", see
         {attr}`Border.color <xlwings.main.Border.color>`. Reads the common
-        value, or `None` if the sides differ.
+        value, or `None` if they differ.
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         return self.impl.color
@@ -5526,9 +5530,10 @@ class Borders:
         self.set("all", color=value)
 
     async def get_line_style(self) -> str | None:
-        """Fetch the common line style of the six grid sides on demand.
+        """Fetch the common line style of the four edges and the two inside
+        borders on demand.
 
-        `None` if the sides differ. Segments that differ from cell to cell
+        `None` if they differ. Segments that differ from cell to cell
         within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
@@ -5537,9 +5542,10 @@ class Borders:
         return await self.impl.get_line_style()
 
     async def get_weight(self) -> str | None:
-        """Fetch the common weight of the six grid sides on demand.
+        """Fetch the common weight of the four edges and the two inside borders
+        on demand.
 
-        `None` if the sides differ. Segments that differ from cell to cell
+        `None` if they differ. Segments that differ from cell to cell
         within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
@@ -5548,10 +5554,10 @@ class Borders:
         return await self.impl.get_weight()
 
     async def get_color(self) -> tuple[int, int, int] | None:
-        """Fetch the common colour of the six grid sides on demand, as an RGB
-        tuple.
+        """Fetch the common color of the four edges and the two inside borders
+        on demand, as an RGB tuple.
 
-        `None` if the sides differ. Segments that differ from cell to cell
+        `None` if they differ. Segments that differ from cell to cell
         within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
@@ -5580,7 +5586,7 @@ class Borders:
         """Sets one or more attributes on one or more sides in one go.
 
         Only the attributes you pass are written. For each side, they're
-        applied in the order colour, weight, line style, so that the line
+        applied in the order color, weight, line style, so that the line
         style is what survives when Excel can't represent a combination (for
         instance, `"dash_dot_dot"` with `"thick"` reads back as `"thin"`).
         Validation happens before anything is written; if the host rejects a
@@ -5607,7 +5613,7 @@ class Borders:
             >>> rng.borders.set("inside", line_style=None)  # same as clear("inside")
             ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         sides = _border_sides(which)
@@ -5636,7 +5642,7 @@ class Borders:
             >>> rng.borders.clear("inside")   # the two inside borders only
             ```
 
-        ```{versionadded} 0.38.0
+        ```{versionadded} 0.37.1
         ```
         """
         self.set(which, line_style=None)

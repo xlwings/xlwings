@@ -49,11 +49,11 @@ _CALCULATION_JS2PY = {v: k for k, v in _CALCULATION_PY2JS.items()}
 
 
 def _color_to_hex(color_or_rgb):
-    """Normalize xlwings' accepted colour forms to the `#RRGGBB` Office.js wants.
+    """Normalize xlwings' accepted color forms to the `#RRGGBB` Office.js wants.
 
     The public API takes an RGB tuple, a hex string or an integer, matching the
     desktop engines. `None` passes through, since it means "no fill" rather
-    than a colour.
+    than a color.
     """
     if color_or_rgb is None:
         return None
@@ -3076,7 +3076,7 @@ class Border(base_classes.Border):
     @color.setter
     def color(self, color_or_rgb):
         if color_or_rgb is None:
-            # Unlike a fill, a border has no "no colour": removal is line_style
+            # Unlike a fill, a border has no "no color": removal is line_style
             raise ValueError(
                 "Border color can't be None. To remove a border, set "
                 "line_style=None or use clear()."
@@ -3155,10 +3155,10 @@ class Borders(base_classes.Borders):
         color=base_classes._UNSET,
     ):
         # `which` arrives validated and expanded by main.Borders. One action
-        # per supplied attribute per side, in the documented order colour,
+        # per supplied attribute per side, in the documented order color,
         # weight, line style, which the client applies as-is.
         if color is not base_classes._UNSET:
-            # Convert once, so an invalid colour raises before anything queues
+            # Convert once, so an invalid color raises before anything queues
             color = _color_to_hex(color)
         for side in which:
             border = self[side]

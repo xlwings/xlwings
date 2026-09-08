@@ -1843,7 +1843,7 @@ class Borders(base_classes.Borders):
         color=base_classes._UNSET,
     ):
         # `which` arrives validated and expanded by main.Borders. The fixed
-        # order colour, weight, line style is documented: Excel's border
+        # order color, weight, line style is documented: Excel's border
         # attributes interfere, and this makes the line style win.
         for side in which:
             border = self[side]

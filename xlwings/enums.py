@@ -14,7 +14,7 @@ class BorderIndex(StrEnum):
     Group aliases (`"outside"`, `"inside"`, `"all"`, `"everything"`) are
     accepted by `Borders.set()`/`Borders.clear()` as plain strings only.
 
-    ```{versionadded} 0.38.0
+    ```{versionadded} 0.37.1
     ```
     """
 
@@ -31,7 +31,7 @@ class BorderIndex(StrEnum):
 class BorderLineStyle(StrEnum):
     """Line styles for `Border.line_style`. `none` removes the border.
 
-    ```{versionadded} 0.38.0
+    ```{versionadded} 0.37.1
     ```
     """
 
@@ -48,7 +48,7 @@ class BorderLineStyle(StrEnum):
 class BorderWeight(StrEnum):
     """Line weights for `Border.weight`.
 
-    ```{versionadded} 0.38.0
+    ```{versionadded} 0.37.1
     ```
     """
 

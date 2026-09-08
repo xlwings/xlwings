@@ -2,9 +2,9 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.38.0 (unreleased)
+## v0.37.1 (unreleased)
 
-- All engines: Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`. Line styles, weights and colours are set via lowercase strings (`rng.borders.line_style = "continuous"`) with optional enums `xw.BorderIndex`, `xw.BorderLineStyle` and `xw.BorderWeight` for autocomplete. On xlwings Lite and xlwings Server, reading requires the async API (`await myrange.borders["edge_top"].get_line_style()`), and only the Office.js add-in applies border actions (not Office Scripts, VBA or Google Apps Script). The getters report what Excel reports for the range as a whole: a side whose segments differ from cell to cell isn't detected, so it reads one of the values rather than `None`, and a multi-cell range reads `None` for its diagonal colours even when a colour was set. On Office.js an inside border of such a range reads `"none"` instead. Read a single cell for an unambiguous answer.
+- Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`.
 
 ## v0.37.0 (Sep 1, 2026)
 

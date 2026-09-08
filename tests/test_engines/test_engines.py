@@ -2412,7 +2412,7 @@ def test_font_setters(book, attribute, value):
         ((255, 0, 0), "#ff0000"),
         ("#FFA500", "#FFA500"),
         ("FFA500", "#FFA500"),  # a missing "#" is normalized
-        (255, "#ff0000"),  # Excel colour constant (little-endian int)
+        (255, "#ff0000"),  # Excel color constant (little-endian int)
     ],
 )
 def test_range_color_setter_accepts_every_form(value, expected):
@@ -2635,7 +2635,7 @@ def test_border_line_style_removal_forms(book, value):
         ([0, 255, 0], "#00ff00"),
         ("#FFA500", "#ffa500"),
         ("FFA500", "#ffa500"),  # a missing "#" is fine
-        (255, "#ff0000"),  # Excel colour constant (little-endian int)
+        (255, "#ff0000"),  # Excel color constant (little-endian int)
     ],
 )
 def test_border_color_setter_accepts_every_form(book, value, expected):
@@ -2655,7 +2655,7 @@ def test_border_color_setter_rejects_invalid(book, value):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_border_color_none_is_rejected(book):
-    # Unlike a fill, there's no "no colour": removal is line_style's job
+    # Unlike a fill, there's no "no color": removal is line_style's job
     borders = book.sheets[0].range("A1").borders
     with pytest.raises(ValueError, match="line_style=None"):
         borders["edge_top"].color = None
@@ -2779,7 +2779,7 @@ def test_borders_invalid_selector_queues_nothing(book, which):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_borders_set_attribute_order_is_fixed(book):
-    # colour, weight, line style per side, whatever the keyword order
+    # color, weight, line style per side, whatever the keyword order
     borders = book.sheets[0].range("A1:C3").borders
     expected = []
     for side in ["edge_top", "edge_bottom", "edge_left", "edge_right"]:

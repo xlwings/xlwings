@@ -8,7 +8,7 @@ behave the same.
 The getters return what Excel reports for the range, without reading the
 individual cells. Excel doesn't flag a range whose cells disagree, so a
 mixed range reports one of its values rather than None on both hosts, and a
-multi-cell range reports no colour for its diagonals even when one was set.
+multi-cell range reports no color for its diagonals even when one was set.
 Read a single cell for an unambiguous answer.
 """
 
@@ -99,8 +99,8 @@ def test_color_round_trip(rng, side):
 
 @pytest.mark.parametrize("side", DIAGONALS)
 def test_diagonal_color_reaches_the_cells(rng, side):
-    # Excel reports no colour for a multi-cell range's diagonals even though
-    # the colour was applied: the cells themselves have it.
+    # Excel reports no color for a multi-cell range's diagonals even though
+    # the color was applied: the cells themselves have it.
     rng.borders[side].line_style = "continuous"
     rng.borders[side].color = (255, 0, 0)
     assert rng.borders[side].color is None
@@ -216,7 +216,7 @@ def test_collection_getters_ignore_nonexistent_inside_borders(rng, address):
 @pytest.mark.parametrize(
     "attribute,value,initial,written",
     # "written" is what the changed cell reads back, which differs from the
-    # value that was set: a removed border reads "none", a colour a tuple.
+    # value that was set: a removed border reads "none", a color a tuple.
     [
         ("line_style", "double", "continuous", "double"),
         ("line_style", None, "continuous", "none"),
@@ -232,7 +232,7 @@ def test_border_getters_report_the_range_value_when_segments_differ(
     borders = rng.borders
     borders.set("everything", line_style="continuous", weight="thin", color="#ff0000")
     border = borders[side]
-    # A multi-cell range reports no colour for its diagonals, see
+    # A multi-cell range reports no color for its diagonals, see
     # test_diagonal_color_reaches_the_cells.
     diagonal_color = attribute == "color" and side in DIAGONALS
     assert getattr(border, attribute) == (None if diagonal_color else initial)
@@ -310,7 +310,7 @@ def test_removal_wins_when_weight_and_color_are_supplied(rng):
 
 def test_incompatible_combination_keeps_the_line_style(rng):
     # dash_dot_dot + thick isn't representable in Excel. With the documented
-    # colour, weight, line-style order, the style is what survives.
+    # color, weight, line-style order, the style is what survives.
     rng.borders.set("edge_top", line_style="dash_dot_dot", weight="thick")
     assert rng.borders["edge_top"].line_style == "dash_dot_dot"
     if sys.platform == "darwin":

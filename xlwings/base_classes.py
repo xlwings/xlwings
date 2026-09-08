@@ -1,9 +1,17 @@
 from typing import Any
 
+
+class _Unset:
+    """Type of the `_UNSET` sentinel; the repr keeps autodoc signatures readable."""
+
+    def __repr__(self) -> str:
+        return "..."
+
+
 # Sentinel for "attribute not supplied" in Borders.set(). Shared by main.Borders and
 # the engine implementations; always compare by identity (``value is _UNSET``).
 # Typed as Any so that it can be the default of a typed keyword argument.
-_UNSET: Any = object()
+_UNSET: Any = _Unset()
 
 # Border side names in canonical order. main.Borders validates and expands the
 # user-facing selectors into these before calling an engine, so engines only
