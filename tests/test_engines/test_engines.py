@@ -1508,6 +1508,84 @@ def test_name_refers_to_setter_unknown_sheet(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+@pytest.mark.parametrize(
+    "formula",
+    [
+        "=LAMBDA(value,value*2)",
+        "=LAMBDA(value,value+'Sheet 1'!$A$1)",
+        "=42",
+        '="hello!world"',
+        "=SUM(Sheet2!$A$1:$A$3)",
+        "=-Sheet2!$A$1",
+        "=#REF!",
+        "=('Sheet 1'!$A$1,Sheet2!$B$2)",
+    ],
+)
+def test_named_formula_lifecycle(sheet_scope, formula):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    parent = book.sheets[0] if sheet_scope else book
+    before = len(parent.names)
+    name = parent.names.add("FormulaDemo", formula)
+    assert len(parent.names) == before + 1
+    assert name.refers_to == formula
+    assert name.api["sheet_index"] is None
+    assert name.api["address"] is None
+    with pytest.raises(ValueError, match="does not refer to a single range"):
+        name.refers_to_range
+    action = book.json()["actions"][-1]
+    assert action["func"] == "namesAdd"
+    assert action["args"] == ["FormulaDemo", formula]
+    assert action["sheet_position"] == (0 if sheet_scope else None)
+
+    # Simulate the next workbook snapshot with the new payload schema.
+    snapshot = json.loads(json.dumps(book.impl.api))
+    reloaded = xw.Book(json=snapshot)
+    parent = reloaded.sheets[0] if sheet_scope else reloaded
+    name = next(n for n in parent.names if n.api["name"] == "FormulaDemo")
+    assert name.refers_to == formula
+
+    name.refers_to = "=Sheet2!$C$3"
+    assert name.refers_to_range == reloaded.sheets[1]["C3"]
+    name.refers_to = "=LAMBDA(value,value*3)"
+    assert name.refers_to == "=LAMBDA(value,value*3)"
+    with pytest.raises(ValueError, match="does not refer to a single range"):
+        name.refers_to_range
+    assert reloaded.json()["actions"][-1]["args"] == [
+        "FormulaDemo",
+        not sheet_scope,
+        0 if sheet_scope else None,
+        "=LAMBDA(value,value*3)",
+    ]
+    name.delete()
+    assert len(parent.names) == before
+    assert all(n.api["name"] != "FormulaDemo" for n in reloaded.names)
+    action = reloaded.json()["actions"][-1]
+    assert action["func"] == "nameDelete"
+    assert action["args"][1] == "=LAMBDA(value,value*3)"
+    assert action["args"][4:] == [not sheet_scope, 0 if sheet_scope else None]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_named_reference_preserves_formula_and_resolved_coordinates():
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"][0]["refers_to"] = "=OFFSET('Sheet 1'!$A$1,0,0)"
+    book = xw.Book(json=snapshot)
+    assert book.names[0].refers_to == "=OFFSET('Sheet 1'!$A$1,0,0)"
+    assert book.names[0].refers_to_range == book.sheets[0]["A1"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_name_reference_with_escaped_sheet_name():
+    snapshot = json.loads(json.dumps(data))
+    snapshot["sheets"][0]["name"] = "Sales'24!"
+    book = xw.Book(json=snapshot)
+    name = book.names.add("Escaped", "='Sales''24!'!$A$1:$B$2")
+    assert name.refers_to == "='Sales''24!'!$A$1:$B$2"
+    assert name.refers_to_range == book.sheets[0]["A1:B2"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_name_name_setter_not_supported(book):
     # Excel.NamedItem.name is read-only in Office.js.
     with pytest.raises(NotImplementedError, match="is read-only"):

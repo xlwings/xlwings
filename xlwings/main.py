@@ -4638,7 +4638,7 @@ class Names:
         return len(self)
 
     def add(self, name: str, refers_to: str) -> Name:
-        """Defines a new name for a range of cells.
+        """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and
