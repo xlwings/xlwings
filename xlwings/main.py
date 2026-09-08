@@ -5403,11 +5403,12 @@ class Border:
     async def get_line_style(self) -> str | None:
         """Fetch the line style on demand.
 
-        `"none"` for a missing border. Unlike the desktop engines, Office.js
-        doesn't detect a side whose segments differ from cell to cell: an edge
-        reports its first segment's value rather than `None`, and an inside
-        border of a range whose cells don't share the same border formatting
-        reads `"none"` even though every cell's own borders are intact.
+        `"none"` for a missing border. No engine detects a side whose
+        segments differ from cell to cell, but Office.js reports a different
+        value than the desktop engines do: an edge reports its first
+        segment's value rather than the range's, and an inside border of a
+        range whose cells don't share the same border formatting reads
+        `"none"` even though every cell's own borders are intact.
 
         Requires xlwings Lite.
         """
@@ -5416,8 +5417,8 @@ class Border:
     async def get_weight(self) -> str | None:
         """Fetch the weight on demand.
 
-        Office.js doesn't detect a side whose segments differ from cell to
-        cell, see {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
+        Office.js reports a mixed side differently than the desktop engines,
+        see {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
         """
@@ -5426,8 +5427,8 @@ class Border:
     async def get_color(self) -> tuple[int, int, int] | None:
         """Fetch the colour on demand, as an RGB tuple.
 
-        `None` for a removed border. Office.js doesn't detect a side whose
-        segments differ from cell to cell, see
+        `None` for a removed border. Office.js reports a mixed side
+        differently than the desktop engines, see
         {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -5528,7 +5529,7 @@ class Borders:
         """Fetch the common line style of the six grid sides on demand.
 
         `None` if the sides differ. Segments that differ from cell to cell
-        within a side aren't detected on Office.js, see
+        within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -5539,7 +5540,7 @@ class Borders:
         """Fetch the common weight of the six grid sides on demand.
 
         `None` if the sides differ. Segments that differ from cell to cell
-        within a side aren't detected on Office.js, see
+        within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -5551,7 +5552,7 @@ class Borders:
         tuple.
 
         `None` if the sides differ. Segments that differ from cell to cell
-        within a side aren't detected on Office.js, see
+        within a side aren't detected on any engine, see
         {meth}`Border.get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
