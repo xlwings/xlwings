@@ -229,6 +229,80 @@ def _hide_impl_signature(
     return stringify_signature(sig, show_annotation=False), return_annotation
 
 
+def _widen_literals(annotation):
+    """Replace `Literal["a", "b"]` with `str` (recursing into unions), so that
+    the docs show the plain type; the docstrings list the accepted values."""
+    import types
+    import typing
+
+    origin = typing.get_origin(annotation)
+    if origin is typing.Literal:
+        if all(isinstance(arg, str) for arg in typing.get_args(annotation)):
+            return str
+        return annotation
+    if origin in (typing.Union, types.UnionType):
+        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        # Deduplicate while keeping order, e.g. Literal[...] | str -> str
+        args = tuple(dict.fromkeys(args))
+        return args[0] if len(args) == 1 else typing.Union[args]
+    return annotation
+
+
+def _add_setter_type(app, domain, objtype, contentnode):
+    """Add a "Setter type" field to properties whose setter accepts a different
+    type than the getter returns.
+
+    Autodoc only shows the getter's return annotation as the property type,
+    which hides e.g. the hex strings and ints that a color setter accepts.
+    """
+    if domain != "py" or objtype != "property":
+        return
+    import importlib
+    import inspect
+    import typing
+
+    from docutils import nodes
+    from sphinx import addnodes
+    from sphinx.domains.python import _parse_annotation
+    from sphinx.util.typing import stringify_annotation
+
+    signature = contentnode.parent[0]
+    module_name, fullname = signature.get("module"), signature.get("fullname")
+    if not module_name or not fullname:
+        return
+    try:
+        obj = importlib.import_module(module_name)
+        for part in fullname.split("."):
+            obj = getattr(obj, part)
+        if not isinstance(obj, property) or obj.fset is None:
+            return
+        params = list(inspect.signature(obj.fset).parameters)
+        setter_hints = typing.get_type_hints(obj.fset)
+        getter_hints = typing.get_type_hints(obj.fget)
+    except (AttributeError, NameError, TypeError, ValueError):
+        return
+    if len(params) < 2 or params[1] not in setter_hints:
+        return
+    setter_type = stringify_annotation(_widen_literals(setter_hints[params[1]]))
+    if setter_type == stringify_annotation(getter_hints.get("return")):
+        return
+    field = nodes.field(
+        "",
+        nodes.field_name("", "Setter type"),
+        nodes.field_body(
+            "", nodes.paragraph("", "", *_parse_annotation(setter_type, app.env))
+        ),
+    )
+    field_list = nodes.field_list("", field, classes=["simple"])
+    # Keep the field ahead of any "Added in version" box so it stays with the
+    # description
+    for index, child in enumerate(contentnode):
+        if isinstance(child, addnodes.versionmodified):
+            contentnode.insert(index, field_list)
+            return
+    contentnode.append(field_list)
+
+
 def _prepare_markdown_doctree(app, doctree, docname):
     """Fix internal references and asset URLs in generated Markdown."""
     if app.builder.name != "markdown":
@@ -258,5 +332,6 @@ def _add_markdown_twin_flag(app, pagename, templatename, context, doctree):
 
 def setup(app):
     app.connect("autodoc-process-signature", _hide_impl_signature)
+    app.connect("object-description-transform", _add_setter_type)
     app.connect("doctree-resolved", _prepare_markdown_doctree)
     app.connect("html-page-context", _add_markdown_twin_flag)
