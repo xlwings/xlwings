@@ -2505,7 +2505,7 @@ class Range:
 
         # Reuse the stage that `.value` reads go through, so the shape rules
         # (and `ndim`) stay in one place.
-        c = ConversionContext(myrange=self, value=await self._impl.get_formula())
+        c = ConversionContext(rng=self, value=await self._impl.get_formula())
         AdjustDimensionsStage(self._options)(c)
         return c.value
 
@@ -3144,8 +3144,8 @@ class RangeRows(Ranges):
         ```
     """
 
-    def __init__(self, myrange: Range) -> None:
-        self.myrange = myrange
+    def __init__(self, rng: Range) -> None:
+        self.rng = rng
 
     def __len__(self) -> int:
         """Returns the number of rows.
@@ -3153,20 +3153,20 @@ class RangeRows(Ranges):
         ```{versionadded} 0.9.0
         ```
         """
-        return self.myrange.shape[0]
+        return self.rng.shape[0]
 
     count = property(__len__)
 
     def autofit(self) -> None:
         """Autofits the height of the rows."""
-        self.myrange.impl.autofit(axis="r")
+        self.rng.impl.autofit(axis="r")
 
     def __iter__(self) -> Iterator[Range]:
-        for i in range(0, self.myrange.shape[0]):
-            yield self.myrange[i, :]
+        for i in range(0, self.rng.shape[0]):
+            yield self.rng[i, :]
 
     def __call__(self, key: int) -> Range:
-        return self.myrange[key - 1, :]
+        return self.rng[key - 1, :]
 
     @overload
     def __getitem__(self, key: int) -> Range:
@@ -3178,16 +3178,16 @@ class RangeRows(Ranges):
 
     def __getitem__(self, key: int | slice) -> Range | RangeRows:
         if isinstance(key, slice):
-            return RangeRows(myrange=self.myrange[key, :])
+            return RangeRows(rng=self.rng[key, :])
         elif isinstance(key, int):
-            return self.myrange[key, :]
+            return self.rng[key, :]
         else:
             raise TypeError(
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.__class__.__name__, repr(self.myrange))
+        return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
 class RangeColumns(Ranges):
@@ -3214,8 +3214,8 @@ class RangeColumns(Ranges):
         ```
     """
 
-    def __init__(self, myrange: Range) -> None:
-        self.myrange = myrange
+    def __init__(self, rng: Range) -> None:
+        self.rng = rng
 
     def __len__(self) -> int:
         """Returns the number of columns.
@@ -3223,20 +3223,20 @@ class RangeColumns(Ranges):
         ```{versionadded} 0.9.0
         ```
         """
-        return self.myrange.shape[1]
+        return self.rng.shape[1]
 
     count = property(__len__)
 
     def autofit(self) -> None:
         """Autofits the width of the columns."""
-        self.myrange.impl.autofit(axis="c")
+        self.rng.impl.autofit(axis="c")
 
     def __iter__(self) -> Iterator[Range]:
-        for j in range(0, self.myrange.shape[1]):
-            yield self.myrange[:, j]
+        for j in range(0, self.rng.shape[1]):
+            yield self.rng[:, j]
 
     def __call__(self, key: int) -> Range:
-        return self.myrange[:, key - 1]
+        return self.rng[:, key - 1]
 
     @overload
     def __getitem__(self, key: int) -> Range:
@@ -3248,16 +3248,16 @@ class RangeColumns(Ranges):
 
     def __getitem__(self, key: int | slice) -> Range | RangeColumns:
         if isinstance(key, slice):
-            return RangeColumns(myrange=self.myrange[:, key])
+            return RangeColumns(rng=self.rng[:, key])
         elif isinstance(key, int):
-            return self.myrange[:, key]
+            return self.rng[:, key]
         else:
             raise TypeError(
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.__class__.__name__, repr(self.myrange))
+        return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
 class Shape:
