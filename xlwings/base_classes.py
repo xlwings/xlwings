@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal, get_args
 
 
 class _Unset:
@@ -13,12 +13,9 @@ class _Unset:
 # Typed as Any so that it can be the default of a typed keyword argument.
 _UNSET: Any = _Unset()
 
-# Border side names in canonical order. main.Borders validates and expands the
-# user-facing selectors into these before calling an engine, so engines only
-# ever see the canonical names. The first six are the grid sides that the
-# collection-level properties read and write; the diagonals are reachable
-# individually only.
-BORDER_SIDES = (
+# The border vocabulary. Plain lowercase strings are the API; the Literal
+# aliases give editors autocomplete and type checkers typo detection.
+BorderSide = Literal[
     "edge_top",
     "edge_bottom",
     "edge_left",
@@ -27,7 +24,26 @@ BORDER_SIDES = (
     "inside_horizontal",
     "diagonal_down",
     "diagonal_up",
-)
+]
+BorderGroup = Literal["outside", "inside", "all", "everything"]
+BorderLineStyle = Literal[
+    "continuous",
+    "dash",
+    "dash_dot",
+    "dash_dot_dot",
+    "dot",
+    "double",
+    "slant_dash_dot",
+    "none",
+]
+BorderWeight = Literal["hairline", "thin", "medium", "thick"]
+
+# Border side names in canonical order. main.Borders validates and expands the
+# user-facing selectors into these before calling an engine, so engines only
+# ever see the canonical names. The first six are the grid sides that the
+# collection-level properties read and write; the diagonals are reachable
+# individually only.
+BORDER_SIDES: tuple[str, ...] = get_args(BorderSide)
 BORDER_GRID_SIDES = BORDER_SIDES[:6]
 
 

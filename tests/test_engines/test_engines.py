@@ -2566,32 +2566,6 @@ def _fake_borders(overrides=None):
     return fake
 
 
-def test_border_enums():
-    # StrEnum members behave like their plain string values everywhere
-    assert [str(member) for member in xw.BorderIndex] == BORDER_SIDES
-    assert [str(member) for member in xw.BorderLineStyle] == [
-        "continuous",
-        "dash",
-        "dash_dot",
-        "dash_dot_dot",
-        "dot",
-        "double",
-        "slant_dash_dot",
-        "none",
-    ]
-    assert [str(member) for member in xw.BorderWeight] == [
-        "hairline",
-        "thin",
-        "medium",
-        "thick",
-    ]
-    assert xw.BorderWeight.thin == "thin"
-    assert {"thin": 1}[xw.BorderWeight.thin] == 1
-    assert json.dumps({"style": xw.BorderLineStyle.none}) == '{"style": "none"}'
-    assert xw.BorderIndex("edge_top") is xw.BorderIndex.edge_top
-    assert "outside" not in [str(member) for member in xw.BorderIndex]
-
-
 @pytest.mark.skipif(engine != "calamine", reason="requires calamine engine")
 def test_borders_not_supported_on_calamine(book):
     with pytest.raises(NotImplementedError):
@@ -2599,14 +2573,12 @@ def test_borders_not_supported_on_calamine(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-@pytest.mark.parametrize("side", BORDER_SIDES + list(xw.BorderIndex))
+@pytest.mark.parametrize("side", BORDER_SIDES)
 @pytest.mark.parametrize(
     "attribute,value,expected",
     [
         ("line_style", "double", "double"),
-        ("line_style", xw.BorderLineStyle.double, "double"),
         ("weight", "thick", "thick"),
-        ("weight", xw.BorderWeight.thick, "thick"),
         ("color", "#ff0000", "#ff0000"),
     ],
 )
@@ -2616,12 +2588,12 @@ def test_border_setters(book, side, attribute, value, expected):
     assert len(actions) == 1
     assert actions[0]["func"] == "setBorderProperty"
     assert actions[0]["args"] == [str(side), attribute, expected]
-    # plain strings, whether the caller used enums or not
+    # plain strings, JSON-serializable as-is
     assert json.loads(json.dumps(actions[0]["args"])) == actions[0]["args"]
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-@pytest.mark.parametrize("value", [None, "none", xw.BorderLineStyle.none])
+@pytest.mark.parametrize("value", [None, "none"])
 def test_border_line_style_removal_forms(book, value):
     book.sheets[0].range("A1").borders["edge_top"].line_style = value
     assert _border_actions(book) == [("edge_top", "line_style", None)]
@@ -2719,7 +2691,7 @@ def test_borders_iteration(book):
     [
         ("line_style", "continuous", "continuous"),
         ("line_style", None, None),
-        ("weight", xw.BorderWeight.thin, "thin"),
+        ("weight", "thin", "thin"),
         ("color", (0, 0, 255), "#0000ff"),
     ],
 )
@@ -2740,11 +2712,11 @@ def test_borders_property_setter_is_set_all(book, attribute, value, expected):
     "which,expected_sides",
     [
         ("edge_top", ["edge_top"]),
-        (xw.BorderIndex.diagonal_up, ["diagonal_up"]),
+        ("diagonal_up", ["diagonal_up"]),
         (["edge_left", "edge_right"], ["edge_left", "edge_right"]),
         # lists keep the caller's order and drop duplicates
         (["edge_right", "edge_left", "edge_right"], ["edge_right", "edge_left"]),
-        ((xw.BorderIndex.edge_top, "inside_vertical"), ["edge_top", "inside_vertical"]),
+        (("edge_top", "inside_vertical"), ["edge_top", "inside_vertical"]),
         ("outside", ["edge_top", "edge_bottom", "edge_left", "edge_right"]),
         ("inside", ["inside_vertical", "inside_horizontal"]),
         ("all", BORDER_GRID_SIDES),
@@ -2840,7 +2812,7 @@ def test_borders_set_never_serializes_unset(book):
         (("everything",), BORDER_SIDES),
         (("all",), BORDER_GRID_SIDES),
         (("inside",), ["inside_vertical", "inside_horizontal"]),
-        ((["edge_top", xw.BorderIndex.edge_bottom],), ["edge_top", "edge_bottom"]),
+        ((["edge_top", "edge_bottom"],), ["edge_top", "edge_bottom"]),
     ],
 )
 def test_borders_clear(book, args, expected_sides):

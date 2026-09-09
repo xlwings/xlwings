@@ -1359,7 +1359,7 @@ class Shape(base_classes.Shape):
         raise AttributeError("Characters isn't supported on macOS with shapes.")
 
 
-# None is the normalized form of "none"/BorderLineStyle.none, see main.Borders
+# None is the normalized form of "none", see main.Borders
 _BORDER_LINE_STYLE_TO_KW = {
     "continuous": kw.continuous,
     "dash": kw.dash,

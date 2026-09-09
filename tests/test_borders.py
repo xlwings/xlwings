@@ -117,15 +117,6 @@ def test_diagonal_color_round_trip_on_a_single_cell(rng, side):
     assert cell.borders[side].color == (0, 255, 0)
 
 
-def test_enums_are_accepted(rng):
-    rng.borders[xw.BorderIndex.edge_left].line_style = xw.BorderLineStyle.dash
-    rng.borders[xw.BorderIndex.edge_left].weight = xw.BorderWeight.medium
-    assert rng.borders["edge_left"].line_style == "dash"
-    assert rng.borders["edge_left"].weight == "medium"
-    rng.borders[xw.BorderIndex.edge_left].line_style = xw.BorderLineStyle.none
-    assert rng.borders["edge_left"].line_style == "none"
-
-
 @pytest.mark.parametrize("value", [None, "none"])
 def test_line_style_none_removes_border(rng, value):
     rng.borders["edge_top"].line_style = "continuous"

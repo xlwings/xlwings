@@ -1694,7 +1694,7 @@ _BORDER_SIDE_TO_XL = {
     "diagonal_down": constants.BordersIndex.xlDiagonalDown,
     "diagonal_up": constants.BordersIndex.xlDiagonalUp,
 }
-# None is the normalized form of "none"/BorderLineStyle.none, see main.Borders
+# None is the normalized form of "none", see main.Borders
 _BORDER_LINE_STYLE_TO_XL = {
     "continuous": constants.LineStyle.xlContinuous,
     "dash": constants.LineStyle.xlDash,

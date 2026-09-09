@@ -20,13 +20,29 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Any, ClassVar, Generator, Generic, Iterator, TypeVar, overload
+from typing import (
+    Any,
+    ClassVar,
+    Generator,
+    Generic,
+    Iterator,
+    TypeVar,
+    get_args,
+    overload,
+)
 
 import xlwings
 
 from . import LicenseError, ShapeAlreadyExists, XlwingsError, utils
-from .base_classes import _UNSET, BORDER_GRID_SIDES, BORDER_SIDES
-from .enums import BorderLineStyle, BorderWeight
+from .base_classes import (
+    _UNSET,
+    BORDER_GRID_SIDES,
+    BORDER_SIDES,
+    BorderGroup,
+    BorderLineStyle,
+    BorderSide,
+    BorderWeight,
+)
 
 # Optional imports
 try:
@@ -5175,13 +5191,12 @@ _BORDER_GROUPS: dict[str, tuple[str, ...]] = {
     "all": BORDER_GRID_SIDES,
     "everything": BORDER_SIDES,
 }
-_BORDER_LINE_STYLES = tuple(str(member) for member in BorderLineStyle)
-_BORDER_WEIGHTS = tuple(str(member) for member in BorderWeight)
+_BORDER_LINE_STYLES: tuple[str, ...] = get_args(BorderLineStyle)
+_BORDER_WEIGHTS: tuple[str, ...] = get_args(BorderWeight)
 
 
 def _border_side(key: Any) -> str:
-    """Validate one side name (plain string or `BorderIndex`) and return it as
-    a plain string."""
+    """Validate one side name and return it as a plain string."""
     if isinstance(key, str):
         if str(key) in BORDER_SIDES:
             return str(key)
@@ -5222,7 +5237,7 @@ def _border_sides(which: Any) -> list[str]:
 
 def _border_line_style(value: Any) -> str | None:
     """Normalize a line style to its plain string, with `None` meaning "no
-    border" (`None`, `"none"` and `BorderLineStyle.none` are equivalent)."""
+    border" (`None` and `"none"` are equivalent)."""
     if value is None:
         return None
     if isinstance(value, str) and str(value) in _BORDER_LINE_STYLES:
@@ -5303,8 +5318,6 @@ class Border:
     * `"diagonal_down"`
     * `"diagonal_up"`
 
-    or the members of `xw.BorderIndex`.
-
     ```{versionadded} 0.37.1
     ```
     """
@@ -5327,11 +5340,11 @@ class Border:
         """Returns or sets the line style (str).
 
         One of `"continuous"`, `"dash"`, `"dash_dot"`, `"dash_dot_dot"`,
-        `"dot"`, `"double"`, `"slant_dash_dot"` or `"none"` (or the members of
-        `xw.BorderLineStyle`). Setting it to `None` or `"none"` removes the
-        border. Reads `"none"` for a missing border. Excel doesn't flag a
-        range whose cells don't all agree, so a mixed range reports one of
-        its values; read a single cell for an unambiguous answer.
+        `"dot"`, `"double"`, `"slant_dash_dot"` or `"none"`. Setting it to
+        `None` or `"none"` removes the border. Reads `"none"` for a missing
+        border. Excel doesn't flag a range whose cells don't all agree, so a
+        mixed range reports one of its values; read a single cell for an
+        unambiguous answer.
 
         Excel's border attributes influence one another, so a line style may
         change the weight (and vice versa), and setting a weight or color on a
@@ -5353,16 +5366,15 @@ class Border:
         return self.impl.line_style
 
     @line_style.setter
-    def line_style(self, value: str | None) -> None:
+    def line_style(self, value: BorderLineStyle | None) -> None:
         self.impl.line_style = _border_line_style(value)
 
     @property
     def weight(self) -> str | None:
         """Returns or sets the weight (str).
 
-        One of `"hairline"`, `"thin"`, `"medium"` or `"thick"` (or the members
-        of `xw.BorderWeight`). A range whose cells don't all agree reports
-        one of its values, see
+        One of `"hairline"`, `"thin"`, `"medium"` or `"thick"`. A range whose
+        cells don't all agree reports one of its values, see
         {attr}`line_style <xlwings.main.Border.line_style>`. Setting the
         weight of a removed border makes it visible.
 
@@ -5378,7 +5390,7 @@ class Border:
         return self.impl.weight
 
     @weight.setter
-    def weight(self, value: str) -> None:
+    def weight(self, value: BorderWeight) -> None:
         self.impl.weight = _border_weight(value)
 
     @property
@@ -5494,7 +5506,7 @@ class Borders:
         return self.impl.line_style
 
     @line_style.setter
-    def line_style(self, value: str | None) -> None:
+    def line_style(self, value: BorderLineStyle | None) -> None:
         self.set("all", line_style=value)
 
     @property
@@ -5510,7 +5522,7 @@ class Borders:
         return self.impl.weight
 
     @weight.setter
-    def weight(self, value: str) -> None:
+    def weight(self, value: BorderWeight) -> None:
         self.set("all", weight=value)
 
     @property
@@ -5565,7 +5577,7 @@ class Borders:
         """
         return await self.impl.get_color()
 
-    def __getitem__(self, key: str) -> Border:
+    def __getitem__(self, key: BorderSide | str) -> Border:
         return Border(impl=self.impl[_border_side(key)])
 
     def __iter__(self) -> Iterator[Border]:
@@ -5577,10 +5589,10 @@ class Borders:
 
     def set(
         self,
-        which: str | list[str] = "all",
+        which: BorderSide | BorderGroup | str | list[BorderSide | str] = "all",
         *,
-        line_style: str | None = _UNSET,
-        weight: str = _UNSET,
+        line_style: BorderLineStyle | None = _UNSET,
+        weight: BorderWeight = _UNSET,
         color: tuple[int, int, int] | str | int = _UNSET,
     ) -> None:
         """Sets one or more attributes on one or more sides in one go.
@@ -5593,17 +5605,20 @@ class Borders:
         combination, the error propagates and earlier writes stay in place.
 
         Args:
-            which: A side name (`"edge_top"`, ...), a list of side names, or one
-                of the groups `"outside"` (the four edges), `"inside"` (the two
-                inside borders), `"all"` (outside + inside, the default) and
-                `"everything"` (all eight sides, including the diagonals).
-            line_style: See
+            which (str | list[str]): A side name (`"edge_top"`, ...), a list of
+                side names, or one of the groups `"outside"` (the four edges),
+                `"inside"` (the two inside borders), `"all"` (outside + inside,
+                the default) and `"everything"` (all eight sides, including the
+                diagonals).
+            line_style (str | None): See
                 {attr}`Border.line_style <xlwings.main.Border.line_style>`.
                 `None` or `"none"` removes the selected borders.
-            weight: See {attr}`Border.weight <xlwings.main.Border.weight>`.
-                `None` isn't allowed.
-            color: See {attr}`Border.color <xlwings.main.Border.color>`.
-                `None` isn't allowed.
+            weight (str): See
+                {attr}`Border.weight <xlwings.main.Border.weight>`. `None`
+                isn't allowed.
+            color (tuple[int, int, int] | str | int): See
+                {attr}`Border.color <xlwings.main.Border.color>`. `None` isn't
+                allowed.
 
         Examples:
             ```pycon
@@ -5627,12 +5642,15 @@ class Borders:
             return
         self.impl.set(sides, line_style=line_style, weight=weight, color=color)
 
-    def clear(self, which: str | list[str] = "everything") -> None:
+    def clear(
+        self,
+        which: BorderSide | BorderGroup | str | list[BorderSide | str] = "everything",
+    ) -> None:
         """Removes borders. Same as `set(which, line_style=None)`.
 
         Args:
-            which: A side name, a list of side names or a group, see
-                {meth}`set() <xlwings.main.Borders.set>`. Defaults to
+            which (str | list[str]): A side name, a list of side names or a
+                group, see {meth}`set() <xlwings.main.Borders.set>`. Defaults to
                 `"everything"`, i.e. all eight sides including the diagonals;
                 `clear("all")` leaves the diagonals alone.
 
