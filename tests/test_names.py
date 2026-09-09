@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 from .common import TestBase
@@ -9,6 +10,110 @@ class TestNames(TestBase):
         self.wb1.sheets[0].range("A1").name = "test2"
         self.assertEqual(self.wb1.names(1).name, "test1")
         self.assertEqual(self.wb1.names[1].name, "test2")
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS scoped-name regression")
+    def test_mac_shadowed_workbook_name_by_index(self):
+        sheet = self.wb1.sheets[0]
+        self.wb1.names.add("foo", "=Sheet1!$A$1")
+        self.wb1.names.add("Sheet1!foo", "=Sheet1!$B$1")
+        expected = {"foo": sheet["A1"], "Sheet1!foo": sheet["B1"]}
+        expected_sheets = [s.name for s in self.wb1.sheets]
+        sheet.activate()
+        names = self.wb1.names
+        self.assertEqual({name.name for name in names}, set(expected))
+        self.assertEqual(len(names), 2)
+        for i in range(len(names)):
+            self.assertEqual(names[i].refers_to_range, expected[names[i].name])
+            self.assertEqual(names(i + 1).refers_to_range, expected[names[i].name])
+        for name in names:
+            self.assertEqual(name.refers_to_range, expected[name.name])
+        retained = list(names)
+        names.add("aaa", "=1")
+        for name in retained:
+            self.assertEqual(name.refers_to_range, expected[name.name])
+        names["aaa"].delete()
+        book_index = next(i for i, name in enumerate(names) if name.name == "foo")
+        sheet["D5"].select()
+        control = names.add("relative_control", "=A2")
+        expected_relative = control.refers_to_range
+        control.delete()
+        names[book_index].refers_to = "=A2"
+        self.assertEqual(names[book_index].refers_to_range, expected_relative)
+        self.assertEqual(sheet.names[0].refers_to_range, sheet["B1"])
+        handle = names[book_index]
+        handle.name = "renamed"
+        self.assertEqual(handle.name, "renamed")
+        self.assertEqual(handle.refers_to_range, expected_relative)
+        handle.name = "foo"
+        self.assertEqual(handle.name, "foo")
+        self.assertEqual(handle.refers_to_range, expected_relative)
+        book_index = next(i for i, name in enumerate(names) if name.name == "foo")
+        del names[book_index]
+        self.assertEqual(len(names), 1)
+        self.assertEqual(names[0].name, "Sheet1!foo")
+        self.assertEqual(names[0].refers_to_range, sheet["B1"])
+        self.assertEqual([s.name for s in self.wb1.sheets], expected_sheets)
+        self.assertEqual(self.wb1.sheets.active.name, sheet.name)
+        self.assertEqual(self.wb1.app.selection, sheet["D5"])
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS scoped-name regression")
+    def test_mac_held_name_survives_sheet_rename(self):
+        sheet = self.wb1.sheets[0]
+        self.wb1.names.add("foo", "=Sheet1!$A$1")
+        self.wb1.names.add("Sheet1!foo", "=Sheet1!$B$1")
+        handles = {name.name: name for name in self.wb1.names}
+        sheet.name = "Renamed"
+        local = handles["Sheet1!foo"]
+        self.assertEqual(local.name, "Renamed!foo")
+        self.assertEqual(local.refers_to_range, sheet["B1"])
+        self.assertEqual(handles["foo"].refers_to_range, sheet["A1"])
+        local.refers_to = "=Renamed!$B$2"
+        self.assertEqual(local.refers_to_range, sheet["B2"])
+        local.delete()
+        self.assertEqual(handles["foo"].refers_to_range, sheet["A1"])
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS scoped-name regression")
+    def test_mac_held_name_survives_sorted_scope_rename(self):
+        alpha = self.wb1.sheets[0]
+        alpha.name = "Alpha"
+        middle = self.wb1.sheets.add(name="Sheet1", after=alpha)
+        zeta = self.wb1.sheets.add(name="Zeta", after=middle)
+        for sheet in [alpha, middle, zeta]:
+            self.wb1.names.add(f"{sheet.name}!Print_Area", f"={sheet.name}!$A$1")
+        names = self.wb1.names
+        handles = {name.name: name for name in names}
+        target = handles["Sheet1!Print_Area"]
+        middle.name = "Zulu"
+        self.assertEqual(target.name, "Zulu!Print_Area")
+        self.assertEqual(target.refers_to_range, middle["A1"])
+        target.refers_to = "=Zulu!$B$2"
+        self.assertEqual(target.refers_to_range, middle["B2"])
+        self.assertEqual(handles["Zeta!Print_Area"].refers_to_range, zeta["A1"])
+        target.delete()
+        self.assertEqual(handles["Alpha!Print_Area"].refers_to_range, alpha["A1"])
+        self.assertEqual(handles["Zeta!Print_Area"].refers_to_range, zeta["A1"])
+        self.assertEqual(len(names), 2)
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS chart-sheet regression")
+    def test_mac_mutations_with_chart_sheet_active(self):
+        from xlwings._xlmac import kw
+
+        self.wb1.names.add("foo", "=Sheet1!$A$1")
+        name = self.wb1.names[0]
+        chart = self.wb1.api.make(new=kw.chart_sheet, at=self.wb1.api.sheets[1].before)
+        chart_name = chart.name.get()
+        chart.activate_object()
+        worksheet_names = [sheet.name for sheet in self.wb1.sheets]
+        name.refers_to = "=Sheet1!$B$1"
+        self.assertEqual(name.refers_to_range, self.wb1.sheets["Sheet1"]["B1"])
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        name.name = "renamed"
+        self.assertEqual(name.name, "renamed")
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        name.delete()
+        self.assertEqual(len(self.wb1.names), 0)
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        self.assertEqual([sheet.name for sheet in self.wb1.sheets], worksheet_names)
 
     def test_names_contain(self):
         self.wb1.sheets[0].range("B2:D10").name = "test1"
