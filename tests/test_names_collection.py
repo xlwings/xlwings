@@ -1,10 +1,12 @@
-"""Shared Names contracts, including native collections with lazy index handles."""
+"""Names filtering, scoped identity, and index shifts with stable and lazy engines."""
 
 import sys
 from types import SimpleNamespace
 
 import pytest
 
+from xlwings import base_classes
+from xlwings._names import NameIndex
 from xlwings.main import Names
 
 
@@ -42,7 +44,7 @@ class NativeName:
         self.collection.api.remove(self.record)
 
 
-class NativeNames:
+class NativeNames(base_classes.Names):
     def __init__(self, records):
         self.api = records
         self.inserted = False
@@ -63,8 +65,47 @@ class NativeNames:
         return self(name)
 
 
+class LazyNativeName(NativeName):
+    def __init__(self, collection, index):
+        self.collection = collection
+        self.index = index
+
+    @property
+    def record(self):
+        index = self.index.resolve(
+            self.collection.name_at_index, self.collection.name_strings
+        )
+        return self.collection.api[index - 1]
+
+
+class LazyNativeNames(NativeNames):
+    def name_at_index(self, index):
+        if 1 <= index <= len(self.api):
+            return self.api[index - 1]["name"]
+        return None
+
+    def name_strings(self):
+        return [record["name"] for record in self.api]
+
+    def __call__(self, key):
+        if isinstance(key, str):
+            key = self.name_strings().index(key) + 1
+        return LazyNativeName(self, NameIndex(key, self.name_at_index(key)))
+
+    def snapshot(self):
+        return [
+            (name, LazyNativeName(self, NameIndex(i, name)))
+            for i, name in enumerate(self.name_strings(), 1)
+        ]
+
+
+@pytest.fixture(params=[NativeNames, LazyNativeNames], ids=["stable", "lazy"])
+def native_names(request):
+    return request.param
+
+
 @pytest.mark.parametrize("prefix", ["", "'_xlfn.Scope!Name'!"])
-def test_shared_names_filter_all_collection_operations(prefix):
+def test_shared_names_filter_all_collection_operations(prefix, native_names):
     excluded = ["_xlfn.LAMBDA", "_xlpm.value", "_XLFN.UNIQUE", "_XLPM.Value"]
     included = [
         "UserRange",
@@ -74,7 +115,7 @@ def test_shared_names_filter_all_collection_operations(prefix):
         "_xlfnCustom",
         "_xlpm_config",
     ]
-    native = NativeNames(
+    native = native_names(
         [
             {"name": prefix + name, "formula": "=#NAME?", "visible": False}
             for name in [excluded[0], *included[:2], *excluded[1:], *included[2:]]
@@ -109,8 +150,10 @@ def test_shared_names_filter_all_collection_operations(prefix):
     assert len(names.api) == len(included) + len(excluded)
 
 
-def test_iteration_survives_internal_name_inserted_during_reference_resolution():
-    native = NativeNames(
+def test_iteration_survives_internal_name_inserted_during_reference_resolution(
+    native_names,
+):
+    native = native_names(
         [{"name": f"Range{i}", "formula": "=#REF!"} for i in range(1, 5)]
     )
     names = Names(native)
@@ -128,8 +171,8 @@ def test_iteration_survives_internal_name_inserted_during_reference_resolution()
     assert native.api[0]["name"] == "_xlfn.ANCHORARRAY"
 
 
-def test_filtered_indices_edit_and_delete_the_intended_name():
-    native = NativeNames(
+def test_filtered_indices_edit_and_delete_the_intended_name(native_names):
+    native = native_names(
         [
             {"name": "_xlpm.value", "formula": "=#NAME?"},
             {"name": "First", "formula": "=1"},
@@ -171,32 +214,119 @@ def test_duplicate_name_text_preserves_each_entry():
     assert [name.refers_to for name in names] == [expected[0], "=42"]
 
 
+def test_lazy_name_recovers_after_deletion_and_rejects_missing_entry():
+    native = LazyNativeNames(
+        [{"name": name, "formula": "=1"} for name in ["First", "Second", "Third"]]
+    )
+    first, second, third = list(Names(native))
+    first.delete()
+    assert third.name == "Third"  # The old index is now past the end.
+    assert second.name == "Second"
+    second.delete()
+    with pytest.raises(KeyError, match="Second"):
+        second.refers_to = "=42"
+    assert third.refers_to == "=1"
+
+
+def test_name_index_rescans_only_when_needed():
+    from unittest.mock import Mock
+
+    get_name = Mock(return_value="Range2")
+    get_names = Mock(return_value=["_xlfn.ANCHORARRAY", "Range1", "Range2"])
+    index = NameIndex(2, "Range2")
+    assert index.resolve(get_name, get_names) == 2
+    get_name.assert_called_once_with(2)
+    get_names.assert_not_called()
+    get_name.return_value = "Range1"
+    assert index.resolve(get_name, get_names) == 3
+    get_names.assert_called_once_with()
+    get_name.return_value = "Range2"
+    assert index.resolve(get_name, get_names) == 3
+    assert get_names.call_count == 1
+
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="Requires the appscript engine")
-def test_mac_name_handles_survive_internal_name_insertion():
-    from xlwings._xlmac import Names as MacNames
+@pytest.mark.parametrize("bulk_shadows", [False, True])
+def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
+    from xlwings._xlmac import Names as MacNames, kw
 
-    class LazyNativeNames:
+    class NativeCollection:
         def __init__(self):
-            self.records = ["Range1", "'Sheet 1'!Range1", "Range2"]
+            self.records = [
+                {"name": "foo", "formula": "=1"},
+                {"name": "Sheet1!foo", "formula": "=2"},
+            ]
+            self.bulk_reads = 0
+            self.index_reads = 0
+            self.name = SimpleNamespace(get=self.get_names)
 
-        def get(self):
-            return self.records
+        def get_names(self):
+            self.bulk_reads += 1
+            names = [record["name"] for record in self.records]
+            if bulk_shadows and "foo" in names and "Sheet1!foo" in names:
+                names[names.index("foo")] = "Sheet1!foo"
+            return names
 
         def __getitem__(self, key):
-            # Like appscript, resolve an index only when the property is read.
-            def get_name():
-                if isinstance(key, int):
-                    return self.records[key - 1]
-                assert key in self.records
-                return key
+            assert isinstance(
+                key, int
+            ), "By-name lookup would select the shadowing name"
+            return NativeReference(self, key)
 
-            return SimpleNamespace(name=SimpleNamespace(get=get_name))
+    class NativeReference:
+        def __init__(self, collection, index):
+            self.collection = collection
+            self.index = index
+            self.name = SimpleNamespace(get=self.get_name, set=self.set_name)
+            self.references = SimpleNamespace(
+                set=lambda value: self.record.update(formula=value)
+            )
 
-    native = LazyNativeNames()
-    names = Names(MacNames(parent=None, xl=native))
+        @property
+        def record(self):
+            return self.collection.records[self.index - 1]
+
+        def get_name(self):
+            self.collection.index_reads += 1
+            return self.record["name"]
+
+        def set_name(self, value):
+            scope = self.record["name"].rpartition("!")[0]
+            self.record["name"] = f"{scope}!{value}" if scope else value
+            self.collection.records.sort(key=lambda record: record["name"])
+
+        def properties(self):
+            return {kw.references: self.record["formula"]}
+
+        def delete(self):
+            self.collection.records.remove(self.record)
+
+    native = NativeCollection()
+    # The live test covers Excel's mutation scope. This fake tests index tracking.
+    active = SimpleNamespace(names=SimpleNamespace(_name_strings=lambda: []))
+    parent = SimpleNamespace(
+        book=SimpleNamespace(sheets=SimpleNamespace(active=active))
+    )
+    names = Names(MacNames(parent=parent, xl=native))
     iterator = iter(names)
-    indexed = names[1]
-    native.records.insert(0, "_xlfn.ANCHORARRAY")
-    assert indexed.name == "'Sheet 1'!Range1"
-    assert [name.name for name in iterator] == ["Range1", "'Sheet 1'!Range1", "Range2"]
-    assert len(names) == 3
+    assert native.bulk_reads == 1
+    assert native.index_reads == (2 if bulk_shadows else 0)
+    book_name, sheet_name = iterator
+    assert book_name.refers_to == "=1"
+    assert sheet_name.refers_to == "=2"
+    assert native.bulk_reads == 1
+    native.records.insert(0, {"name": "_xlfn.ANCHORARRAY", "formula": "=#NAME?"})
+    book_name.refers_to = "=42"
+    assert native.records[1]["formula"] == "=42"
+    assert sheet_name.refers_to == "=2"
+    assert [name.name for name in names] == ["foo", "Sheet1!foo"]
+    book_name.name = "zzz"
+    assert book_name.name == "zzz"
+    sheet_name.name = "renamed"
+    assert sheet_name.name == "Sheet1!renamed"
+    assert sheet_name.refers_to == "=2"
+    book_name.delete()
+    assert [record["name"] for record in native.records] == [
+        "Sheet1!renamed",
+        "_xlfn.ANCHORARRAY",
+    ]

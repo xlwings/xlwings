@@ -6,7 +6,10 @@ import re
 import shutil
 import struct
 import subprocess
+from collections import Counter
+from contextlib import contextmanager
 from pathlib import Path
+from uuid import uuid4
 
 import aem
 import appscript
@@ -18,6 +21,7 @@ from appscript.reference import CommandError
 import xlwings
 
 from . import base_classes, mac_dict, utils
+from ._names import NameIndex
 from .constants import ColorIndex
 from .utils import (
     VersionNumber,
@@ -2155,10 +2159,38 @@ class Names(base_classes.Names):
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
-            # appscript index references are lazy. Bind by the scope-qualified name
-            # so Excel inserting internal names cannot shift an existing handle.
-            name_or_index = self.xl[name_or_index].name.get()
+            name = self.xl[name_or_index].name.get()
+            return Name(
+                self.parent,
+                collection=self,
+                index=NameIndex(name_or_index, name),
+            )
         return Name(self.parent, xl=self.xl[name_or_index])
+
+    def _name_strings(self):
+        names = self.xl.name.get()
+        if names == kw.missing_value:
+            return []
+        # Excel's bulk read can repeat a sheet-local name in place of a shadowed
+        # workbook name. Indexed reads distinguish them; verify only collisions.
+        counts = Counter(names)
+        return [
+            self.xl[i].name.get() if counts[name] > 1 else name
+            for i, name in enumerate(names, 1)
+        ]
+
+    def _name_at_index(self, index):
+        try:
+            return self.xl[index].name.get()
+        except CommandError:
+            # An earlier deletion can leave the cached index past the end.
+            return None
+
+    def snapshot(self):
+        return [
+            (name, Name(self.parent, collection=self, index=NameIndex(i, name)))
+            for i, name in enumerate(self._name_strings(), 1)
+        ]
 
     def contains(self, name_or_index):
         try:
@@ -2187,20 +2219,100 @@ class Names(base_classes.Names):
 
 
 class Name(base_classes.Name):
-    def __init__(self, parent, xl):
+    def __init__(self, parent, xl=None, collection=None, index=None):
         self.parent = parent
-        self.xl = xl
+        self._xl = xl
+        self._collection = collection
+        self._index = index
+
+    @property
+    def xl(self):
+        if self._index is None:
+            return self._xl
+        index = self._index.resolve(
+            self._collection._name_at_index, self._collection._name_strings
+        )
+        return self._collection.xl[index]
+
+    @contextmanager
+    def _mutation_context(self, new_name=None, refers_to=None):
+        # Excel can route even indexed mutations of a workbook name to a local
+        # name on the active sheet. Use a sheet without that shadow while writing.
+        name = self.name
+        if "!" in name:
+            yield refers_to
+            return
+        names = {name.lower()}
+        if new_name is not None and "!" not in new_name:
+            names.add(new_name.lower())
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        local_names = book.sheets.active.names._name_strings()
+        if not any(item.rsplit("!", 1)[-1].lower() in names for item in local_names):
+            yield refers_to
+            return
+        previous_book = book.app.books.active
+        previous_sheet = book.sheets.active
+        temporary_sheet = None
+        if refers_to is not None:
+            # Excel interprets input relative references from A1, while reads
+            # depend on the selected cell. Normalize on the original sheet at A1.
+            selection = book.app.selection
+            try:
+                previous_sheet.range("A1").select()
+                temporary_name = book.names.add(f"xw_tmp_{uuid4().hex[:16]}", refers_to)
+                try:
+                    refers_to = temporary_name.refers_to
+                finally:
+                    temporary_name.delete()
+            finally:
+                if selection is not None:
+                    selection.select()
+        try:
+            if refers_to is not None:
+                temporary_sheet = book.sheets.add(after=book.sheets(len(book.sheets)))
+                temporary_sheet.activate()
+            else:
+                for sheet in book.sheets:
+                    if sheet.visible and not any(
+                        item.rsplit("!", 1)[-1].lower() in names
+                        for item in sheet.names._name_strings()
+                    ):
+                        sheet.activate()
+                        break
+                else:
+                    temporary_sheet = book.sheets.add(
+                        after=book.sheets(len(book.sheets))
+                    )
+                    temporary_sheet.activate()
+            yield refers_to
+        finally:
+            previous_sheet.activate()
+            if temporary_sheet is not None:
+                temporary_sheet.delete()
+            previous_book.activate()
 
     def delete(self):
-        self.xl.delete()
+        with self._mutation_context():
+            self.xl.delete()
 
     @property
     def name(self):
-        return self.xl.name.get()
+        if self._index is None:
+            return self.xl.name.get()
+        self._index.resolve(
+            self._collection._name_at_index, self._collection._name_strings
+        )
+        return self._index.name
 
     @name.setter
     def name(self, value):
-        self.xl.name.set(value)
+        with self._mutation_context(new_name=value):
+            self.xl.name.set(value)
+            if self._index is not None:
+                if "!" not in value and "!" in self._index.name:
+                    scope = self._index.name.rsplit("!", 1)[0]
+                    value = f"{scope}!{value}"
+                self._index.name = value
 
     @property
     def refers_to(self):
@@ -2208,7 +2320,8 @@ class Name(base_classes.Name):
 
     @refers_to.setter
     def refers_to(self, value):
-        self.xl.properties(kw.references).set(value)
+        with self._mutation_context(refers_to=value) as refers_to:
+            self.xl.references.set(refers_to)
 
     @property
     def refers_to_range(self):

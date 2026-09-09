@@ -4672,11 +4672,11 @@ class Names:
         return name.rsplit("!", 1)[-1].lower().startswith(("_xlfn.", "_xlpm."))
 
     def _name_snapshot(self) -> list[Any]:
-        # Keep each entry's identity: calamine can expose the same name text for
-        # different scopes. Engines must return handles that survive index shifts.
-        # Only read names here, since resolving references can insert internal names.
-        names = [self.impl(i + 1) for i in range(len(self.impl))]
-        return [name for name in names if not self._is_internal_name(name.name)]
+        return [
+            impl
+            for name, impl in self.impl.snapshot()
+            if not self._is_internal_name(name)
+        ]
 
     def __call__(self, name_or_index: int | str) -> Name:
         if isinstance(name_or_index, numbers.Number):

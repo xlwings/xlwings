@@ -817,7 +817,21 @@ class Names:
     #     raise NotImplementedError()
 
     def __call__(self, name_or_index):
+        """Return a handle that retains its identity when native indices shift.
+
+        Reading a broken reference can make Excel insert internal names. Existing
+        handles must still address the original entry, including its scope, after
+        that insertion. Do not rebind indices through ambiguous string lookups.
+        """
         raise NotImplementedError()
+
+    def snapshot(self):
+        """Return (name text, stable handle) pairs without resolving references.
+
+        Engines can override this to read all name strings in one native call.
+        """
+        names = [self(i + 1) for i in range(len(self))]
+        return [(name.name, name) for name in names]
 
     def contains(self, name_or_index):
         raise NotImplementedError()
