@@ -7,7 +7,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - xlwings Lite and xlwings Server: Added support for named formulas, including Excel LAMBDA functions.
 - xlwings Lite and xlwings Server: `Name.refers_to` now returns the original definition (for example, `=OFFSET(...)`) instead of its resolved address. Use `Name.refers_to_range` for the resolved range.
 - Excel-generated `_xlfn.*` and `_xlpm.*` names are now excluded from name collections.
-- macOS: Fixed name indexing and iteration when workbook and worksheet names share the same text, including editing and deleting the workbook-scoped name by index.
+- macOS: Fixed some issues with name indexing and iteration.
 
 ## v0.37.1 (Sep 9, 2026)
 
