@@ -73,12 +73,42 @@ class LazyNativeName(NativeName):
     @property
     def record(self):
         index = self.index.resolve(
-            self.collection.name_at_index, self.collection.name_strings
+            self.collection.name_at_index,
+            self.collection.name_strings,
+            self.collection.sheet_names,
         )
         return self.collection.api[index - 1]
 
 
 class LazyNativeNames(NativeNames):
+    def __init__(self, records, sheets=None):
+        super().__init__(records)
+        self.sheets = (
+            list(sheets)
+            if sheets is not None
+            else list(
+                dict.fromkeys(
+                    scope
+                    for record in records
+                    if (scope := NameIndex.split_name(record["name"])[0]) is not None
+                )
+            )
+        )
+
+    def sheet_names(self):
+        return self.sheets
+
+    def rename_sheet(self, old, new):
+        self.sheets[self.sheets.index(old)] = new
+        for record in self.api:
+            scope, local = NameIndex.split_name(record["name"])
+            if scope == old:
+                quoted = "'" + new.replace("'", "''") + "'" if " " in new else new
+                record["name"] = f"{quoted}!{local}"
+        self.api.sort(
+            key=lambda record: (not record["name"].startswith("_xlfn."), record["name"])
+        )
+
     def name_at_index(self, index):
         if 1 <= index <= len(self.api):
             return self.api[index - 1]["name"]
@@ -90,11 +120,13 @@ class LazyNativeNames(NativeNames):
     def __call__(self, key):
         if isinstance(key, str):
             key = self.name_strings().index(key) + 1
-        return LazyNativeName(self, NameIndex(key, self.name_at_index(key)))
+        return LazyNativeName(
+            self, NameIndex(key, self.name_at_index(key), self.sheets)
+        )
 
     def snapshot(self):
         return [
-            (name, LazyNativeName(self, NameIndex(i, name)))
+            (name, LazyNativeName(self, NameIndex(i, name, self.sheets)))
             for i, name in enumerate(self.name_strings(), 1)
         ]
 
@@ -245,7 +277,9 @@ def test_name_index_rescans_only_when_needed():
     assert get_names.call_count == 1
 
 
-@pytest.mark.parametrize("new_scope", ["Renamed", "'Renamed ! Sheet'"])
+@pytest.mark.parametrize(
+    "new_scope", ["Renamed", "'Renamed ! Sheet'", "'Owner''s Sheet'"]
+)
 def test_lazy_name_survives_sheet_rename(new_scope):
     native = LazyNativeNames(
         [
@@ -254,13 +288,82 @@ def test_lazy_name_survives_sheet_rename(new_scope):
         ]
     )
     first, second = list(Names(native))
-    native.api[0]["name"] = f"{new_scope}!foo"
+    native.rename_sheet("Sheet1", NameIndex.split_name(f"{new_scope}!foo")[0])
     assert first.name == f"{new_scope}!foo"
     first.refers_to = "=42"
     assert first.refers_to == "=42"
     assert second.refers_to == "=2"
     first.delete()
     assert second.name == "Sheet2!foo"
+
+
+@pytest.mark.parametrize("local", ["Print_Area", "_FilterDatabase"])
+@pytest.mark.parametrize("insert_internal", [False, True])
+def test_scope_rename_tracks_worksheet_when_names_resort(local, insert_internal):
+    native = LazyNativeNames(
+        [
+            {"name": f"{scope}!{local}", "formula": f"={i}"}
+            for i, scope in enumerate(["Alpha", "Sheet1", "Zeta"], 1)
+        ]
+    )
+    first, target, neighbor = list(Names(native))
+    if insert_internal:
+        native.api.insert(0, {"name": "_xlfn.ANCHORARRAY", "formula": "=#NAME?"})
+    native.rename_sheet("Sheet1", "Zulu")
+    assert target.name == f"Zulu!{local}"
+    assert target.refers_to == "=2"
+    target.refers_to = "=42"
+    assert neighbor.name == f"Zeta!{local}"
+    assert neighbor.refers_to == "=3"
+    target.delete()
+    assert first.refers_to == "=1"
+    assert neighbor.refers_to == "=3"
+    assert len(Names(native)) == 2
+
+
+def test_independent_sheet_renames_preserve_each_scope():
+    native = LazyNativeNames(
+        [
+            {"name": f"{scope}!foo", "formula": f"={i}"}
+            for i, scope in enumerate(["Alpha", "Sheet1", "Zeta"], 1)
+        ]
+    )
+    first, second, third = list(Names(native))
+    native.rename_sheet("Alpha", "Gamma")
+    native.rename_sheet("Sheet1", "Zulu")
+    assert first.name == "Gamma!foo"
+    assert second.name == "Zulu!foo"
+    assert third.name == "Zeta!foo"
+    assert [first.refers_to, second.refers_to, third.refers_to] == ["=1", "=2", "=3"]
+
+
+def test_deleted_scoped_name_does_not_adopt_neighbor():
+    native = LazyNativeNames(
+        [
+            {"name": f"{scope}!Print_Area", "formula": f"={i}"}
+            for i, scope in enumerate(["Alpha", "Sheet1", "Zeta"], 1)
+        ]
+    )
+    target = Names(native)[1]
+    del native.api[1]
+    with pytest.raises(KeyError, match="Sheet1!Print_Area"):
+        target.refers_to = "=42"
+    assert native.api[1]["formula"] == "=3"
+
+
+def test_rename_with_worksheet_reorder_does_not_guess_scope():
+    native = LazyNativeNames(
+        [
+            {"name": f"{scope}!Print_Area", "formula": f"={i}"}
+            for i, scope in enumerate(["Alpha", "Sheet1", "Zeta"], 1)
+        ]
+    )
+    target = Names(native)[1]
+    native.rename_sheet("Sheet1", "Zulu")
+    native.sheets = ["Alpha", "Zeta", "Zulu"]
+    with pytest.raises(KeyError, match="Sheet1!Print_Area"):
+        target.delete()
+    assert len(native.api) == 3
 
 
 def test_name_index_prefers_exact_match_over_changed_scope_at_old_index():
@@ -294,7 +397,12 @@ def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
             ]
             self.bulk_reads = 0
             self.index_reads = 0
+            self.sheet_reads = 0
             self.name = SimpleNamespace(get=self.get_names)
+
+        def get_sheet_names(self):
+            self.sheet_reads += 1
+            return ["Sheet1"]
 
         def get_names(self):
             self.bulk_reads += 1
@@ -347,11 +455,19 @@ def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
         xl=SimpleNamespace(exists=lambda: True),
     )
     parent = SimpleNamespace(
-        book=SimpleNamespace(sheets=SimpleNamespace(active=active))
+        book=SimpleNamespace(
+            sheets=SimpleNamespace(active=active),
+            xl=SimpleNamespace(
+                worksheets=SimpleNamespace(
+                    name=SimpleNamespace(get=native.get_sheet_names)
+                )
+            ),
+        )
     )
     names = Names(MacNames(parent=parent, xl=native))
     iterator = iter(names)
     assert native.bulk_reads == 1
+    assert native.sheet_reads == 1
     assert native.index_reads == (2 if bulk_shadows else 0)
     book_name, sheet_name = iterator
     assert book_name.refers_to == "=1"

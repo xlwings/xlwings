@@ -2,30 +2,58 @@
 
 
 class NameIndex:
-    def __init__(self, index, name):
+    def __init__(self, index, name, sheet_names=()):
         self.index = index
         self.name = name
+        self.sheet_names = tuple(sheet_names)
+        scope, _ = self.split_name(name)
+        try:
+            self.sheet_index = self.sheet_names.index(scope)
+        except ValueError:
+            self.sheet_index = None
 
-    def resolve(self, get_name, get_names):
-        """Validate a one-based index; rescan only when its name has moved.
+    @staticmethod
+    def split_name(name):
+        scope, separator, local = name.rpartition("!")
+        if not separator:
+            return None, local
+        if scope.startswith("'") and scope.endswith("'"):
+            scope = scope[1:-1].replace("''", "'")
+        return scope, local
 
-        get_name returns None for an index that no longer exists. Name strings
-        must distinguish scopes, even if native by-name lookup ignores scope.
+    def resolve(self, get_name, get_names, get_sheet_names=None):
+        """Validate a one-based name index and require an exact scoped match.
+
+        get_name returns None for an index that no longer exists. A worksheet
+        snapshot identifies the scope after a rename; the old name index never
+        supplies a replacement scope. Ambiguous worksheet changes raise KeyError.
         """
-        current_name = get_name(self.index)
-        if current_name != self.name:
-            try:
-                self.index = get_names().index(self.name) + 1
-            except ValueError:
-                # A sheet rename changes the scope label without replacing the
-                # entry. Prefer an exact match elsewhere before accepting this.
-                if (
-                    current_name is not None
-                    and "!" in self.name
-                    and "!" in current_name
-                    and self.name.rsplit("!", 1)[-1] == current_name.rsplit("!", 1)[-1]
-                ):
-                    self.name = current_name
-                else:
-                    raise KeyError(self.name) from None
-        return self.index
+        if get_name(self.index) == self.name:
+            return self.index
+        names = get_names()
+        try:
+            self.index = names.index(self.name) + 1
+            return self.index
+        except ValueError:
+            pass
+        if self.sheet_index is not None and get_sheet_names is not None:
+            sheets = tuple(get_sheet_names())
+            # Surviving worksheet names must retain their original positions.
+            # Allow independent renames, but reject observable reorders/removals.
+            positions = {name: i for i, name in enumerate(self.sheet_names)}
+            if len(sheets) == len(self.sheet_names) and all(
+                name not in positions or positions[name] == i
+                for i, name in enumerate(sheets)
+            ):
+                scope = sheets[self.sheet_index]
+                _, local = self.split_name(self.name)
+                matches = [
+                    (i, name)
+                    for i, name in enumerate(names, 1)
+                    if self.split_name(name) == (scope, local)
+                ]
+                if len(matches) == 1:
+                    self.index, self.name = matches[0]
+                    self.sheet_names = sheets
+                    return self.index
+        raise KeyError(self.name)

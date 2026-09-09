@@ -72,6 +72,28 @@ class TestNames(TestBase):
         local.delete()
         self.assertEqual(handles["foo"].refers_to_range, sheet["A1"])
 
+    @unittest.skipUnless(sys.platform == "darwin", "macOS scoped-name regression")
+    def test_mac_held_name_survives_sorted_scope_rename(self):
+        alpha = self.wb1.sheets[0]
+        alpha.name = "Alpha"
+        middle = self.wb1.sheets.add(name="Sheet1", after=alpha)
+        zeta = self.wb1.sheets.add(name="Zeta", after=middle)
+        for sheet in [alpha, middle, zeta]:
+            self.wb1.names.add(f"{sheet.name}!Print_Area", f"={sheet.name}!$A$1")
+        names = self.wb1.names
+        handles = {name.name: name for name in names}
+        target = handles["Sheet1!Print_Area"]
+        middle.name = "Zulu"
+        self.assertEqual(target.name, "Zulu!Print_Area")
+        self.assertEqual(target.refers_to_range, middle["A1"])
+        target.refers_to = "=Zulu!$B$2"
+        self.assertEqual(target.refers_to_range, middle["B2"])
+        self.assertEqual(handles["Zeta!Print_Area"].refers_to_range, zeta["A1"])
+        target.delete()
+        self.assertEqual(handles["Alpha!Print_Area"].refers_to_range, alpha["A1"])
+        self.assertEqual(handles["Zeta!Print_Area"].refers_to_range, zeta["A1"])
+        self.assertEqual(len(names), 2)
+
     @unittest.skipUnless(sys.platform == "darwin", "macOS chart-sheet regression")
     def test_mac_mutations_with_chart_sheet_active(self):
         from xlwings._xlmac import kw

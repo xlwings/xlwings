@@ -2163,7 +2163,9 @@ class Names(base_classes.Names):
             return Name(
                 self.parent,
                 collection=self,
-                index=NameIndex(name_or_index, name),
+                index=NameIndex(
+                    name_or_index, name, self._sheet_names() if "!" in name else ()
+                ),
             )
         return Name(self.parent, xl=self.xl[name_or_index])
 
@@ -2186,10 +2188,17 @@ class Names(base_classes.Names):
             # An earlier deletion can leave the cached index past the end.
             return None
 
+    def _sheet_names(self):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        names = book.xl.worksheets.name.get()
+        return () if names == kw.missing_value else tuple(names)
+
     def snapshot(self):
+        names = self._name_strings()
+        sheets = self._sheet_names() if any("!" in name for name in names) else ()
         return [
-            (name, Name(self.parent, collection=self, index=NameIndex(i, name)))
-            for i, name in enumerate(self._name_strings(), 1)
+            (name, Name(self.parent, collection=self, index=NameIndex(i, name, sheets)))
+            for i, name in enumerate(names, 1)
         ]
 
     def contains(self, name_or_index):
@@ -2230,7 +2239,9 @@ class Name(base_classes.Name):
         if self._index is None:
             return self._xl
         index = self._index.resolve(
-            self._collection._name_at_index, self._collection._name_strings
+            self._collection._name_at_index,
+            self._collection._name_strings,
+            self._collection._sheet_names,
         )
         return self._collection.xl[index]
 
@@ -2320,7 +2331,9 @@ class Name(base_classes.Name):
         if self._index is None:
             return self.xl.name.get()
         self._index.resolve(
-            self._collection._name_at_index, self._collection._name_strings
+            self._collection._name_at_index,
+            self._collection._name_strings,
+            self._collection._sheet_names,
         )
         return self._index.name
 
@@ -2347,7 +2360,11 @@ class Name(base_classes.Name):
                     f"Excel did not rename defined name {old_name!r} to {value!r}."
                 )
             self._collection = collection
-            self._index = NameIndex(names.index(expected_name) + 1, expected_name)
+            self._index = NameIndex(
+                names.index(expected_name) + 1,
+                expected_name,
+                collection._sheet_names() if "!" in expected_name else (),
+            )
 
     @property
     def refers_to(self):
