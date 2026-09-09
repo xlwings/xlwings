@@ -941,6 +941,10 @@ class Range(base_classes.Range):
         return Font(self, self.xl.font_object)
 
     @property
+    def borders(self):
+        return Borders(self, self.xl)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             rv = self.xl.column_width.get()
@@ -1353,6 +1357,174 @@ class Shape(base_classes.Shape):
     @property
     def characters(self):
         raise AttributeError("Characters isn't supported on macOS with shapes.")
+
+
+# None is the normalized form of "none", see main.Borders
+_BORDER_LINE_STYLE_TO_KW = {
+    "continuous": kw.continuous,
+    "dash": kw.dash,
+    "dash_dot": kw.dash_dot,
+    "dash_dot_dot": kw.dash_dot_dot,
+    "dot": kw.dot,
+    "double": kw.double,
+    "slant_dash_dot": kw.slant_dash_dot,
+    None: kw.line_style_none,
+}
+_BORDER_LINE_STYLE_FROM_KW = {
+    keyword: name or "none" for name, keyword in _BORDER_LINE_STYLE_TO_KW.items()
+}
+_BORDER_WEIGHT_TO_KW = {
+    "hairline": kw.border_weight_hairline,
+    "thin": kw.border_weight_thin,
+    "medium": kw.border_weight_medium,
+    "thick": kw.border_weight_thick,
+}
+_BORDER_WEIGHT_FROM_KW = {
+    keyword: name for name, keyword in _BORDER_WEIGHT_TO_KW.items()
+}
+
+
+class Border(base_classes.Border):
+    def __init__(self, parent, side, xl):
+        # xl is the reference returned by range.get_border(which_border=...)
+        self.parent = parent
+        self.side = side
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    def _value(self, attribute):
+        """The value Excel reports for the range as a whole.
+
+        Excel doesn't flag a range whose cells disagree, so a mixed range
+        reports one of its values rather than None, and a multi-cell range
+        reports no color for its diagonals even right after one was set.
+        Read a single cell to get an unambiguous answer.
+        """
+        if self.xl is None:
+            return None
+        if attribute == "color" and self.xl.color_index.get() == kw.color_index_none:
+            return None
+        value = getattr(self.xl, attribute).get()
+        if value == kw.missing_value:
+            return None
+        return tuple(value) if attribute == "color" else value
+
+    @property
+    def line_style(self):
+        return _BORDER_LINE_STYLE_FROM_KW.get(self._value("line_style"))
+
+    @line_style.setter
+    def line_style(self, value):
+        if self.xl is not None:
+            self.xl.line_style.set(_BORDER_LINE_STYLE_TO_KW[value])
+
+    @property
+    def weight(self):
+        # The dictionary's "weight" is the enum; "line_weight" is a plain int
+        return _BORDER_WEIGHT_FROM_KW.get(self._value("weight"))
+
+    @weight.setter
+    def weight(self, value):
+        if self.xl is not None:
+            self.xl.weight.set(_BORDER_WEIGHT_TO_KW[value])
+
+    @property
+    def color(self):
+        return self._value("color")
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
+        if self.xl is not None:
+            if isinstance(color_or_rgb, int):
+                self.xl.color.set(int_to_rgb(color_or_rgb))
+            else:
+                self.xl.color.set(color_or_rgb)
+
+
+class Borders(base_classes.Borders):
+    def __init__(self, parent, xl):
+        # xl is the range reference: the sides are looked up via get_border
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    def __getitem__(self, side):
+        if self.xl is not None:
+            return Border(
+                self.parent, side, self.xl.get_border(which_border=getattr(kw, side))
+            )
+        return Border(self.parent, side, None)
+
+    def _common_value(self, attribute):
+        """The value the existing grid sides share, or None if they differ."""
+        if self.xl is None:
+            return None
+        values = {getattr(self[side], attribute) for side in self._grid_sides()}
+        return values.pop() if len(values) == 1 else None
+
+    @property
+    def line_style(self):
+        return self._common_value("line_style")
+
+    @line_style.setter
+    def line_style(self, value):
+        self.set(base_classes.BORDER_GRID_SIDES, line_style=value)
+
+    @property
+    def weight(self):
+        return self._common_value("weight")
+
+    @weight.setter
+    def weight(self, value):
+        self.set(base_classes.BORDER_GRID_SIDES, weight=value)
+
+    @property
+    def color(self):
+        return self._common_value("color")
+
+    @color.setter
+    def color(self, color_or_rgb):
+        self.set(base_classes.BORDER_GRID_SIDES, color=color_or_rgb)
+
+    def set(
+        self,
+        which,
+        *,
+        line_style=base_classes._UNSET,
+        weight=base_classes._UNSET,
+        color=base_classes._UNSET,
+    ):
+        # `which` arrives validated and expanded by main.Borders. The fixed
+        # order color, weight, line style is documented: Excel's border
+        # attributes interfere, and this makes the line style win.
+        if self.xl is None:
+            return
+        # Writing borders with screen updating on is about 3x slower
+        app = self.parent.sheet.book.app
+        screen_updating_state = app.screen_updating
+        app.screen_updating = False
+        try:
+            for side in which:
+                border = self[side]
+                if color is not base_classes._UNSET:
+                    border.color = color
+                if weight is not base_classes._UNSET:
+                    border.weight = weight
+                if line_style is not base_classes._UNSET:
+                    border.line_style = line_style
+        finally:
+            app.screen_updating = screen_updating_state
+
+    def clear(self, which):
+        self.set(which, line_style=None)
 
 
 class Font(base_classes.Font):

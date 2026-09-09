@@ -1,3 +1,52 @@
+from typing import Any, Literal, get_args
+
+
+class _Unset:
+    """Type of the `_UNSET` sentinel; the repr keeps autodoc signatures readable."""
+
+    def __repr__(self) -> str:
+        return "..."
+
+
+# Sentinel for "attribute not supplied" in Borders.set(). Shared by main.Borders and
+# the engine implementations; always compare by identity (``value is _UNSET``).
+# Typed as Any so that it can be the default of a typed keyword argument.
+_UNSET: Any = _Unset()
+
+# The border vocabulary. Plain lowercase strings are the API; the Literal
+# aliases give editors autocomplete and type checkers typo detection.
+BorderSide = Literal[
+    "edge_top",
+    "edge_bottom",
+    "edge_left",
+    "edge_right",
+    "inside_vertical",
+    "inside_horizontal",
+    "diagonal_down",
+    "diagonal_up",
+]
+BorderGroup = Literal["outside", "inside", "all", "everything"]
+BorderLineStyle = Literal[
+    "continuous",
+    "dash",
+    "dash_dot",
+    "dash_dot_dot",
+    "dot",
+    "double",
+    "slant_dash_dot",
+    "none",
+]
+BorderWeight = Literal["hairline", "thin", "medium", "thick"]
+
+# Border side names in canonical order. main.Borders validates and expands the
+# user-facing selectors into these before calling an engine, so engines only
+# ever see the canonical names. The first six are the grid sides that the
+# collection-level properties read and write; the diagonals are reachable
+# individually only.
+BORDER_SIDES: tuple[str, ...] = get_args(BorderSide)
+BORDER_GRID_SIDES = BORDER_SIDES[:6]
+
+
 class Apps:
     def keys(self):
         raise NotImplementedError()
@@ -509,6 +558,10 @@ class Range:
         raise NotImplementedError()
 
     @property
+    def borders(self):
+        raise NotImplementedError()
+
+    @property
     def column_width(self):
         raise NotImplementedError()
 
@@ -953,6 +1006,115 @@ class Font:
 
     async def get_color(self):
         raise NotImplementedError("Font.get_color() is only supported in xlwings Lite")
+
+
+class Border:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def line_style(self):
+        raise NotImplementedError()
+
+    @line_style.setter
+    def line_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def weight(self):
+        raise NotImplementedError()
+
+    @weight.setter
+    def weight(self, value):
+        raise NotImplementedError()
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    async def get_line_style(self):
+        raise NotImplementedError(
+            "Border.get_line_style() is only supported in xlwings Lite"
+        )
+
+    async def get_weight(self):
+        raise NotImplementedError(
+            "Border.get_weight() is only supported in xlwings Lite"
+        )
+
+    async def get_color(self):
+        raise NotImplementedError(
+            "Border.get_color() is only supported in xlwings Lite"
+        )
+
+
+class Borders:
+    def _grid_sides(self):
+        """Grid sides that exist for this range's dimensions."""
+        nrows, ncols = self.parent.shape
+        return tuple(
+            side
+            for side in BORDER_GRID_SIDES
+            if (side != "inside_vertical" or ncols > 1)
+            and (side != "inside_horizontal" or nrows > 1)
+        )
+
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def line_style(self):
+        raise NotImplementedError()
+
+    @line_style.setter
+    def line_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def weight(self):
+        raise NotImplementedError()
+
+    @weight.setter
+    def weight(self, value):
+        raise NotImplementedError()
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    async def get_line_style(self):
+        raise NotImplementedError(
+            "Borders.get_line_style() is only supported in xlwings Lite"
+        )
+
+    async def get_weight(self):
+        raise NotImplementedError(
+            "Borders.get_weight() is only supported in xlwings Lite"
+        )
+
+    async def get_color(self):
+        raise NotImplementedError(
+            "Borders.get_color() is only supported in xlwings Lite"
+        )
+
+    def __getitem__(self, key):
+        raise NotImplementedError()
+
+    def set(self, which="all", *, line_style=_UNSET, weight=_UNSET, color=_UNSET):
+        raise NotImplementedError()
+
+    def clear(self, which="everything"):
+        raise NotImplementedError()
 
 
 class Characters:
