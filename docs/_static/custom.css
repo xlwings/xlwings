@@ -23,3 +23,10 @@
   height: 0.72em;
   vertical-align: -0.06em;
 }
+
+/* "Return type" and "Setter type" values use the same code font as the
+   signature's type hint. The class is added in conf.py (_mark_type_fields). */
+dl.field-list > dd.type-hint {
+  font-family: var(--font-stack--monospace);
+  font-size: var(--font-size--small--2);
+}

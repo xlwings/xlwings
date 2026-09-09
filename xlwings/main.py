@@ -5616,20 +5616,17 @@ class Borders:
         combination, the error propagates and earlier writes stay in place.
 
         Args:
-            which (str | list[str]): A side name (`"edge_top"`, ...), a list of
-                side names, or one of the groups `"outside"` (the four edges),
-                `"inside"` (the two inside borders), `"all"` (outside + inside,
-                the default) and `"everything"` (all eight sides, including the
-                diagonals).
-            line_style (str | None): See
+            which: A side name (`"edge_top"`, ...), a list of side names, or one
+                of the groups `"outside"` (the four edges), `"inside"` (the two
+                inside borders), `"all"` (outside + inside, the default) and
+                `"everything"` (all eight sides, including the diagonals).
+            line_style: See
                 {attr}`Border.line_style <xlwings.main.Border.line_style>`.
                 `None` or `"none"` removes the selected borders.
-            weight (str): See
-                {attr}`Border.weight <xlwings.main.Border.weight>`. `None`
-                isn't allowed.
-            color (tuple[int, int, int] | str | int): See
-                {attr}`Border.color <xlwings.main.Border.color>`. `None` isn't
-                allowed.
+            weight: See {attr}`Border.weight <xlwings.main.Border.weight>`.
+                `None` isn't allowed.
+            color: See {attr}`Border.color <xlwings.main.Border.color>`.
+                `None` isn't allowed.
 
         Examples:
             ```pycon
@@ -5660,8 +5657,8 @@ class Borders:
         """Removes borders. Same as `set(which, line_style=None)`.
 
         Args:
-            which (str | list[str]): A side name, a list of side names or a
-                group, see {meth}`set() <xlwings.main.Borders.set>`. Defaults to
+            which: A side name, a list of side names or a group, see
+                {meth}`set() <xlwings.main.Borders.set>`. Defaults to
                 `"everything"`, i.e. all eight sides including the diagonals;
                 `clear("all")` leaves the diagonals alone.
 

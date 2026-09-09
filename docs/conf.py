@@ -245,7 +245,42 @@ def _widen_literals(annotation):
         # Deduplicate while keeping order, e.g. Literal[...] | str -> str
         args = tuple(dict.fromkeys(args))
         return args[0] if len(args) == 1 else typing.Union[args]
+    if origin is not None and typing.get_args(annotation):
+        # Generics such as list[Literal[...] | str] -> list[str]
+        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        try:
+            return origin[args]
+        except TypeError:
+            return annotation
     return annotation
+
+
+def _widen_literal_typehints(
+    app, what, name, obj, options, signature, return_annotation
+):
+    """Show `str` instead of `Literal[...]` in the parameter type fields.
+
+    Runs after autodoc's own typehints recorder (same event, later priority)
+    and rewrites the annotations it stored for this object.
+    """
+    import typing
+
+    from sphinx.util.typing import stringify_annotation
+
+    annotations = app.env.temp_data.get("annotations", {}).get(name)
+    if not annotations:
+        return None
+    if what == "class":
+        obj = getattr(obj, "__init__", None)
+    try:
+        hints = typing.get_type_hints(obj)
+    except (AttributeError, NameError, TypeError, ValueError):
+        return None
+    for param, annotation in hints.items():
+        widened = _widen_literals(annotation)
+        if widened is not annotation and param in annotations:
+            annotations[param] = stringify_annotation(widened)
+    return None
 
 
 def _add_setter_type(app, domain, objtype, contentnode):
@@ -303,6 +338,18 @@ def _add_setter_type(app, domain, objtype, contentnode):
     contentnode.append(field_list)
 
 
+def _mark_type_fields(app, domain, objtype, contentnode):
+    """Tag the "Return type" and "Setter type" field bodies so custom.css can
+    render them in the signature's code font."""
+    if domain != "py":
+        return
+    from docutils import nodes
+
+    for field in contentnode.findall(nodes.field):
+        if field[0].astext() in ("Return type", "Setter type"):
+            field[1]["classes"].append("type-hint")
+
+
 def _prepare_markdown_doctree(app, doctree, docname):
     """Fix internal references and asset URLs in generated Markdown."""
     if app.builder.name != "markdown":
@@ -332,6 +379,9 @@ def _add_markdown_twin_flag(app, pagename, templatename, context, doctree):
 
 def setup(app):
     app.connect("autodoc-process-signature", _hide_impl_signature)
+    # Priority 600 runs after sphinx.ext.autodoc.typehints (default 500)
+    app.connect("autodoc-process-signature", _widen_literal_typehints, priority=600)
     app.connect("object-description-transform", _add_setter_type)
+    app.connect("object-description-transform", _mark_type_fields, priority=600)
     app.connect("doctree-resolved", _prepare_markdown_doctree)
     app.connect("html-page-context", _add_markdown_twin_flag)
