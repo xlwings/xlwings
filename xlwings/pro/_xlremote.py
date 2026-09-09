@@ -2113,7 +2113,7 @@ def _name_reference_metadata(book, refers_to, validate_sheet=False):
     for sheet in book.sheets:
         if sheet.name == sheet_name:
             metadata["sheet_index"] = sheet.index - 1
-            metadata["address"] = match[3].replace("$", "")
+            metadata["address"] = match[3].replace("$", "").upper()
             break
     else:
         if validate_sheet:
@@ -2143,7 +2143,10 @@ class Name(base_classes.Name):
     def refers_to(self):
         if "refers_to" in self.api:
             return self.api["refers_to"]
-        # Older clients only send range coordinates.
+        # Older clients only send range coordinates. Non-range/multi-area
+        # names may have neither coordinates nor a definition in that payload.
+        if self.api["sheet_index"] is None or self.api["address"] is None:
+            return None
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         sheet = book.sheets(self.api["sheet_index"] + 1)
         sheet_name = f"'{sheet.name}'" if " " in sheet.name else sheet.name
@@ -2215,12 +2218,13 @@ class Names(base_classes.Names):
             is_parent_book = True
         else:
             is_parent_book = False
+        book = self.parent if is_parent_book else self.parent.book
+        metadata = _name_reference_metadata(book, refers_to, validate_sheet=True)
         self.parent.append_json_action(func="namesAdd", args=[name, refers_to])
 
-        book = self.parent if is_parent_book else self.parent.book
         api = {
             "name": name,
-            **_name_reference_metadata(book, refers_to),
+            **metadata,
             "book_scope": True if is_parent_book else False,
             # A sheet-scoped name is scoped to the sheet it was added through;
             # a book-scoped one has no scope sheet. Both are part of the

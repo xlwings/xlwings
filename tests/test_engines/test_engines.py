@@ -1407,17 +1407,17 @@ def test_range_set_name(book):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_book_names_add(book):
-    book.names.add("test1", "=Sheet1!$A$1:$B$3")
+    book.names.add("test1", "='Sheet 1'!$A$1:$B$3")
     assert book.json()["actions"][0]["func"] == "namesAdd"
-    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["args"] == ["test1", "='Sheet 1'!$A$1:$B$3"]
     assert book.json()["actions"][0]["sheet_position"] is None
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_names_add(book):
-    book.sheets[0].names.add("test1", "=Sheet1!$A$1:$B$3")
+    book.sheets[0].names.add("test1", "='Sheet 1'!$A$1:$B$3")
     assert book.json()["actions"][0]["func"] == "namesAdd"
-    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["args"] == ["test1", "='Sheet 1'!$A$1:$B$3"]
     assert book.json()["actions"][0]["sheet_position"] == 0
 
 
@@ -1481,8 +1481,8 @@ def test_name_refers_to_setter():
     action = book.json()["actions"][-1]
     assert action["func"] == "setNameRefersTo"
     assert action["args"] == [name.api["name"], True, None, "=Sheet2!$C$3"]
-    # refers_to is computed from sheet_index/address, so the setter updates
-    # those -- check it round-trips through the getter and refers_to_range
+    # The setter preserves the definition and updates resolved coordinates.
+    # Check both the getter and refers_to_range.
     assert name.refers_to == "=Sheet2!$C$3"
     assert name.refers_to_range.sheet.name == "Sheet2"
     assert name.refers_to_range.address == "$C$3"
@@ -1522,7 +1522,7 @@ def test_name_refers_to_setter_unknown_sheet(book):
         "=('Sheet 1'!$A$1,Sheet2!$B$2)",
     ],
 )
-def test_named_formula_lifecycle(sheet_scope, formula):
+def test_named_formula_add_and_reload(sheet_scope, formula):
     book = xw.Book(json=json.loads(json.dumps(data)))
     parent = book.sheets[0] if sheet_scope else book
     before = len(parent.names)
@@ -1545,6 +1545,14 @@ def test_named_formula_lifecycle(sheet_scope, formula):
     name = next(n for n in parent.names if n.api["name"] == "FormulaDemo")
     assert name.refers_to == formula
 
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+def test_named_formula_lifecycle(sheet_scope):
+    reloaded = xw.Book(json=json.loads(json.dumps(data)))
+    parent = reloaded.sheets[0] if sheet_scope else reloaded
+    before = len(parent.names)
+    name = parent.names.add("FormulaDemo", "=LAMBDA(value,value*2)")
     name.refers_to = "=Sheet2!$C$3"
     assert name.refers_to_range == reloaded.sheets[1]["C3"]
     name.refers_to = "=LAMBDA(value,value*3)"
@@ -1583,6 +1591,90 @@ def test_name_reference_with_escaped_sheet_name():
     name = book.names.add("Escaped", "='Sales''24!'!$A$1:$B$2")
     assert name.refers_to == "='Sales''24!'!$A$1:$B$2"
     assert name.refers_to_range == book.sheets[0]["A1:B2"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "formula",
+    ["=LAMBDA(value,value*2)", "=42", "=(Sheet2!$A$1,Sheet2!$C$3)", "=Sheet2!$Z$10"],
+)
+def test_name_equality_without_resolving_a_range(formula):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    name = book.names.add("EqualityDemo", formula)
+    assert name == book.names["EqualityDemo"]
+    assert name != book.names.add("DifferentName", formula)
+    assert name != "EqualityDemo"
+    changed = xw.Book(json=json.loads(json.dumps(book.impl.api)))
+    changed.names["EqualityDemo"].refers_to = "=43"
+    assert name != changed.names["EqualityDemo"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+@pytest.mark.parametrize("sheet_index,address", [(None, None), (None, "A1"), (0, None)])
+def test_legacy_name_without_coordinates_can_be_read_and_deleted(
+    sheet_scope, sheet_index, address
+):
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"] = [
+        {
+            "name": "LegacyAreas",
+            "sheet_index": sheet_index,
+            "address": address,
+            "book_scope": not sheet_scope,
+            "scope_sheet_name": "Sheet 1" if sheet_scope else None,
+            "scope_sheet_index": 0 if sheet_scope else None,
+        }
+    ]
+    book = xw.Book(json=snapshot)
+    parent = book.sheets[0] if sheet_scope else book
+    name = parent.names[0]
+    assert name.refers_to is None
+    assert "LegacyAreas" in repr(name)
+    with pytest.raises(ValueError, match="does not refer to a single range"):
+        name.refers_to_range
+    name.delete()
+    assert len(parent.names) == 0
+    assert len(book.names) == 0
+    action = book.json()["actions"][-1]
+    assert action["func"] == "nameDelete"
+    assert action["args"][1] is None
+    assert action["args"][2:] == [
+        "LegacyAreas",
+        sheet_index,
+        not sheet_scope,
+        0 if sheet_scope else None,
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+@pytest.mark.parametrize("operation", ["add", "set"])
+def test_lowercase_named_reference_resolves_range_name(sheet_scope, operation):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    parent = book.sheets[0] if sheet_scope else book
+    definition = "=Sheet2!$z$10:$aa$12"
+    name = parent.names.add("Lowercase", definition if operation == "add" else "=42")
+    if operation == "set":
+        name.refers_to = definition
+    assert name.refers_to == definition
+    assert name.refers_to_range == book.sheets["Sheet2"]["Z10:AA12"]
+    assert book.sheets["Sheet2"]["Z10:AA12"].name.name == name.name
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+def test_names_add_rejects_unknown_sheet_without_queuing_action(sheet_scope):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    parent = book.sheets[0] if sheet_scope else book
+    before = len(book.names)
+    with pytest.raises(ValueError, match="Sheet 'NoSuchSheet' doesn't exist"):
+        parent.names.add("Typo", "=NoSuchSheet!$A$1")
+    assert len(book.names) == before
+    assert book.json()["actions"] == []
+    # Formula syntax remains Excel's responsibility, even with sheet references.
+    name = parent.names.add("Deferred", "=SUM(NoSuchSheet!$A$1:$A$3)")
+    assert name.refers_to == "=SUM(NoSuchSheet!$A$1:$A$3)"
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

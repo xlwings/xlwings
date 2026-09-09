@@ -4678,6 +4678,10 @@ class Names:
     def add(self, name: str, refers_to: str) -> Name:
         """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
+        Full support for named constants and formulas requires Excel desktop or an
+        Office.js client (xlwings Lite or Server). Google Sheets supports named
+        ranges only; Office Scripts only returns named ranges in its snapshot.
+
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and
                 cannot be formatted as cell references.
@@ -4780,9 +4784,12 @@ class Name:
         self.impl.name = value
 
     @property
-    def refers_to(self) -> str:
+    def refers_to(self) -> str | None:
         """Returns or sets the formula that the name is defined to refer to,
         in A1-style notation, beginning with an equal sign.
+
+        Returns ``None`` when an older remote client supplies neither the
+        definition nor single-range coordinates for the name.
 
         ```{versionadded} 0.9.0
         ```
@@ -4809,7 +4816,6 @@ class Name:
         return (
             type(other) is Name
             and other.name == self.name
-            and other.refers_to_range == self.refers_to_range
             and other.refers_to == self.refers_to
         )
 
