@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## Unreleased
+
+- Workbook and worksheet name collections now exclude Excel-generated `_xlfn.*` and `_xlpm.*` names across engines while retaining hidden user-defined names. Counts, indices, membership, and name lookups use the filtered collection; the native `api` remains unfiltered. Iteration snapshots name strings so internal names inserted during reference resolution do not skip or repeat user-defined names (see [#2552](https://github.com/xlwings/xlwings/issues/2552) and [#2569](https://github.com/xlwings/xlwings/issues/2569)).
+
 ## v0.37.1 (Sep 9, 2026)
 
 - Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`.

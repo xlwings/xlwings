@@ -1810,6 +1810,32 @@ def test_range_name_respects_scope_and_resolved_sheet():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+def test_name_collection_filters_internal_names_from_native_payload(sheet_scope):
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"] = []
+    book = xw.Book(json=snapshot)
+    parent = book.sheets[0] if sheet_scope else book
+    internal = parent.names.add("_xlfn.LAMBDA", "=#NAME?")
+    parent.names.add("_xlpm.value", "=#NAME?")
+    user = parent.names.add("DOUBLE_VALUE", "=LAMBDA(value,value*2)")
+    user.api["visible"] = False
+    assert len(parent.names) == len(book.names) == 1
+    assert parent.names[0].name == user.name
+    assert parent.names(1).refers_to == user.refers_to
+    assert list(parent.names) == [user]
+    assert "_xlfn.LAMBDA" not in parent.names
+    assert internal.name not in parent.names
+    with pytest.raises(KeyError):
+        parent.names[internal.name]
+    # Filtering must not remove entries from the transport snapshot.
+    assert len(book.impl.api["names"]) == 3
+    del parent.names[0]
+    assert len(parent.names) == 0
+    assert len(book.impl.api["names"]) == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_name_name_setter_not_supported(book):
     # Excel.NamedItem.name is read-only in Office.js.
     with pytest.raises(NotImplementedError, match="is read-only"):
