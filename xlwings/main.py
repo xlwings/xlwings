@@ -5337,12 +5337,19 @@ class Border:
 
     @property
     def line_style(self) -> str | None:
-        """Returns or sets the line style (str).
+        """Returns or sets the line style (str). Available styles:
 
-        One of `"continuous"`, `"dash"`, `"dash_dot"`, `"dash_dot_dot"`,
-        `"dot"`, `"double"`, `"slant_dash_dot"` or `"none"`. Setting it to
-        `None` or `"none"` removes the border. Reads `"none"` for a missing
-        border. Excel doesn't flag a range whose cells don't all agree, so a
+        * `"continuous"`
+        * `"dash"`
+        * `"dash_dot"`
+        * `"dash_dot_dot"`
+        * `"dot"`
+        * `"double"`
+        * `"slant_dash_dot"`
+        * `"none"`
+
+        Setting it to `None` or `"none"` removes the border. Reads `"none"` for a
+        missing border. Excel doesn't flag a range whose cells don't all agree, so a
         mixed range reports one of its values; read a single cell for an
         unambiguous answer.
 
@@ -5371,10 +5378,14 @@ class Border:
 
     @property
     def weight(self) -> str | None:
-        """Returns or sets the weight (str).
+        """Returns or sets the weight (str). Available weihts:
 
-        One of `"hairline"`, `"thin"`, `"medium"` or `"thick"`. A range whose
-        cells don't all agree reports one of its values, see
+        * `"hairline"`
+        * `"thin"`
+        * `"medium"`
+        * `"thick"`
+
+        A range whose cells don't all agree reports one of its values, see
         {attr}`line_style <xlwings.main.Border.line_style>`. Setting the
         weight of a removed border makes it visible.
 
