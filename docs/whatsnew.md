@@ -2,6 +2,12 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.2 (Sep 9, 2026)
+
+- xlwings Lite and xlwings Server: Added support for named formulas, including Excel LAMBDA functions.
+- xlwings Lite and xlwings Server: `Name.refers_to` now returns the original definition (for example, `=OFFSET(...)`) instead of its resolved address. Use `Name.refers_to_range` for the resolved range.
+- Excel-generated `_xlfn.*` and `_xlpm.*` names are now excluded from name collections.
+
 ## v0.37.1 (Sep 9, 2026)
 
 - Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`.

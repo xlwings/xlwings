@@ -4634,7 +4634,13 @@ class Pictures(Collection[Picture]):
 
 
 class Names:
-    """A collection of all `name` objects in the workbook:
+    """A collection of defined `name` objects in the workbook.
+
+    Excel's internal ``_xlfn.*`` and ``_xlpm.*`` names are excluded. Hidden
+    user-defined names remain available. The native collection is unchanged.
+    Iteration snapshots name strings so new internal names cannot shift it.
+
+    Examples:
 
     ```pycon
     >>> import xlwings as xw
@@ -4661,14 +4667,35 @@ class Names:
         """
         return self.impl.api
 
+    @staticmethod
+    def _is_internal_name(name: str) -> bool:
+        return name.rsplit("!", 1)[-1].lower().startswith(("_xlfn.", "_xlpm."))
+
+    def _name_snapshot(self) -> list[str]:
+        # Read names only: resolving references can itself make Excel insert
+        # internal names. Bind subsequent lookups by name, never by a shifting
+        # native index (notably for lazy appscript references on macOS).
+        names = [self.impl(i + 1).name for i in range(len(self.impl))]
+        return [name for name in names if not self._is_internal_name(name)]
+
     def __call__(self, name_or_index: int | str) -> Name:
+        if isinstance(name_or_index, numbers.Number):
+            if name_or_index < 1:
+                raise IndexError("Name indices start at 1")
+            name_or_index = self._name_snapshot()[name_or_index - 1]
+        elif self._is_internal_name(name_or_index):
+            raise KeyError(name_or_index)
         return Name(impl=self.impl(name_or_index))
 
-    def contains(self, name_or_index: str) -> bool:
-        return self.impl.contains(name_or_index)
+    def contains(self, name_or_index: int | str) -> bool:
+        if isinstance(name_or_index, numbers.Number):
+            return 1 <= name_or_index <= len(self)
+        return not self._is_internal_name(name_or_index) and self.impl.contains(
+            name_or_index
+        )
 
     def __len__(self) -> int:
-        return len(self.impl)
+        return len(self._name_snapshot())
 
     @property
     def count(self) -> int:
@@ -4676,7 +4703,11 @@ class Names:
         return len(self)
 
     def add(self, name: str, refers_to: str) -> Name:
-        """Defines a new name for a range of cells.
+        """Defines a new name for a range, constant, or formula (including a LAMBDA).
+
+        Full support for named constants and formulas requires Excel desktop or an
+        Office.js client (xlwings Lite or Server). Google Sheets supports named
+        ranges only; Office Scripts only returns named ranges in its snapshot.
 
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and
@@ -4692,7 +4723,7 @@ class Names:
 
     def __getitem__(self, item: int | str) -> Name:
         if isinstance(item, numbers.Number):
-            return self(item + 1)
+            return Name(impl=self.impl(self._name_snapshot()[item]))
         else:
             return self(item)
 
@@ -4717,8 +4748,8 @@ class Names:
             raise KeyError(key)
 
     def __iter__(self) -> Iterator[Name]:
-        for i in range(len(self)):
-            yield self(i + 1)
+        names = self._name_snapshot()
+        return (Name(impl=self.impl(name)) for name in names)
 
     def __repr__(self) -> str:
         r = []
@@ -4780,9 +4811,12 @@ class Name:
         self.impl.name = value
 
     @property
-    def refers_to(self) -> str:
+    def refers_to(self) -> str | None:
         """Returns or sets the formula that the name is defined to refer to,
         in A1-style notation, beginning with an equal sign.
+
+        Returns ``None`` when an older remote client supplies neither the
+        definition nor single-range coordinates for the name.
 
         ```{versionadded} 0.9.0
         ```
@@ -4809,7 +4843,6 @@ class Name:
         return (
             type(other) is Name
             and other.name == self.name
-            and other.refers_to_range == self.refers_to_range
             and other.refers_to == self.refers_to
         )
 

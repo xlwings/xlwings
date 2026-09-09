@@ -803,7 +803,10 @@ class Sheets(base_classes.Sheets):
             )
         else:
             for ix, sheet in enumerate(self.api):
-                if sheet["name"] == name_or_index:
+                if (
+                    isinstance(name_or_index, str)
+                    and sheet["name"].casefold() == name_or_index.casefold()
+                ):
                     return Sheet(api=sheet, sheets=self, index=ix + 1)
         raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
 
@@ -881,11 +884,25 @@ class Sheet(base_classes.Sheet):
 
     @name.setter
     def name(self, value):
+        old_name = self.name
         self.append_json_action(
             func="setSheetName",
             args=value,
         )
         self.api["name"] = value
+        # Excel rewrites these definitions when it applies the rename. Mirror
+        # that in the snapshot so later reads/deletes in this script agree.
+        for name in self.book.api["names"]:
+            if name.get("refers_to") is not None:
+                name["refers_to"] = _rename_sheet_in_formula(
+                    name["refers_to"], old_name, value
+                )
+            if not name["book_scope"] and name["scope_sheet_index"] == self.index - 1:
+                name["scope_sheet_name"] = value
+                if "!" in name["name"]:
+                    name[
+                        "name"
+                    ] = f"{_sheet_name_prefix(value)}!{name['name'].rsplit('!', 1)[-1]}"
 
     @property
     def visible(self):
@@ -1158,14 +1175,26 @@ class Range(base_classes.Range):
             # A1 notation
             tuple1, tuple2 = utils.a1_to_tuples(arg1)
             if not tuple1:
-                # Named range
-                for api_name in sheet.book.api["names"]:
-                    if (
-                        api_name["name"].split("!")[-1] == arg1
-                        and api_name["sheet_index"] == sheet.index - 1
-                    ):
-                        tuple1, tuple2 = utils.a1_to_tuples(api_name["address"])
-                        break
+                # Local names shadow workbook names. Resolve the name before
+                # its coordinates: constants/formulas exist but aren't ranges,
+                # and a local name may point to a different worksheet.
+                candidates = [
+                    name
+                    for name in sheet.book.api["names"]
+                    if name["name"].rsplit("!", 1)[-1].casefold() == arg1.casefold()
+                    and (
+                        name["book_scope"]
+                        or name["scope_sheet_index"] == sheet.index - 1
+                    )
+                ]
+                if candidates:
+                    api_name = min(candidates, key=lambda name: name["book_scope"])
+                    resolved = Name(
+                        parent=sheet.book if api_name["book_scope"] else sheet,
+                        api=api_name,
+                    ).refers_to_range
+                    sheet = resolved.sheet
+                    tuple1, tuple2 = resolved.arg1, resolved.arg2
             if not tuple1:
                 # Tables
                 for api_table in sheet.api["tables"]:
@@ -2093,6 +2122,87 @@ class Pictures(Collection, base_classes.Pictures):
         return Picture(self.parent, len(self.parent.api["pictures"]))
 
 
+def _sheet_name_prefix(name):
+    # Quote punctuation, spaces, numeric names, and cell-reference-like names.
+    if re.fullmatch(r"[^\W\d][\w.]*", name) and not re.fullmatch(
+        r"[A-Za-z]{1,3}[1-9][0-9]*|[Rr][0-9]+[Cc][0-9]+", name
+    ):
+        return name
+    return "'" + name.replace("'", "''") + "'"
+
+
+# Tokenize only what a sheet rename needs. Strings, external qualifiers and
+# structured-reference brackets are opaque; this is not a formula evaluator.
+_SHEET_REFERENCE_TOKEN = re.compile(
+    r'"(?:[^"]|"")*"'
+    r"|'(?P<quoted>(?:[^']|'')*)'!"
+    r"|\[[^\]]*\][\w.]+(?::[\w.]+)?!"
+    r"|(?P<unquoted>[\w.]+(?::[\w.]+)?)!"
+    r"|(?P<bracket>\[)"
+)
+
+
+def _rename_sheet_in_formula(formula, old_name, new_name):
+    parts = []
+    position = 0
+    while match := _SHEET_REFERENCE_TOKEN.search(formula, position):
+        parts.append(formula[position : match.start()])
+        end = match.end()
+        replacement = match[0]
+        if match["bracket"]:
+            # Structured references can nest and use apostrophe escapes.
+            depth = 1
+            while end < len(formula) and depth:
+                char = formula[end]
+                if char == "'" and end + 1 < len(formula):
+                    end += 2
+                    continue
+                if char == "[":
+                    depth += 1
+                elif char == "]":
+                    depth -= 1
+                end += 1
+            replacement = formula[match.start() : end]
+        else:
+            qualifier = match["quoted"] or match["unquoted"]
+            if qualifier is not None and "[" not in qualifier:
+                # A colon separates the endpoints of a 3-D sheet reference.
+                names = qualifier.replace("''", "'").split(":")
+                if any(name.casefold() == old_name.casefold() for name in names):
+                    names = [
+                        new_name if name.casefold() == old_name.casefold() else name
+                        for name in names
+                    ]
+                    replacement = _sheet_name_prefix(":".join(names)) + "!"
+        parts.append(replacement)
+        position = end
+    parts.append(formula[position:])
+    return "".join(parts)
+
+
+def _name_reference_metadata(book, refers_to):
+    """Keep definitions verbatim; only infer coordinates for simple A1 references.
+
+    Excel resolves other expressions (including formulas returning ranges) when
+    the workbook is next loaded. An exclamation mark alone is not proof that a
+    definition is a range: LAMBDAs can contain sheet references too.
+    """
+    metadata = {"refers_to": refers_to, "sheet_index": None, "address": None}
+    match = re.fullmatch(
+        r"=(?:'((?:[^']|'')+)'|([^'!\[\]():,=+*/^&<>\"%{}-]+))!"
+        r"(\$?[A-Za-z]{1,3}\$?[1-9][0-9]*(?::\$?[A-Za-z]{1,3}\$?[1-9][0-9]*)?"
+        r"|\$?[A-Za-z]{1,3}:\$?[A-Za-z]{1,3}|\$?[1-9][0-9]*:\$?[1-9][0-9]*)",
+        refers_to,
+    )
+    if match is None:
+        return metadata
+    sheet_name = (match[1] or match[2]).replace("''", "'")
+    sheet = book.sheets(sheet_name)
+    metadata["sheet_index"] = sheet.index - 1
+    metadata["address"] = match[3].replace("$", "").upper()
+    return metadata
+
+
 class Name(base_classes.Name):
     def __init__(self, parent, api):
         self.parent = parent
@@ -2106,16 +2216,22 @@ class Name(base_classes.Name):
             sheet_name = self.api["scope_sheet_name"]
             if "!" not in self.api["name"]:
                 # VBA/Google Sheets already do this
-                sheet_name = f"'{sheet_name}'" if " " in sheet_name else sheet_name
+                sheet_name = _sheet_name_prefix(sheet_name)
                 return f"{sheet_name}!{self.api['name']}"
             else:
                 return self.api["name"]
 
     @property
     def refers_to(self):
+        if "refers_to" in self.api:
+            return self.api["refers_to"]
+        # Older clients only send range coordinates. Non-range/multi-area
+        # names may have neither coordinates nor a definition in that payload.
+        if self.api["sheet_index"] is None or self.api["address"] is None:
+            return None
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         sheet = book.sheets(self.api["sheet_index"] + 1)
-        sheet_name = f"'{sheet.name}'" if " " in sheet.name else sheet.name
+        sheet_name = _sheet_name_prefix(sheet.name)
         return f"={sheet_name}!{sheet.range(self.api['address']).address}"
 
     @name.setter
@@ -2130,6 +2246,8 @@ class Name(base_classes.Name):
 
     @property
     def refers_to_range(self):
+        if self.api["sheet_index"] is None or self.api["address"] is None:
+            raise ValueError(f"Name '{self.name}' does not refer to a single range.")
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         sheet = book.sheets(self.api["sheet_index"] + 1)
         return sheet.range(self.api["address"])
@@ -2137,13 +2255,7 @@ class Name(base_classes.Name):
     @refers_to.setter
     def refers_to(self, value):
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        sheet_name = value.split("!")[0].replace("=", "").replace("'", "")
-        for sheet in book.sheets:
-            if sheet.name == sheet_name:
-                sheet_index = sheet.index - 1
-                break
-        else:
-            raise ValueError(f"Sheet '{sheet_name}' doesn't exist!")
+        metadata = _name_reference_metadata(book, value)
         self.parent.append_json_action(
             func="setNameRefersTo",
             args=[
@@ -2153,10 +2265,7 @@ class Name(base_classes.Name):
                 value,
             ],
         )
-        # refers_to is computed from these, so update them rather than storing
-        # the string itself.
-        self.api["sheet_index"] = sheet_index
-        self.api["address"] = value.split("!")[1].replace("$", "")
+        self.api.update(metadata)
 
     def delete(self):
         # Drop the local entry too, so `name in book.names` is right straight
@@ -2191,23 +2300,13 @@ class Names(base_classes.Names):
             is_parent_book = True
         else:
             is_parent_book = False
+        book = self.parent if is_parent_book else self.parent.book
+        metadata = _name_reference_metadata(book, refers_to)
         self.parent.append_json_action(func="namesAdd", args=[name, refers_to])
-
-        def _get_sheet_index(parent):
-            if is_parent_book:
-                sheets = parent.sheets
-            else:
-                sheets = parent.book.sheets
-            for sheet in sheets:
-                if sheet.name == refers_to.split("!")[0].replace("=", "").replace(
-                    "'", ""
-                ):
-                    return sheet.index - 1
 
         api = {
             "name": name,
-            "sheet_index": _get_sheet_index(self.parent),
-            "address": refers_to.split("!")[1].replace("$", ""),
+            **metadata,
             "book_scope": True if is_parent_book else False,
             # A sheet-scoped name is scoped to the sheet it was added through;
             # a book-scoped one has no scope sheet. Both are part of the
@@ -2219,7 +2318,6 @@ class Names(base_classes.Names):
         # Register it on the book's list, which is the one the payload owns.
         # Sheet.names builds a filtered copy of that list on each access, so
         # appending to self.api would be thrown away for a sheet-scoped name.
-        book = self.parent if is_parent_book else self.parent.book
         book.api["names"].append(api)
         if not is_parent_book:
             self.api.append(api)
