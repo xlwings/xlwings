@@ -2,9 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.1 (unreleased)
+## v0.37.1 (Sep 9, 2026)
 
 - Added `Range.borders` for reading and writing cell borders, see {class}`Borders <xlwings.main.Borders>` and {class}`Border <xlwings.main.Border>`.
+- Dropped support for Python 3.10.
 
 ## v0.37.0 (Sep 1, 2026)
 
