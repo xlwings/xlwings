@@ -1,5 +1,6 @@
 import atexit
 import datetime as dt
+import numbers
 import os
 import re
 import shutil
@@ -2153,6 +2154,10 @@ class Names(base_classes.Names):
         self.xl = xl
 
     def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            # appscript index references are lazy. Bind by the scope-qualified name
+            # so Excel inserting internal names cannot shift an existing handle.
+            name_or_index = self.xl[name_or_index].name.get()
         return Name(self.parent, xl=self.xl[name_or_index])
 
     def contains(self, name_or_index):

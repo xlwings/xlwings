@@ -4638,7 +4638,7 @@ class Names:
 
     Excel's internal ``_xlfn.*`` and ``_xlpm.*`` names are excluded. Hidden
     user-defined names remain available. The native collection is unchanged.
-    Iteration snapshots name strings so new internal names cannot shift it.
+    Iteration snapshots name objects so new internal names cannot shift it.
 
     Examples:
 
@@ -4671,18 +4671,18 @@ class Names:
     def _is_internal_name(name: str) -> bool:
         return name.rsplit("!", 1)[-1].lower().startswith(("_xlfn.", "_xlpm."))
 
-    def _name_snapshot(self) -> list[str]:
-        # Read names only: resolving references can itself make Excel insert
-        # internal names. Bind subsequent lookups by name, never by a shifting
-        # native index (notably for lazy appscript references on macOS).
-        names = [self.impl(i + 1).name for i in range(len(self.impl))]
-        return [name for name in names if not self._is_internal_name(name)]
+    def _name_snapshot(self) -> list[Any]:
+        # Keep each entry's identity: calamine can expose the same name text for
+        # different scopes. Engines must return handles that survive index shifts.
+        # Only read names here, since resolving references can insert internal names.
+        names = [self.impl(i + 1) for i in range(len(self.impl))]
+        return [name for name in names if not self._is_internal_name(name.name)]
 
     def __call__(self, name_or_index: int | str) -> Name:
         if isinstance(name_or_index, numbers.Number):
             if name_or_index < 1:
                 raise IndexError("Name indices start at 1")
-            name_or_index = self._name_snapshot()[name_or_index - 1]
+            return Name(impl=self._name_snapshot()[name_or_index - 1])
         elif self._is_internal_name(name_or_index):
             raise KeyError(name_or_index)
         return Name(impl=self.impl(name_or_index))
@@ -4723,7 +4723,7 @@ class Names:
 
     def __getitem__(self, item: int | str) -> Name:
         if isinstance(item, numbers.Number):
-            return Name(impl=self.impl(self._name_snapshot()[item]))
+            return Name(impl=self._name_snapshot()[item])
         else:
             return self(item)
 
@@ -4749,7 +4749,7 @@ class Names:
 
     def __iter__(self) -> Iterator[Name]:
         names = self._name_snapshot()
-        return (Name(impl=self.impl(name)) for name in names)
+        return (Name(impl=name) for name in names)
 
     def __repr__(self) -> str:
         r = []

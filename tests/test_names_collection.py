@@ -1,5 +1,8 @@
 """Shared Names contracts, including native collections with lazy index handles."""
 
+import sys
+from types import SimpleNamespace
+
 import pytest
 
 from xlwings.main import Names
@@ -8,13 +11,10 @@ from xlwings.main import Names
 class NativeName:
     def __init__(self, collection, key):
         self.collection = collection
-        self.key = key
-
-    @property
-    def record(self):
-        if isinstance(self.key, int):
-            return self.collection.api[self.key - 1]
-        return next(item for item in self.collection.api if item["name"] == self.key)
+        if isinstance(key, int):
+            self.record = collection.api[key - 1]
+        else:
+            self.record = next(item for item in collection.api if item["name"] == key)
 
     @property
     def name(self):
@@ -120,7 +120,7 @@ def test_iteration_survives_internal_name_inserted_during_reference_resolution()
         if name.name == "Range2":
             with pytest.raises(ValueError, match="Broken reference"):
                 name.refers_to_range
-            # A lazy handle must still refer to Range2 after the index shift.
+            # The handle must still refer to Range2 after the index shift.
             assert name.name == "Range2"
     assert seen == ["Range1", "Range2", "Range3", "Range4"]
     assert [name.name for name in names] == seen
@@ -147,3 +147,56 @@ def test_filtered_indices_edit_and_delete_the_intended_name():
     assert names[1].name == "Third"
     # Never remove the native entries as a side effect of hiding them.
     assert native.contains("_xlfn.LAMBDA") and native.contains("_xlpm.value")
+
+
+def test_duplicate_name_text_preserves_each_entry():
+    native = NativeNames(
+        [
+            {"name": "_xlfn.LAMBDA", "formula": "=#NAME?"},
+            {"name": "two", "formula": "=Sheet1!$A$1"},
+            {"name": "two", "formula": "=Sheet2!$B$2"},
+            {"name": "two", "formula": "=Sheet3!$C$3"},
+        ]
+    )
+    names = Names(native)
+    expected = [record["formula"] for record in native.api[1:]]
+    assert [name.refers_to for name in names] == expected
+    assert [names[i].refers_to for i in range(3)] == expected
+    assert [names(i).refers_to for i in range(1, 4)] == expected
+    assert names[-1].refers_to == expected[-1]
+    names[1].refers_to = "=42"
+    assert native.api[2]["formula"] == "=42"
+    assert native.api[1]["formula"] == expected[0]
+    del names[2]
+    assert [name.refers_to for name in names] == [expected[0], "=42"]
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="Requires the appscript engine")
+def test_mac_name_handles_survive_internal_name_insertion():
+    from xlwings._xlmac import Names as MacNames
+
+    class LazyNativeNames:
+        def __init__(self):
+            self.records = ["Range1", "'Sheet 1'!Range1", "Range2"]
+
+        def get(self):
+            return self.records
+
+        def __getitem__(self, key):
+            # Like appscript, resolve an index only when the property is read.
+            def get_name():
+                if isinstance(key, int):
+                    return self.records[key - 1]
+                assert key in self.records
+                return key
+
+            return SimpleNamespace(name=SimpleNamespace(get=get_name))
+
+    native = LazyNativeNames()
+    names = Names(MacNames(parent=None, xl=native))
+    iterator = iter(names)
+    indexed = names[1]
+    native.records.insert(0, "_xlfn.ANCHORARRAY")
+    assert indexed.name == "'Sheet 1'!Range1"
+    assert [name.name for name in iterator] == ["Range1", "'Sheet 1'!Range1", "Range2"]
+    assert len(names) == 3
