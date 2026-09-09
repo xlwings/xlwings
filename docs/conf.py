@@ -122,7 +122,7 @@ html_permalinks_icon = (
     ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
     '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
-    '</svg>'
+    "</svg>"
 )
 html_copy_source = False
 html_title = "xlwings Documentation"
@@ -155,7 +155,7 @@ html_theme_options = {
         "color-brand-visited": "#3fbf5f",
         "color-announcement-background": "#28a745",
     },
-    "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
+    # "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
 }
 
 # -- LLM-friendly output -----------------------------------------------------
@@ -197,7 +197,155 @@ texinfo_domain_indices = False
 # Autodocs (recommended settings by Furo)
 
 autodoc_typehints = "description"
-autodoc_typehints_description_target = "documented"
+autodoc_typehints_description_target = "documented_params"
+
+
+def _hide_impl_signature(app, what, name, obj, options, signature, return_annotation):
+    """Drop the ``impl`` parameter from class signatures.
+
+    ``impl`` is the engine-specific implementation object and never meant to be
+    passed by users, so it's noise in the docs. Classes that take nothing else
+    render as ``class Foo`` without parentheses.
+    """
+    if what != "class":
+        return None
+    import inspect
+
+    from sphinx.util.inspect import stringify_signature
+
+    try:
+        sig = inspect.signature(obj.__init__)
+    except (TypeError, ValueError):
+        return None
+    params = list(sig.parameters.values())[1:]  # drop self
+    if not any(p.name == "impl" for p in params):
+        return None
+    params = [p for p in params if p.name != "impl"]
+    if not params:
+        return "", return_annotation
+    sig = sig.replace(parameters=params, return_annotation=inspect.Signature.empty)
+    return stringify_signature(sig, show_annotation=False), return_annotation
+
+
+def _widen_literals(annotation):
+    """Replace `Literal["a", "b"]` with `str` (recursing into unions), so that
+    the docs show the plain type; the docstrings list the accepted values."""
+    import types
+    import typing
+
+    origin = typing.get_origin(annotation)
+    if origin is typing.Literal:
+        if all(isinstance(arg, str) for arg in typing.get_args(annotation)):
+            return str
+        return annotation
+    if origin in (typing.Union, types.UnionType):
+        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        # Deduplicate while keeping order, e.g. Literal[...] | str -> str
+        args = tuple(dict.fromkeys(args))
+        return args[0] if len(args) == 1 else typing.Union[args]
+    if origin is not None and typing.get_args(annotation):
+        # Generics such as list[Literal[...] | str] -> list[str]
+        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        try:
+            return origin[args]
+        except TypeError:
+            return annotation
+    return annotation
+
+
+def _widen_literal_typehints(
+    app, what, name, obj, options, signature, return_annotation
+):
+    """Show `str` instead of `Literal[...]` in the parameter type fields.
+
+    Runs after autodoc's own typehints recorder (same event, later priority)
+    and rewrites the annotations it stored for this object.
+    """
+    import typing
+
+    from sphinx.util.typing import stringify_annotation
+
+    annotations = app.env.temp_data.get("annotations", {}).get(name)
+    if not annotations:
+        return None
+    if what == "class":
+        obj = getattr(obj, "__init__", None)
+    try:
+        hints = typing.get_type_hints(obj)
+    except (AttributeError, NameError, TypeError, ValueError):
+        return None
+    for param, annotation in hints.items():
+        widened = _widen_literals(annotation)
+        if widened is not annotation and param in annotations:
+            annotations[param] = stringify_annotation(widened)
+    return None
+
+
+def _add_setter_type(app, domain, objtype, contentnode):
+    """Add a "Setter type" field to properties whose setter accepts a different
+    type than the getter returns.
+
+    Autodoc only shows the getter's return annotation as the property type,
+    which hides e.g. the hex strings and ints that a color setter accepts.
+    """
+    if domain != "py" or objtype != "property":
+        return
+    import importlib
+    import inspect
+    import typing
+
+    from docutils import nodes
+    from sphinx import addnodes
+    from sphinx.domains.python import _parse_annotation
+    from sphinx.util.typing import stringify_annotation
+
+    signature = contentnode.parent[0]
+    module_name, fullname = signature.get("module"), signature.get("fullname")
+    if not module_name or not fullname:
+        return
+    try:
+        obj = importlib.import_module(module_name)
+        for part in fullname.split("."):
+            obj = getattr(obj, part)
+        if not isinstance(obj, property) or obj.fset is None:
+            return
+        params = list(inspect.signature(obj.fset).parameters)
+        setter_hints = typing.get_type_hints(obj.fset)
+        getter_hints = typing.get_type_hints(obj.fget)
+    except (AttributeError, NameError, TypeError, ValueError):
+        return
+    if len(params) < 2 or params[1] not in setter_hints:
+        return
+    setter_type = stringify_annotation(_widen_literals(setter_hints[params[1]]))
+    if setter_type == stringify_annotation(getter_hints.get("return")):
+        return
+    field = nodes.field(
+        "",
+        nodes.field_name("", "Setter type"),
+        nodes.field_body(
+            "", nodes.paragraph("", "", *_parse_annotation(setter_type, app.env))
+        ),
+    )
+    field_list = nodes.field_list("", field, classes=["simple"])
+    # Keep the field ahead of any "Added in version" box so it stays with the
+    # description
+    for index, child in enumerate(contentnode):
+        if isinstance(child, addnodes.versionmodified):
+            contentnode.insert(index, field_list)
+            return
+    contentnode.append(field_list)
+
+
+def _mark_type_fields(app, domain, objtype, contentnode):
+    """Tag the "Return type" and "Setter type" field bodies so custom.css can
+    render them in the signature's code font."""
+    if domain != "py":
+        return
+    from docutils import nodes
+
+    for field in contentnode.findall(nodes.field):
+        if field[0].astext() in ("Return type", "Setter type"):
+            field[1]["classes"].append("type-hint")
 
 
 def _prepare_markdown_doctree(app, doctree, docname):
@@ -228,5 +376,10 @@ def _add_markdown_twin_flag(app, pagename, templatename, context, doctree):
 
 
 def setup(app):
+    app.connect("autodoc-process-signature", _hide_impl_signature)
+    # Priority 600 runs after sphinx.ext.autodoc.typehints (default 500)
+    app.connect("autodoc-process-signature", _widen_literal_typehints, priority=600)
+    app.connect("object-description-transform", _add_setter_type)
+    app.connect("object-description-transform", _mark_type_fields, priority=600)
     app.connect("doctree-resolved", _prepare_markdown_doctree)
     app.connect("html-page-context", _add_markdown_twin_flag)
