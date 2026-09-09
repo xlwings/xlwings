@@ -2246,19 +2246,29 @@ class Name(base_classes.Name):
         if new_name is not None and "!" not in new_name:
             names.add(new_name.lower())
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        local_names = book.sheets.active.names._name_strings()
-        if not any(item.rsplit("!", 1)[-1].lower() in names for item in local_names):
+        try:
+            active_sheet = book.sheets.active
+            local_names = (
+                active_sheet.names._name_strings() if active_sheet.xl.exists() else None
+            )
+        except CommandError:
+            # A chart sheet cannot be addressed through the worksheets collection.
+            local_names = None
+        if local_names is not None and not any(
+            item.rsplit("!", 1)[-1].lower() in names for item in local_names
+        ):
             yield refers_to
             return
         previous_book = book.app.books.active
-        previous_sheet = book.sheets.active
+        # Keep a native sheets reference so chart sheets can also be restored.
+        previous_sheet = book.xl.sheets[book.xl.active_sheet.name.get()]
         temporary_sheet = None
-        if refers_to is not None:
+        if refers_to is not None and local_names is not None:
             # Excel interprets input relative references from A1, while reads
             # depend on the selected cell. Normalize on the original sheet at A1.
             selection = book.app.selection
             try:
-                previous_sheet.range("A1").select()
+                book.sheets.active.range("A1").select()
                 temporary_name = book.names.add(f"xw_tmp_{uuid4().hex[:16]}", refers_to)
                 try:
                     refers_to = temporary_name.refers_to
@@ -2268,8 +2278,8 @@ class Name(base_classes.Name):
                 if selection is not None:
                     selection.select()
         try:
-            if refers_to is not None:
-                temporary_sheet = book.sheets.add(after=book.sheets(len(book.sheets)))
+            if refers_to is not None or local_names is None:
+                temporary_sheet = self._add_mutation_sheet(book)
                 temporary_sheet.activate()
             else:
                 for sheet in book.sheets:
@@ -2280,16 +2290,26 @@ class Name(base_classes.Name):
                         sheet.activate()
                         break
                 else:
-                    temporary_sheet = book.sheets.add(
-                        after=book.sheets(len(book.sheets))
-                    )
+                    temporary_sheet = self._add_mutation_sheet(book)
                     temporary_sheet.activate()
             yield refers_to
         finally:
-            previous_sheet.activate()
-            if temporary_sheet is not None:
-                temporary_sheet.delete()
-            previous_book.activate()
+            try:
+                previous_sheet.activate_object()
+                if temporary_sheet is not None:
+                    temporary_sheet.delete()
+            finally:
+                previous_book.activate()
+
+    def _add_mutation_sheet(self, book):
+        try:
+            return book.sheets.add(after=book.sheets(len(book.sheets)))
+        except CommandError as exc:
+            raise xlwings.XlwingsError(
+                f"Cannot modify defined name {self.name!r}: Excel could not create "
+                "the temporary worksheet needed to preserve its scope. "
+                "Check whether the workbook structure is protected."
+            ) from exc
 
     def delete(self):
         with self._mutation_context():
@@ -2307,12 +2327,27 @@ class Name(base_classes.Name):
     @name.setter
     def name(self, value):
         with self._mutation_context(new_name=value):
-            self.xl.name.set(value)
-            if self._index is not None:
-                if "!" not in value and "!" in self._index.name:
-                    scope = self._index.name.rsplit("!", 1)[0]
-                    value = f"{scope}!{value}"
-                self._index.name = value
+            native = self.xl
+            old_name = native.name.get()
+            expected_name = value
+            if "!" not in value and "!" in old_name:
+                scope = old_name.rsplit("!", 1)[0]
+                expected_name = f"{scope}!{value}"
+            native.name.set(value)
+            collection = (
+                self._collection if self._collection is not None else self.parent.names
+            )
+            names = collection._name_strings()
+            if expected_name not in names or (
+                old_name != expected_name and old_name in names
+            ):
+                # Excel can display an alert and return normally without renaming.
+                # Keep the old identity until the native collection confirms it.
+                raise xlwings.XlwingsError(
+                    f"Excel did not rename defined name {old_name!r} to {value!r}."
+                )
+            self._collection = collection
+            self._index = NameIndex(names.index(expected_name) + 1, expected_name)
 
     @property
     def refers_to(self):

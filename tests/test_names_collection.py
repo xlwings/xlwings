@@ -245,6 +245,42 @@ def test_name_index_rescans_only_when_needed():
     assert get_names.call_count == 1
 
 
+@pytest.mark.parametrize("new_scope", ["Renamed", "'Renamed ! Sheet'"])
+def test_lazy_name_survives_sheet_rename(new_scope):
+    native = LazyNativeNames(
+        [
+            {"name": "Sheet1!foo", "formula": "=1"},
+            {"name": "Sheet2!foo", "formula": "=2"},
+        ]
+    )
+    first, second = list(Names(native))
+    native.api[0]["name"] = f"{new_scope}!foo"
+    assert first.name == f"{new_scope}!foo"
+    first.refers_to = "=42"
+    assert first.refers_to == "=42"
+    assert second.refers_to == "=2"
+    first.delete()
+    assert second.name == "Sheet2!foo"
+
+
+def test_name_index_prefers_exact_match_over_changed_scope_at_old_index():
+    index = NameIndex(1, "Sheet1!foo")
+    names = ["Sheet2!foo", "Sheet1!foo"]
+    assert index.resolve(lambda i: names[i - 1], lambda: names) == 2
+    assert index.name == "Sheet1!foo"
+
+
+@pytest.mark.parametrize(
+    "old_name, current_name",
+    [("Sheet1!foo", "foo"), ("foo", "Sheet1!foo"), ("Sheet1!foo", "Sheet2!bar")],
+)
+def test_name_index_rejects_changes_other_than_scope(old_name, current_name):
+    index = NameIndex(1, old_name)
+    with pytest.raises(KeyError):
+        index.resolve(lambda i: current_name, lambda: [current_name])
+    assert index.name == old_name
+
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="Requires the appscript engine")
 @pytest.mark.parametrize("bulk_shadows", [False, True])
 def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
@@ -291,6 +327,9 @@ def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
             return self.record["name"]
 
         def set_name(self, value):
+            if value == "bad name" or value in self.collection.get_names():
+                # Excel may reject a rename without raising an Apple Event error.
+                return
             scope = self.record["name"].rpartition("!")[0]
             self.record["name"] = f"{scope}!{value}" if scope else value
             self.collection.records.sort(key=lambda record: record["name"])
@@ -303,7 +342,10 @@ def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
 
     native = NativeCollection()
     # The live test covers Excel's mutation scope. This fake tests index tracking.
-    active = SimpleNamespace(names=SimpleNamespace(_name_strings=lambda: []))
+    active = SimpleNamespace(
+        names=SimpleNamespace(_name_strings=lambda: []),
+        xl=SimpleNamespace(exists=lambda: True),
+    )
     parent = SimpleNamespace(
         book=SimpleNamespace(sheets=SimpleNamespace(active=active))
     )
@@ -325,6 +367,14 @@ def test_mac_snapshot_preserves_shadowed_names(bulk_shadows):
     sheet_name.name = "renamed"
     assert sheet_name.name == "Sheet1!renamed"
     assert sheet_name.refers_to == "=2"
+    from xlwings import XlwingsError
+
+    for rejected in ["bad name", "Sheet1!renamed"]:
+        with pytest.raises(XlwingsError, match="did not rename"):
+            book_name.name = rejected
+        assert book_name.name == "zzz"
+        assert book_name.refers_to == "=42"
+        assert sheet_name.refers_to == "=2"
     book_name.delete()
     assert [record["name"] for record in native.records] == [
         "Sheet1!renamed",

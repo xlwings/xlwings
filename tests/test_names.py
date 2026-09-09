@@ -56,6 +56,43 @@ class TestNames(TestBase):
         self.assertEqual(self.wb1.sheets.active.name, sheet.name)
         self.assertEqual(self.wb1.app.selection, sheet["D5"])
 
+    @unittest.skipUnless(sys.platform == "darwin", "macOS scoped-name regression")
+    def test_mac_held_name_survives_sheet_rename(self):
+        sheet = self.wb1.sheets[0]
+        self.wb1.names.add("foo", "=Sheet1!$A$1")
+        self.wb1.names.add("Sheet1!foo", "=Sheet1!$B$1")
+        handles = {name.name: name for name in self.wb1.names}
+        sheet.name = "Renamed"
+        local = handles["Sheet1!foo"]
+        self.assertEqual(local.name, "Renamed!foo")
+        self.assertEqual(local.refers_to_range, sheet["B1"])
+        self.assertEqual(handles["foo"].refers_to_range, sheet["A1"])
+        local.refers_to = "=Renamed!$B$2"
+        self.assertEqual(local.refers_to_range, sheet["B2"])
+        local.delete()
+        self.assertEqual(handles["foo"].refers_to_range, sheet["A1"])
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS chart-sheet regression")
+    def test_mac_mutations_with_chart_sheet_active(self):
+        from xlwings._xlmac import kw
+
+        self.wb1.names.add("foo", "=Sheet1!$A$1")
+        name = self.wb1.names[0]
+        chart = self.wb1.api.make(new=kw.chart_sheet, at=self.wb1.api.sheets[1].before)
+        chart_name = chart.name.get()
+        chart.activate_object()
+        worksheet_names = [sheet.name for sheet in self.wb1.sheets]
+        name.refers_to = "=Sheet1!$B$1"
+        self.assertEqual(name.refers_to_range, self.wb1.sheets["Sheet1"]["B1"])
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        name.name = "renamed"
+        self.assertEqual(name.name, "renamed")
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        name.delete()
+        self.assertEqual(len(self.wb1.names), 0)
+        self.assertEqual(self.wb1.api.active_sheet.name.get(), chart_name)
+        self.assertEqual([sheet.name for sheet in self.wb1.sheets], worksheet_names)
+
     def test_names_contain(self):
         self.wb1.sheets[0].range("B2:D10").name = "test1"
         self.assertTrue("test1" in self.wb1.names)
