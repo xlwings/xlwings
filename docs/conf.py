@@ -122,7 +122,7 @@ html_permalinks_icon = (
     ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
     '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
-    '</svg>'
+    "</svg>"
 )
 html_copy_source = False
 html_title = "xlwings Documentation"
@@ -155,7 +155,7 @@ html_theme_options = {
         "color-brand-visited": "#3fbf5f",
         "color-announcement-background": "#28a745",
     },
-    "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
+    # "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
 }
 
 # -- LLM-friendly output -----------------------------------------------------
@@ -200,9 +200,7 @@ autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented_params"
 
 
-def _hide_impl_signature(
-    app, what, name, obj, options, signature, return_annotation
-):
+def _hide_impl_signature(app, what, name, obj, options, signature, return_annotation):
     """Drop the ``impl`` parameter from class signatures.
 
     ``impl`` is the engine-specific implementation object and never meant to be

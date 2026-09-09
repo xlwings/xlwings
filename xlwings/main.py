@@ -2161,11 +2161,11 @@ class Range:
 
         Examples:
             ```pycon
-            >>> rng = sheet["A1:D10"]
-            >>> rng.borders.line_style = "continuous"  # edges + inside borders
-            >>> rng.borders["edge_bottom"].weight = "thick"
-            >>> rng.borders.set("outside", line_style="double", color="#ff0000")
-            >>> rng.borders.clear()
+            >>> myrange = sheet["A1:D10"]
+            >>> myrange.borders.line_style = "continuous"  # edges + inside borders
+            >>> myrange.borders["edge_bottom"].weight = "thick"
+            >>> myrange.borders.set("outside", line_style="double", color="#ff0000")
+            >>> myrange.borders.clear()
             ```
 
         ```{versionadded} 0.37.1
@@ -2505,7 +2505,7 @@ class Range:
 
         # Reuse the stage that `.value` reads go through, so the shape rules
         # (and `ndim`) stay in one place.
-        c = ConversionContext(rng=self, value=await self._impl.get_formula())
+        c = ConversionContext(myrange=self, value=await self._impl.get_formula())
         AdjustDimensionsStage(self._options)(c)
         return c.value
 
@@ -3144,8 +3144,8 @@ class RangeRows(Ranges):
         ```
     """
 
-    def __init__(self, rng: Range) -> None:
-        self.rng = rng
+    def __init__(self, myrange: Range) -> None:
+        self.myrange = myrange
 
     def __len__(self) -> int:
         """Returns the number of rows.
@@ -3153,20 +3153,20 @@ class RangeRows(Ranges):
         ```{versionadded} 0.9.0
         ```
         """
-        return self.rng.shape[0]
+        return self.myrange.shape[0]
 
     count = property(__len__)
 
     def autofit(self) -> None:
         """Autofits the height of the rows."""
-        self.rng.impl.autofit(axis="r")
+        self.myrange.impl.autofit(axis="r")
 
     def __iter__(self) -> Iterator[Range]:
-        for i in range(0, self.rng.shape[0]):
-            yield self.rng[i, :]
+        for i in range(0, self.myrange.shape[0]):
+            yield self.myrange[i, :]
 
     def __call__(self, key: int) -> Range:
-        return self.rng[key - 1, :]
+        return self.myrange[key - 1, :]
 
     @overload
     def __getitem__(self, key: int) -> Range:
@@ -3178,16 +3178,16 @@ class RangeRows(Ranges):
 
     def __getitem__(self, key: int | slice) -> Range | RangeRows:
         if isinstance(key, slice):
-            return RangeRows(rng=self.rng[key, :])
+            return RangeRows(myrange=self.myrange[key, :])
         elif isinstance(key, int):
-            return self.rng[key, :]
+            return self.myrange[key, :]
         else:
             raise TypeError(
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.__class__.__name__, repr(self.rng))
+        return "{}({})".format(self.__class__.__name__, repr(self.myrange))
 
 
 class RangeColumns(Ranges):
@@ -3214,8 +3214,8 @@ class RangeColumns(Ranges):
         ```
     """
 
-    def __init__(self, rng: Range) -> None:
-        self.rng = rng
+    def __init__(self, myrange: Range) -> None:
+        self.myrange = myrange
 
     def __len__(self) -> int:
         """Returns the number of columns.
@@ -3223,20 +3223,20 @@ class RangeColumns(Ranges):
         ```{versionadded} 0.9.0
         ```
         """
-        return self.rng.shape[1]
+        return self.myrange.shape[1]
 
     count = property(__len__)
 
     def autofit(self) -> None:
         """Autofits the width of the columns."""
-        self.rng.impl.autofit(axis="c")
+        self.myrange.impl.autofit(axis="c")
 
     def __iter__(self) -> Iterator[Range]:
-        for j in range(0, self.rng.shape[1]):
-            yield self.rng[:, j]
+        for j in range(0, self.myrange.shape[1]):
+            yield self.myrange[:, j]
 
     def __call__(self, key: int) -> Range:
-        return self.rng[:, key - 1]
+        return self.myrange[:, key - 1]
 
     @overload
     def __getitem__(self, key: int) -> Range:
@@ -3248,16 +3248,16 @@ class RangeColumns(Ranges):
 
     def __getitem__(self, key: int | slice) -> Range | RangeColumns:
         if isinstance(key, slice):
-            return RangeColumns(rng=self.rng[:, key])
+            return RangeColumns(myrange=self.myrange[:, key])
         elif isinstance(key, int):
-            return self.rng[:, key]
+            return self.myrange[:, key]
         else:
             raise TypeError(
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.__class__.__name__, repr(self.rng))
+        return "{}({})".format(self.__class__.__name__, repr(self.myrange))
 
 
 class Shape:
@@ -5475,17 +5475,18 @@ class Borders:
     Use `set()` to write several attributes in one go or to target a group of
     sides, and `clear()` to remove borders.
 
-    ```pycon
-    >>> rng = sheet["A1:D10"]
-    >>> rng.borders.line_style = "continuous"
-    >>> rng.borders.weight = "thin"
-    >>> rng.borders.color = "#000000"
-    >>> rng.borders["edge_bottom"].weight = "thick"
-    >>> rng.borders.set("outside", line_style="double", color=(255, 0, 0))
-    >>> rng.borders.clear("inside")
-    >>> rng.borders.clear()
-    >>> [border.line_style for border in rng.borders]  # 8 sides, in table order
-    ```
+    Examples:
+        ```pycon
+        >>> myrange = sheet["A1:D10"]
+        >>> myrange.borders.line_style = "continuous"
+        >>> myrange.borders.weight = "thin"
+        >>> myrange.borders.color = "#000000"
+        >>> myrange.borders["edge_bottom"].weight = "thick"
+        >>> myrange.borders.set("outside", line_style="double", color=(255, 0, 0))
+        >>> myrange.borders.clear("inside")
+        >>> myrange.borders.clear()
+        >>> [border.line_style for border in myrange.borders]  # 8 sides, in table order
+        ```
 
     ```{versionadded} 0.37.1
     ```
@@ -5630,10 +5631,10 @@ class Borders:
 
         Examples:
             ```pycon
-            >>> rng = sheet["A1:D10"]
-            >>> rng.borders.set("outside", line_style="continuous", weight="thin")
-            >>> rng.borders.set(["edge_top", "edge_bottom"], line_style="double")
-            >>> rng.borders.set("inside", line_style=None)  # same as clear("inside")
+            >>> myrange = sheet["A1:D10"]
+            >>> myrange.borders.set("outside", line_style="continuous", weight="thin")
+            >>> myrange.borders.set(["edge_top", "edge_bottom"], line_style="double")
+            >>> myrange.borders.set("inside", line_style=None)  # same as clear("inside")
             ```
 
         ```{versionadded} 0.37.1
@@ -5664,8 +5665,8 @@ class Borders:
 
         Examples:
             ```pycon
-            >>> rng.borders.clear()           # all eight sides
-            >>> rng.borders.clear("inside")   # the two inside borders only
+            >>> myrange.borders.clear()           # all eight sides
+            >>> myrange.borders.clear("inside")   # the two inside borders only
             ```
 
         ```{versionadded} 0.37.1

@@ -27,18 +27,12 @@ Start here if you are new to xlwings. Learn about the syntax, the `RunPython` ca
 More in-depths explanations about converters, debugging or how to write your own add-in.
 :::::
 
-:::::{grid-item-card} {octicon}`star;2em;sd-text-success` xlwings PRO
-:link: pro/license_key
-:link-type: doc
+:::::{grid-item-card} {octicon}`star;2em;sd-text-success` xlwings Lite & xlwings Server
 
-Use advanced features such as:
+To run xlwings without having to install Python, you have two options:
 
-* xlwings Reports: work with templates
-* 1-click installer: bundle Python and all your packages
-* Embedded code: easy deployment
-* Ultra fast file reader: no Excel required
-
-Free for non-commercial use only.
+* [xlwings Lite](https://lite.xlwings.org): Install the free add-in from Excel's add-in store and you're done. It comes with a VS Code-like editor and Wingman, a powerful AI assistant.
+* [xlwings Server](https://server.xlwings.org): Create your own modern Excel add-in with Python instead of JavaScript. Python runs on your own server and comes with enterprise features such as SSO and RBAC.
 :::::
 
 :::::{grid-item-card} {octicon}`code-square;2em;sd-text-success` API Reference
