@@ -1678,6 +1678,138 @@ def test_names_add_rejects_unknown_sheet_without_queuing_action(sheet_scope):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("scope", ["book", "renamed", "other"])
+@pytest.mark.parametrize(
+    "formula,expected",
+    [
+        ("=Sheet2!$A$1", "='Sales''26'!$A$1"),
+        ("='Sheet2'!$A$1", "='Sales''26'!$A$1"),
+        ("=sheet2!a1", "='Sales''26'!a1"),
+        (
+            "=LAMBDA(v,v+Sheet2!A1+OtherSheet2!A1)",
+            "=LAMBDA(v,v+'Sales''26'!A1+OtherSheet2!A1)",
+        ),
+        (
+            '=IF(Sheet2!A1="Sheet2!A1",INDIRECT("Sheet2!A1"),"a ""Sheet2!"" b")',
+            '=IF(\'Sales\'\'26\'!A1="Sheet2!A1",INDIRECT("Sheet2!A1"),"a ""Sheet2!"" b")',
+        ),
+        (
+            "=SUM('[Budget.xlsx]Sheet2'!A1,[Budget.xlsx]Sheet2!A1,Sheet2!A1)",
+            "=SUM('[Budget.xlsx]Sheet2'!A1,[Budget.xlsx]Sheet2!A1,'Sales''26'!A1)",
+        ),
+        (
+            "=SUM(Table1[Sheet2!x],Table1[[#Headers],[Sheet2!x]],Sheet2!A1)",
+            "=SUM(Table1[Sheet2!x],Table1[[#Headers],[Sheet2!x]],'Sales''26'!A1)",
+        ),
+        (
+            "=SUM(Sheet2:Last!A1,First:Sheet2!A1,'Sheet2:Last'!A1)",
+            "=SUM('Sales''26:Last'!A1,'First:Sales''26'!A1,'Sales''26:Last'!A1)",
+        ),
+        ("=42", "=42"),
+    ],
+)
+def test_named_formula_tracks_sheet_rename(scope, formula, expected):
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"] = []
+    book = xw.Book(json=snapshot)
+    sheet = book.sheets["Sheet2"]
+    parent = {"book": book, "renamed": sheet, "other": book.sheets[0]}[scope]
+    name = parent.names.add("RenameDemo", formula)
+    previous_actions = len(book.json()["actions"])
+    sheet.name = "Sales'26"
+    assert name.refers_to == expected
+    assert len(book.json()["actions"]) == previous_actions + 1
+    assert book.json()["actions"][-1]["func"] == "setSheetName"
+    if scope == "renamed":
+        assert name.name == "'Sales''26'!RenameDemo"
+        assert sheet.names[name.name].refers_to == expected
+    else:
+        assert name.name == (
+            "RenameDemo" if scope == "book" else "'Sheet 1'!RenameDemo"
+        )
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+def test_renamed_name_can_be_updated_and_deleted(sheet_scope):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    parent = sheet if sheet_scope else book
+    name = parent.names.add("RenamedLifecycle", "='Sheet 1'!$Z$10")
+    sheet.name = "Sales'26"
+    name.refers_to = "='Sales''26'!$Z$11"
+    assert name.refers_to_range == sheet["Z11"]
+    name.delete()
+    assert all(n.api["name"] != "RenamedLifecycle" for n in book.names)
+    assert book.json()["actions"][-1]["args"] == [
+        "'Sales''26'!RenamedLifecycle" if sheet_scope else "RenamedLifecycle",
+        "='Sales''26'!$Z$11",
+        "RenamedLifecycle",
+        0,
+        not sheet_scope,
+        0 if sheet_scope else None,
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("with_definition", [False, True])
+def test_named_reference_tracks_repeated_sheet_renames(with_definition):
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"] = [snapshot["names"][0]]
+    if with_definition:
+        snapshot["names"][0]["refers_to"] = "='Sheet 1'!$A$1"
+    book = xw.Book(json=snapshot)
+    name = book.names[0]
+    sheet = book.sheets[0]
+    for new_name, definition in [
+        ("Sales'24!", "='Sales''24!'!$A$1"),
+        ("日本", "=日本!$A$1"),
+        ("Final", "=Final!$A$1"),
+    ]:
+        sheet.name = new_name
+        assert name.refers_to == definition
+        assert name.refers_to_range == sheet["A1"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_prefixed_sheet_scope_name_tracks_sheet_rename():
+    snapshot = json.loads(json.dumps(data))
+    snapshot["names"] = [snapshot["names"][1]]
+    snapshot["names"][0]["name"] = "'Sheet 1'!two"
+    book = xw.Book(json=snapshot)
+    name = book.names[0]
+    book.sheets[0].name = "Sales'24"
+    assert name.name == "'Sales''24'!two"
+    assert book.sheets[0].names[name.name].refers_to == "='Sales''24'!$C$7:$D$8"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("sheet_scope", [False, True])
+@pytest.mark.parametrize("formula", ["=LAMBDA(v,v*2)", "=42", "=(Sheet2!A1,Sheet2!C3)"])
+def test_range_of_formula_name_reports_non_range(sheet_scope, formula):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    parent = sheet if sheet_scope else book
+    parent.names.add("F", formula)
+    with pytest.raises(ValueError, match="does not refer to a single range"):
+        sheet.range("F")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_name_respects_scope_and_resolved_sheet():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    first, second = book.sheets[0], book.sheets[1]
+    book.names.add("ScopedDemo", "=42")
+    first.names.add("ScopedDemo", "=Sheet2!$Z$10")
+    assert first.range("ScopedDemo") == second["Z10"]
+    with pytest.raises(ValueError, match="does not refer to a single range"):
+        second.range("ScopedDemo")
+    first.names.add("OnlyLocal", "=42")
+    with pytest.raises(xw.NoSuchObjectError, match="doesn't exist"):
+        second.range("OnlyLocal")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_name_name_setter_not_supported(book):
     # Excel.NamedItem.name is read-only in Office.js.
     with pytest.raises(NotImplementedError, match="is read-only"):
