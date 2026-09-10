@@ -1831,6 +1831,29 @@ class Sheet:
         self.impl.visible = value
 
     @property
+    def show_gridlines(self) -> bool:
+        """Gets or sets whether the sheet displays gridlines. This only
+        affects what is shown on screen, not what is printed.
+
+        With classic xlwings (Python running locally), the sheet must
+        be (temporarily) activated by xlwings, which means that you can't use this
+        with hidden sheets. xlwings Server and xlwings Lite don't have this restriction.
+
+        Examples:
+            ```pycon
+            >>> mysheet.show_gridlines = False
+            ```
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.show_gridlines
+
+    @show_gridlines.setter
+    def show_gridlines(self, value: bool) -> None:
+        self.impl.show_gridlines = value
+
+    @property
     def page_setup(self) -> PageSetup:
         """Returns a PageSetup object.
 

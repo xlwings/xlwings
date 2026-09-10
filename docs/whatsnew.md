@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.3 (Unreleased)
+
+- Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
+
 ## v0.37.2 (Sep 9, 2026)
 
 - xlwings Lite and xlwings Server: Added support for named formulas, including Excel LAMBDA functions.

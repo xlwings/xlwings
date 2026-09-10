@@ -581,6 +581,83 @@ def test_sheet_visible_added_sheet():
     assert sheet.visible is False
 
 
+def _gridlines_book(payload):
+    from xlwings.pro import _xlremote
+
+    app = _xlremote.App(_xlremote.Apps(), add_book=False)
+    return xw.Book(impl=app.books.open(payload))
+
+
+@pytest.fixture
+def gridlines_book():
+    payload = json.loads(json.dumps(data))
+    payload["client"] = "Office.js"
+    for sheet, value in zip(payload["sheets"], [True, False, True]):
+        sheet["show_gridlines"] = value
+    book = _gridlines_book(payload)
+    yield book
+    book.close()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_show_gridlines(gridlines_book):
+    book = gridlines_book
+    assert book.sheets[0].show_gridlines is True
+    assert book.sheets[1].show_gridlines is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_show_gridlines_set(gridlines_book):
+    book = gridlines_book
+    book.sheets[0].show_gridlines = False
+    assert book.json()["actions"][0]["func"] == "setShowGridlines"
+    assert book.json()["actions"][0]["args"] == [False]
+    assert book.json()["actions"][0]["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert book.sheets[0].show_gridlines is False
+    book.sheets[0].show_gridlines = True
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_show_gridlines_added_sheet(gridlines_book):
+    book = gridlines_book
+    sheet = book.sheets.add(name="gridsheet")
+    assert sheet.show_gridlines is True
+    sheet.show_gridlines = False
+    assert book.json()["actions"][-1]["func"] == "setShowGridlines"
+    assert book.json()["actions"][-1]["args"] == [False]
+    assert sheet.show_gridlines is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_show_gridlines_missing_key(gridlines_book):
+    book = gridlines_book
+    del book.sheets[0].impl.api["show_gridlines"]
+    with pytest.raises(NotImplementedError):
+        book.sheets[0].show_gridlines
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "client", ["Microsoft Office Scripts", "Google Apps Script", "VBA"]
+)
+@pytest.mark.parametrize("added_sheet", [False, True])
+def test_sheet_show_gridlines_unsupported_client(client, added_sheet):
+    payload = json.loads(json.dumps(data))
+    payload["client"] = client
+    book = _gridlines_book(payload)
+    try:
+        sheet = book.sheets.add() if added_sheet else book.sheets[0]
+        actions = list(book.json()["actions"])
+        with pytest.raises(NotImplementedError, match="Office.js"):
+            sheet.show_gridlines = False
+        assert book.json()["actions"] == actions
+        with pytest.raises(NotImplementedError, match="Office.js"):
+            sheet.show_gridlines
+    finally:
+        book.close()
+
+
 # book name
 def test_book(book):
     assert book.name == f"engines.{file_extension}"
