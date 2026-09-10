@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.3 (Unreleased)
 
 - Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
+- xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 
 ## v0.37.2 (Sep 9, 2026)
 

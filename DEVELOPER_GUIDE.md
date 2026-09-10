@@ -90,6 +90,35 @@ This is used for the file reader. The source is under `src` together with variou
   `maturin develop` or `maturin develop --release` for optimized builds
   This will build and install the extension in the current environment.
 
+### Pyodide (WebAssembly) build
+
+The build pipeline also produces a `pyemscripten` wheel (PEP 783) so that the Reader is available in Pyodide >= 314.0.0 (CPython 3.14). Older Pyodide versions fall back to the pure Python `any` wheel, which doesn't include the Reader. The pipeline (`.github/workflows/main.yml`, job `build-pyemscripten`) uses `pyodide-build` to look up the Emscripten version, Rust toolchain, rustflags, and platform tag that the targeted Pyodide release requires. To build locally (on Linux/macOS):
+
+```bash
+pip install "pyodide-build==0.39.0" maturin
+# Emscripten SDK: https://emscripten.org/docs/getting_started/downloads.html
+./emsdk install $(pyodide config get emscripten_version)
+./emsdk activate $(pyodide config get emscripten_version)
+source ./emsdk_env.sh
+rustup toolchain install $(pyodide config get rust_toolchain) --target wasm32-unknown-emscripten
+
+export RUSTUP_TOOLCHAIN=$(pyodide config get rust_toolchain)
+export CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_RUSTFLAGS="$(pyodide config get rustflags)"
+export MATURIN_PYEMSCRIPTEN_PLATFORM_VERSION=$(pyodide config get pyemscripten_platform_version)
+maturin build --release --target wasm32-unknown-emscripten --out dist --interpreter 3.14
+```
+
+To test the wheel in Pyodide (requires Node.js), create a Pyodide virtualenv and run the tests from outside the repo (otherwise the source directory shadows the installed package):
+
+```bash
+pyodide venv .venv-pyodide
+source .venv-pyodide/bin/activate
+python -m pip install --break-system-packages pytest
+python -m pip install --break-system-packages xlwings --no-index --no-deps --find-links dist
+cd ..
+XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsm python -m pytest xlwings/tests/test_engines/test_engines.py
+```
+
 The 3rd party Open Source licenses document is built with `cargo about generate about.hbs > docs/_static/opensource_licenses2.html` this requires `cargo install --locked cargo-about`.
 
 ## Code formatting/linting
