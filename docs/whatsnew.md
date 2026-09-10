@@ -2,9 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.3 (unreleased)
+## v0.37.3 (Unreleased)
 
-- xlwings Lite and xlwings Server: The Reader (Rust extension) is now available on Pyodide >= 314.0.0 (Python 3.14) via a `pyemscripten` wheel (PEP 783) on PyPI. Older Pyodide versions continue to use the pure Python wheel without the Reader.
+- Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
+- xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 
 ## v0.37.2 (Sep 9, 2026)
 

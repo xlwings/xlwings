@@ -800,6 +800,59 @@ class Sheet(base_classes.Sheet):
     def visible(self, value):
         self.xl.visible.set(value)
 
+    def _window_property(self, name, *value):
+        """Get (no `value`) or set (one `value`) a property of the book's window.
+
+        Gridlines and the like are window properties, applying to the sheet
+        that the window currently shows. A sheet that isn't active is
+        therefore activated for the duration of the call and the previously
+        active sheet restored afterwards, with screen updating off.
+        """
+        book = self.workbook.xl
+        prop = getattr(book.windows[1], name)
+        previous_book_sheet = book.active_sheet.name.get()
+        if previous_book_sheet != self.xl.name.get():
+            if self.xl.visible.get() != kw.sheet_visible:
+                raise ValueError(
+                    f"Sheet.{name}: hidden sheets can't be activated. Set "
+                    "sheet.visible = True first."
+                )
+            app = self.workbook.app
+            # Resolve now: appscript references are lazy, and `active_sheet`
+            # would otherwise point at whatever is active by the time it's used.
+            previous_book = app.xl.active_workbook.name.get()
+            previous_sheet = app.xl.active_workbook.active_sheet.name.get()
+            previous_screen_updating = app.screen_updating
+            app.screen_updating = False
+            try:
+                self.xl.activate_object()
+                if value:
+                    prop.set(value[0])
+                    return None
+                return prop.get()
+            finally:
+                try:
+                    book.sheets[previous_book_sheet].activate_object()
+                finally:
+                    try:
+                        app.xl.workbooks[previous_book].sheets[
+                            previous_sheet
+                        ].activate_object()
+                    finally:
+                        app.screen_updating = previous_screen_updating
+        if value:
+            prop.set(value[0])
+            return None
+        return prop.get()
+
+    @property
+    def show_gridlines(self):
+        return bool(self._window_property("display_gridlines"))
+
+    @show_gridlines.setter
+    def show_gridlines(self, value):
+        self._window_property("display_gridlines", bool(value))
+
     @property
     def page_setup(self):
         return PageSetup(self, self.xl.page_setup_object)

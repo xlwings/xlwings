@@ -407,6 +407,14 @@ class Sheet:
         raise NotImplementedError()
 
     @property
+    def show_gridlines(self):
+        raise NotImplementedError()
+
+    @show_gridlines.setter
+    def show_gridlines(self, value):
+        raise NotImplementedError()
+
+    @property
     def page_setup(self):
         raise NotImplementedError()
 

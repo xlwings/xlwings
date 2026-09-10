@@ -1111,6 +1111,54 @@ class Sheet(base_classes.Sheet):
     def visible(self, value):
         self.xl.Visible = value
 
+    def _window_property(self, name, *value):
+        """Get (no `value`) or set (one `value`) a property of the book's window.
+
+        Gridlines and the like are window properties in COM, applying to the
+        sheet that the window currently shows. A sheet that isn't active is
+        therefore activated for the duration of the call and the previously
+        active sheet restored afterwards, with screen updating off.
+        """
+        book = self.xl.Parent
+        window = book.Windows(1)
+        previous_book_sheet = book.ActiveSheet
+        if previous_book_sheet.Name != self.xl.Name:
+            if self.xl.Visible != constants.SheetVisibility.xlSheetVisible:
+                raise ValueError(
+                    f"Sheet.{name}: hidden sheets can't be activated. Set "
+                    "sheet.visible = True first."
+                )
+            app = self.xl.Application
+            previous_sheet = app.ActiveSheet
+            previous_screen_updating = app.ScreenUpdating
+            app.ScreenUpdating = False
+            try:
+                self.xl.Activate()
+                if value:
+                    setattr(window, name, value[0])
+                    return None
+                return getattr(window, name)
+            finally:
+                try:
+                    previous_book_sheet.Activate()
+                finally:
+                    try:
+                        previous_sheet.Activate()
+                    finally:
+                        app.ScreenUpdating = previous_screen_updating
+        if value:
+            setattr(window, name, value[0])
+            return None
+        return getattr(window, name)
+
+    @property
+    def show_gridlines(self):
+        return bool(self._window_property("DisplayGridlines"))
+
+    @show_gridlines.setter
+    def show_gridlines(self, value):
+        self._window_property("DisplayGridlines", bool(value))
+
     @property
     def page_setup(self):
         return PageSetup(self.xl.PageSetup)

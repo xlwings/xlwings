@@ -832,6 +832,8 @@ class Sheets(base_classes.Sheets):
             "tables": [],
             "print_area": None,
         }
+        if self.book.api["client"] == "Office.js":
+            api["show_gridlines"] = True
 
         if before:
             if before.index == 1:
@@ -918,6 +920,26 @@ class Sheet(base_classes.Sheet):
             args=visibility,
         )
         self.api["visibility"] = visibility
+
+    @property
+    def show_gridlines(self):
+        try:
+            return self.api["show_gridlines"]
+        except KeyError:
+            # Only the Office.js client sends this key.
+            raise NotImplementedError(
+                "Sheet.show_gridlines is only supported with Office.js clients"
+            ) from None
+
+    @show_gridlines.setter
+    def show_gridlines(self, value):
+        if self.book.api["client"] != "Office.js":
+            raise NotImplementedError(
+                "Sheet.show_gridlines is only supported with Office.js clients"
+            )
+        value = bool(value)
+        self.append_json_action(func="setShowGridlines", args=[value])
+        self.api["show_gridlines"] = value
 
     @property
     def index(self):

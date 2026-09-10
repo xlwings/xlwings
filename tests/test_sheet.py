@@ -156,6 +156,56 @@ class TestSheet(TestBase):
         self.wb1.sheets[0].visible = False
         self.assertFalse(self.wb1.sheets[0].visible)
 
+    def test_show_gridlines(self):
+        sheet = self.wb1.sheets.active
+        self.assertTrue(sheet.show_gridlines)
+        sheet.show_gridlines = False
+        self.assertFalse(sheet.show_gridlines)
+        sheet.show_gridlines = True
+        self.assertTrue(sheet.show_gridlines)
+
+    def test_show_gridlines_inactive_sheet(self):
+        # Gridlines are a window property on desktop Excel, so a sheet that
+        # isn't active gets activated for the call and the active sheet restored
+        active, other = self.wb1.sheets[0], self.wb1.sheets[1]
+        active.activate()
+        self.assertTrue(other.show_gridlines)
+        other.show_gridlines = False
+        self.assertEqual(self.wb1.sheets.active.name, active.name)
+        self.assertFalse(other.show_gridlines)
+        self.assertTrue(active.show_gridlines)
+        other.show_gridlines = True
+
+    def test_show_gridlines_background_book(self):
+        active, other = self.wb1.sheets[0], self.wb1.sheets[1]
+        active.activate()
+        foreground = self.app1.books.add()
+        try:
+            foreground_sheet = foreground.sheets.active
+            screen_updating = self.app1.screen_updating
+            self.assertTrue(other.show_gridlines)
+            self.assertEqual(self.wb1.sheets.active.name, active.name)
+            self.assertEqual(self.app1.books.active.name, foreground.name)
+            other.show_gridlines = False
+            self.assertEqual(self.wb1.sheets.active.name, active.name)
+            self.assertEqual(self.app1.books.active.name, foreground.name)
+            self.assertEqual(foreground.sheets.active.name, foreground_sheet.name)
+            self.assertEqual(self.app1.screen_updating, screen_updating)
+            self.assertFalse(other.show_gridlines)
+            self.assertTrue(active.show_gridlines)
+        finally:
+            foreground.close()
+
+    def test_show_gridlines_hidden_sheet(self):
+        active, other = self.wb1.sheets[0], self.wb1.sheets[1]
+        active.activate()
+        other.visible = False
+        with self.assertRaises(ValueError):
+            other.show_gridlines
+        with self.assertRaises(ValueError):
+            other.show_gridlines = False
+        other.visible = True
+
     def test_sheet_copy_without_arguments(self):
         original_name = self.wb1.sheets[0].name
         self.wb1.sheets[0]["A1"].value = "xyz"
