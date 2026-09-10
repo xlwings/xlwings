@@ -108,7 +108,9 @@ jobs:
             { os: "macos-15", target: "aarch64" },
 
             { os: "ubuntu-latest", target: "x86_64" },
-            { os: "ubuntu-latest", target: "any" },  # HACK: replace with WASM build
+            # Pure Python fallback without the Reader (Rust extension). Used by Pyodide
+            # versions that are older than 314.x and hence can't use the pyemscripten wheel
+            { os: "ubuntu-latest", target: "any" },
             { os: "ubuntu-latest", target: "aarch64" },
             { os: "ubuntu-latest", target: "armv7" },
             {
@@ -176,7 +178,7 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
-      - name: any wheel (for now used for wasm but without the Reader)
+      - name: any wheel (pure Python fallback without the Reader, e.g. for Pyodide < 314)
         if: matrix.platform.target == 'any' && matrix.python-version == '3.12'
         shell: bash
         env:
@@ -206,6 +208,80 @@ jobs:
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsb pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xls pytest xlwings/tests/test_engines/test_engines.py
           xlwings quickstart testproject1
+
+  build-pyemscripten:
+    needs: pre-build
+    name: Build wheel (pyemscripten)
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pyodide 314.x (CPython 3.14) is the minimum supported Pyodide version for the
+        # pyemscripten wheel (PEP 783). Older Pyodide versions use the "any" wheel.
+        python-version: ["3.14"]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: pre-build
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pyodide-build
+        run: python -m pip install "pyodide-build==0.39.0"
+      # pyodide-build knows the Emscripten version, Rust toolchain, rustflags and
+      # platform tag that the targeted Pyodide release requires, see
+      # https://pyodide.org/en/stable/development/abi.html
+      - name: Get Pyodide build config
+        id: pyodide-config
+        run: |
+          echo "rust-toolchain=$(pyodide config get rust_toolchain)" >> "$GITHUB_OUTPUT"
+          echo "emscripten-version=$(pyodide config get emscripten_version)" >> "$GITHUB_OUTPUT"
+          echo "platform-version=$(pyodide config get pyemscripten_platform_version)" >> "$GITHUB_OUTPUT"
+          echo "rustflags=$(pyodide config get rustflags)" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: ${{ steps.pyodide-config.outputs.emscripten-version }}
+          no-cache: true
+      - name: Build pyemscripten wheel
+        uses: PyO3/maturin-action@v1
+        env:
+          CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_RUSTFLAGS: ${{ steps.pyodide-config.outputs.rustflags }}
+          # Produces the PEP 783 platform tag pyemscripten_<year>_<patch>_wasm32
+          MATURIN_PYEMSCRIPTEN_PLATFORM_VERSION: ${{ steps.pyodide-config.outputs.platform-version }}
+        with:
+          target: wasm32-unknown-emscripten
+          rust-toolchain: ${{ steps.pyodide-config.outputs.rust-toolchain }}
+          maturin-version: v1.15.0
+          command: build
+          args: --release --out dist --interpreter ${{ matrix.python-version }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Package-${{ matrix.python-version }}-pyemscripten
+          path: ./dist
+          if-no-files-found: error
+
+      - name: Tests
+        shell: bash
+        env:
+          XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
+        run: |
+          # Runs the tests in Pyodide (via Node.js) using a pyodide-build virtualenv
+          pyodide venv .venv-pyodide
+          source .venv-pyodide/bin/activate
+          python -m pip install --break-system-packages pytest
+          python -m pip install --break-system-packages xlwings --no-index --no-deps --find-links dist
+          cd ..
+          python -c "import sys, xlwings; print(sys.platform, xlwings.__version__, xlwings.__file__)"
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsm python -m pytest xlwings/tests/test_engines/test_engines.py
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsb python -m pytest xlwings/tests/test_engines/test_engines.py
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xls python -m pytest xlwings/tests/test_engines/test_engines.py
 
   build-cli:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build-cli]')
@@ -239,7 +315,7 @@ jobs:
   publish:
     if: github.event_name == 'release'
     name: Publish
-    needs: build
+    needs: [build, build-pyemscripten]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python

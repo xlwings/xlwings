@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.3 (unreleased)
+
+- xlwings Lite and xlwings Server: The Reader (Rust extension) is now available on Pyodide >= 314.0.0 (Python 3.14) via a `pyemscripten` wheel (PEP 783) on PyPI. Older Pyodide versions continue to use the pure Python wheel without the Reader.
+
 ## v0.37.2 (Sep 9, 2026)
 
 - xlwings Lite and xlwings Server: Added support for named formulas, including Excel LAMBDA functions.
