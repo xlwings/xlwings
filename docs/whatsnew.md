@@ -4,6 +4,9 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.3 (Unreleased)
 
+- Added `Chart.title`, `Chart.legend` (see {class}`ChartLegend <xlwings.main.ChartLegend>`), `Chart.plot_by`, `Chart.style` and a `plot_by` argument for `Chart.set_source_data()`. `Charts.add()` accepts the new `chart_type`, `source`, `plot_by`, `name` and `anchor` arguments, so a chart can be created in one call, see {meth}`Charts.add <xlwings.main.Charts.add>`.
+- xlwings Lite and xlwings Server: Added support for charts: `Sheet.charts`, `Charts.add()`, `Chart.chart_type`, `Chart.set_source_data()`, position/size, `Chart.to_png()` and, on xlwings Lite, `await mychart.get_png()`.
+- Fixed accessing, renaming (macOS) and deleting (macOS and Windows) chart sheets via the `Chart` object.
 - Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
 - xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 

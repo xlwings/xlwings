@@ -38,10 +38,15 @@ from .base_classes import (
     _UNSET,
     BORDER_GRID_SIDES,
     BORDER_SIDES,
+    CHART_LEGEND_POSITIONS,
+    CHART_PLOT_BY,
+    CHART_TYPES,
     BorderGroup,
     BorderLineStyle,
     BorderSide,
     BorderWeight,
+    ChartLegendPosition,
+    ChartPlotBy,
 )
 
 # Optional imports
@@ -4002,6 +4007,44 @@ class Tables(Collection[Table]):
         return Table(impl=impl)
 
 
+def _chart_type(value: Any) -> str:
+    if isinstance(value, str) and str(value) in CHART_TYPES:
+        return str(value)
+    raise ValueError(
+        f"Invalid chart type {value!r}. Must be one of: "
+        f"{', '.join(repr(v) for v in CHART_TYPES)}."
+    )
+
+
+def _chart_plot_by(value: Any) -> str:
+    if isinstance(value, str) and str(value) in CHART_PLOT_BY:
+        return str(value)
+    raise ValueError(
+        f"Invalid plot_by {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_PLOT_BY)}."
+    )
+
+
+def _chart_legend_position(value: Any) -> str:
+    if isinstance(value, str) and str(value) in CHART_LEGEND_POSITIONS:
+        return str(value)
+    raise ValueError(
+        f"Invalid legend position {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_LEGEND_POSITIONS)}."
+    )
+
+
+def _chart_style(value: Any) -> int:
+    # bool is an Integral subclass, but True/False as a chart style is a bug
+    if (
+        isinstance(value, numbers.Integral)
+        and not isinstance(value, bool)
+        and 1 <= int(value) <= 48
+    ):
+        return int(value)
+    raise ValueError(f"Invalid style {value!r}. Must be an integer between 1 and 48.")
+
+
 class Chart:
     """The chart object is a member of the `charts` collection:
 
@@ -4139,15 +4182,97 @@ class Chart:
 
     @chart_type.setter
     def chart_type(self, value: str) -> None:
-        self.impl.chart_type = value
+        self.impl.chart_type = _chart_type(value)
 
-    def set_source_data(self, source: Range) -> None:
+    @property
+    def title(self) -> str | None:
+        """Returns or sets the chart title. Setting it to `None` hides the title,
+        setting it to a string shows it.
+
+        ```pycon
+        >>> chart.title = "Sales 2026"
+        >>> chart.title = None  # hides the title
+        ```
+
+        On xlwings Lite and xlwings Server, reading the title only works after it
+        has been set in the same script.
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.title
+
+    @title.setter
+    def title(self, value: str | None) -> None:
+        if value is not None and not isinstance(value, str):
+            raise ValueError(
+                f"Invalid title {value!r}. Must be a string or None to hide it."
+            )
+        self.impl.title = value
+
+    @property
+    def legend(self) -> ChartLegend:
+        """Returns the {class}`ChartLegend <xlwings.main.ChartLegend>` of the
+        chart.
+
+        ```pycon
+        >>> chart.legend.visible = True
+        >>> chart.legend.position = "bottom"
+        ```
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return ChartLegend(impl=self.impl.legend)
+
+    @property
+    def plot_by(self) -> str:
+        """Returns or sets whether the data series come from the rows or from the
+        columns of the source data: either `"rows"` or `"columns"`.
+
+        On xlwings Lite and xlwings Server, reading it only works after it has
+        been set in the same script, either via this property or via
+        `set_source_data(plot_by=...)`.
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.plot_by
+
+    @plot_by.setter
+    def plot_by(self, value: ChartPlotBy) -> None:
+        self.impl.plot_by = _chart_plot_by(value)
+
+    @property
+    def style(self) -> int:
+        """Returns or sets the built-in chart style, an integer between 1 and 48.
+
+        On xlwings Lite and xlwings Server, reading it only works after it has
+        been set in the same script.
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.style
+
+    @style.setter
+    def style(self, value: int) -> None:
+        self.impl.style = _chart_style(value)
+
+    def set_source_data(
+        self, source: Range, plot_by: ChartPlotBy | None = None
+    ) -> None:
         """Sets the source data range for the chart.
 
         Args:
             source: Range object, e.g. `xw.books['Book1'].sheets[0].range('A1')`
+            plot_by: Whether the data series come from the `"rows"` or from the
+                `"columns"` of the source range. Defaults to letting Excel decide.
+                *New in version 0.37.3.*
         """
-        self.impl.set_source_data(source.impl)
+        self.impl.set_source_data(
+            source.impl, None if plot_by is None else _chart_plot_by(plot_by)
+        )
 
     @property
     def left(self) -> float:
@@ -4252,6 +4377,61 @@ class Chart:
         return await self.impl.get_png()
 
 
+class ChartLegend:
+    """The legend of a chart, accessed via `mychart.legend`:
+
+    ```pycon
+    >>> chart = xw.books['Book1'].sheets[0].charts[0]
+    >>> chart.legend.position = "bottom"
+    >>> chart.legend.visible = False
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def visible(self) -> bool:
+        """Returns or sets whether the legend is shown.
+
+        On xlwings Lite and xlwings Server, reading it only works after it has
+        been set in the same script.
+        """
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value: bool) -> None:
+        self.impl.visible = bool(value)
+
+    @property
+    def position(self) -> str | None:
+        """Returns or sets the position of the legend: `"top"`, `"bottom"`,
+        `"left"`, `"right"` or `"corner"`. Returns `None` if the legend is hidden.
+        Setting a position shows the legend.
+
+        On xlwings Lite and xlwings Server, reading it only works after it has
+        been set in the same script.
+        """
+        return self.impl.position
+
+    @position.setter
+    def position(self, value: ChartLegendPosition) -> None:
+        self.impl.position = _chart_legend_position(value)
+
+    def __repr__(self) -> str:
+        return "<ChartLegend>"
+
+
 class Charts(Collection[Chart]):
     """A collection of all `chart` objects on the specified sheet:
 
@@ -4268,31 +4448,93 @@ class Charts(Collection[Chart]):
 
     _wrap = Chart
 
+    @property
+    def parent(self) -> Sheet:
+        return Sheet(impl=self.impl.parent)
+
     def add(
-        self, left: float = 0, top: float = 0, width: float = 355, height: float = 211
+        self,
+        left: float = 0,
+        top: float = 0,
+        width: float = 355,
+        height: float = 211,
+        chart_type: str | None = None,
+        source: Range | None = None,
+        plot_by: ChartPlotBy | None = None,
+        name: str | None = None,
+        anchor: Range | None = None,
     ) -> Chart:
         """Creates a new chart on the specified sheet.
 
         Args:
-            left: left position in points
-            top: top position in points
+            left: left position in points. If you use `top`/`left`, you must not
+                provide a value for `anchor`.
+            top: top position in points. If you use `top`/`left`, you must not
+                provide a value for `anchor`.
             width: width in points
             height: height in points
+            chart_type: Chart type, see {attr}`Chart.chart_type
+                <xlwings.Chart.chart_type>`. *New in version 0.37.3.*
+            source: Source data range, see {meth}`Chart.set_source_data
+                <xlwings.Chart.set_source_data>`. *New in version 0.37.3.*
+            plot_by: `"rows"` or `"columns"`, requires `source`.
+                *New in version 0.37.3.*
+            name: Excel chart name. Defaults to Excel standard name if not provided,
+                e.g., 'Chart 1'. *New in version 0.37.3.*
+            anchor: The xlwings Range object of where you want to insert the chart.
+                If you use `anchor`, you must not provide values for `top`/`left`.
+                *New in version 0.37.3.*
 
         Examples:
             ```pycon
             >>> import xlwings as xw
             >>> sht = xw.Book().sheets[0]
             >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
+            >>> chart = sht.charts.add(
+            ...     source=sht.range('A1').expand(),
+            ...     chart_type='line',
+            ...     anchor=sht.range('D1'),
+            ... )
+            >>> chart.title = 'My chart'
+            ```
+
+            The same in steps:
+
+            ```pycon
             >>> chart = sht.charts.add()
             >>> chart.set_source_data(sht.range('A1').expand())
             >>> chart.chart_type = 'line'
             >>> chart.name
-            'Chart1'
+            'Chart 1'
             ```
         """
+        if anchor:
+            if top or left:
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
+        if chart_type is not None:
+            chart_type = _chart_type(chart_type)
+        if plot_by is not None:
+            if source is None:
+                raise ValueError("'plot_by' requires 'source'.")
+            plot_by = _chart_plot_by(plot_by)
+        if name and name in self:
+            raise ShapeAlreadyExists(
+                f"'{name}' is already present on {self.parent.name}."
+            )
 
-        impl = self.impl.add(left, top, width, height)
+        impl = self.impl.add(
+            left,
+            top,
+            width,
+            height,
+            chart_type=chart_type,
+            source=None if source is None else source.impl,
+            plot_by=plot_by,
+            name=name,
+            anchor=anchor,
+        )
 
         return Chart(impl=impl)
 

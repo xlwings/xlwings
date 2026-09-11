@@ -930,6 +930,376 @@ def test_chart_to_pdf_and_get_png_not_supported(book):
         asyncio.run(chart.get_png())
 
 
+def _fresh_book():
+    return xw.Book(json=json.loads(json.dumps(data)))
+
+
+def _actions(book):
+    return book.json()["actions"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,func,value,expected_args",
+    [
+        ("title", "setChartTitle", "Sales", [0, "Sales"]),
+        ("title", "setChartTitle", None, [0, None]),
+        ("plot_by", "setChartPlotBy", "rows", [0, "Rows"]),
+        ("plot_by", "setChartPlotBy", "columns", [0, "Columns"]),
+        ("style", "setChartStyle", 5, [0, 5]),
+    ],
+)
+def test_chart_format_setters(attribute, func, value, expected_args):
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    setattr(chart, attribute, value)
+    action = _actions(book)[-1]
+    assert action["func"] == func
+    assert action["args"] == expected_args
+    assert action["sheet_position"] == 0
+    # written through, so read-after-write works on this and a fresh wrapper
+    assert getattr(chart, attribute) == value
+    assert getattr(book.sheets[0].charts[0], attribute) == value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_format_getters_raise_before_write():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    for attribute in ["title", "plot_by", "style"]:
+        with pytest.raises(NotImplementedError, match="isn't supported"):
+            getattr(chart, attribute)
+    with pytest.raises(NotImplementedError, match="legend visibility"):
+        chart.legend.visible
+    with pytest.raises(NotImplementedError, match="legend position"):
+        chart.legend.position
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value", [0, 49, 12.9, 12.0, True, False, "12", None])
+def test_chart_style_invalid(value):
+    book = _fresh_book()
+    with pytest.raises(ValueError, match="Invalid style"):
+        book.sheets[0].charts[0].style = value
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_style_bounds_and_normalization():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.style = 1
+    chart.style = 48
+    assert _actions(book)[-1]["args"] == [0, 48]
+    if np is not None:
+        chart.style = np.int64(7)
+        assert _actions(book)[-1]["args"] == [0, 7]
+        assert isinstance(_actions(book)[-1]["args"][1], int)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_invalid_plot_by_title_and_legend_position():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    with pytest.raises(ValueError, match="Invalid plot_by"):
+        chart.plot_by = "cols"
+    with pytest.raises(ValueError, match="Invalid plot_by"):
+        chart.set_source_data(book.sheets[0]["A1:B2"], plot_by="cols")
+    with pytest.raises(ValueError, match="Invalid legend position"):
+        chart.legend.position = "middle"
+    with pytest.raises(ValueError, match="Invalid title"):
+        chart.title = 1
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_legend_position_shows_legend():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.legend.position = "bottom"
+    assert [(a["func"], a["args"]) for a in _actions(book)] == [
+        ("setChartLegend", [0, "position", "Bottom"])
+    ]
+    assert _actions(book)[0]["sheet_position"] == 0
+    assert chart.legend.visible is True
+    assert chart.legend.position == "bottom"
+    assert book.sheets[0].charts[0].legend.position == "bottom"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_legend_position_then_hide():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.legend.position = "bottom"
+    chart.legend.visible = False
+    assert [a["args"] for a in _actions(book)] == [
+        [0, "position", "Bottom"],
+        [0, "visible", False],
+    ]
+    assert chart.legend.visible is False
+    assert chart.legend.position is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_legend_hide_then_position():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.legend.visible = False
+    chart.legend.position = "top"
+    assert [a["args"] for a in _actions(book)] == [
+        [0, "visible", False],
+        [0, "position", "Top"],
+    ]
+    assert chart.legend.visible is True
+    assert chart.legend.position == "top"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_legend_hide_then_show_forgets_position():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.legend.position = "left"
+    chart.legend.visible = False
+    chart.legend.visible = True
+    assert _actions(book)[-1]["args"] == [0, "visible", True]
+    assert chart.legend.visible is True
+    with pytest.raises(NotImplementedError, match="legend position"):
+        chart.legend.position
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_legend_api_not_available():
+    book = _fresh_book()
+    with pytest.raises(NotImplementedError):
+        book.sheets[0].charts[0].legend.api
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_with_source_creates_immediately():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    before = len(sheet.charts)
+    chart = sheet.charts.add(
+        source=sheet["A1:B2"], chart_type="line", plot_by="rows", name="Mine"
+    )
+    assert len(sheet.charts) == before + 1
+    assert [a["func"] for a in _actions(book)] == ["addChart"]
+    args = _actions(book)[0]["args"]
+    assert args[0] == "Mine"
+    assert args[1] == "Line"
+    assert args[2] == sheet.name
+    assert args[3] == "$A$1:$B$2"
+    assert args[4:8] == [0, 0, 355, 211]
+    assert args[8] == "Rows"
+    assert args[9] is None
+    assert chart.name == "Mine"
+    assert chart.chart_type == "line"
+    assert chart.plot_by == "rows"
+    assert sheet.charts["Mine"].plot_by == "rows"
+    # follow-up calls address the created chart
+    chart.title = "T"
+    assert _actions(book)[-1]["args"] == [before, "T"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_explicit_name_survives_deferred_creation():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add(name="Mine")
+    assert _actions(book) == []
+    chart.set_source_data(sheet["A1:B2"])
+    assert _actions(book)[0]["func"] == "addChart"
+    assert _actions(book)[0]["args"][0] == "Mine"
+    assert "setChartName" not in [a["func"] for a in _actions(book)]
+    assert chart.name == "Mine"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("other_has_source", [False, True])
+def test_charts_deferred_creation_rechecks_name_and_can_retry(other_has_source):
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    source = sheet["A1:B2"]
+    chart = sheet.charts.add(name="Mine", anchor=sheet["D4"])
+    chart.plot_by = "rows"
+    chart.title = "Pending title"
+    other = sheet.charts.add(name="Mine", source=source if other_has_source else None)
+    if not other_has_source:
+        other.set_source_data(source)
+
+    pending_before = dict(chart.impl.api)
+    formatting_before = list(chart.impl._pending_actions)
+    actions_before = list(_actions(book))
+    count_before = len(sheet.charts)
+    with pytest.raises(xw.ShapeAlreadyExists, match="'Mine' is already present"):
+        chart.set_source_data(source, plot_by="columns")
+
+    assert len(sheet.charts) == count_before
+    assert _actions(book) == actions_before
+    assert chart.impl._pending is not None
+    assert chart.impl.api == pending_before
+    assert chart.impl._pending_actions == formatting_before
+
+    chart.name = "Mine2"
+    chart.set_source_data(source)
+    assert len(sheet.charts) == count_before + 1
+    assert sheet.charts["Mine"].name == other.name
+    assert sheet.charts["Mine2"].title == "Pending title"
+    assert chart.plot_by == "rows"
+    add_action, title_action = _actions(book)[len(actions_before) :]
+    assert add_action["func"] == "addChart"
+    assert add_action["args"][0] == "Mine2"
+    assert add_action["args"][8:] == ["Rows", "$D$4"]
+    assert title_action["func"] == "setChartTitle"
+    assert title_action["args"] == [count_before, "Pending title"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_existing_name_raises():
+    book = _fresh_book()
+    with pytest.raises(xw.ShapeAlreadyExists):
+        book.sheets[0].charts.add(name="mychart1")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_invalid_chart_type():
+    book = _fresh_book()
+    with pytest.raises(ValueError, match="Invalid chart type"):
+        book.sheets[0].charts.add(chart_type="nonsense")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_anchor():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add(source=sheet["A1:B2"], anchor=sheet["D4"])
+    args = _actions(book)[-1]["args"]
+    assert args[4] is None
+    assert args[5] is None
+    assert args[6:8] == [355, 211]
+    assert args[8] is None
+    assert args[9] == "$D$4"
+    assert chart.left is None
+    assert "anchor" not in chart.impl.api
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_anchor_and_position_raises():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    with pytest.raises(ValueError, match="anchor"):
+        sheet.charts.add(left=10, anchor=sheet["D4"])
+    with pytest.raises(ValueError, match="anchor"):
+        sheet.charts.add(top=10, anchor=sheet["D4"])
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_plot_by_requires_source():
+    book = _fresh_book()
+    with pytest.raises(ValueError, match="requires 'source'"):
+        book.sheets[0].charts.add(plot_by="rows")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_pending_formatting_flushes_in_order():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+    chart.title = "First"
+    chart.title = None
+    chart.legend.position = "top"
+    chart.legend.visible = False
+    chart.style = 3
+    chart.title = "Final"
+    assert _actions(book) == []
+    # local state already reflects the full sequence
+    assert chart.title == "Final"
+    assert chart.legend.visible is False
+    assert chart.legend.position is None
+    assert chart.style == 3
+
+    chart.set_source_data(sheet["A1:B2"])
+    ix = len(sheet.charts) - 1
+    assert [(a["func"], a["args"]) for a in _actions(book)] == [
+        ("addChart", _actions(book)[0]["args"]),
+        ("setChartTitle", [ix, "First"]),
+        ("setChartTitle", [ix, None]),
+        ("setChartLegend", [ix, "position", "Top"]),
+        ("setChartLegend", [ix, "visible", False]),
+        ("setChartStyle", [ix, 3]),
+        ("setChartTitle", [ix, "Final"]),
+    ]
+    # the buffer is cleared: nothing is replayed twice
+    chart.style = 4
+    assert _actions(book)[-1]["args"] == [ix, 4]
+    assert len(_actions(book)) == 8
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_delete_pending_chart_discards_formatting():
+    book = _fresh_book()
+    chart = book.sheets[0].charts.add()
+    chart.title = "T"
+    chart.legend.position = "bottom"
+    chart.delete()
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_pending_plot_by_rides_on_add_chart():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+    chart.plot_by = "rows"
+    assert _actions(book) == []
+    chart.set_source_data(sheet["A1:B2"])
+    assert [a["func"] for a in _actions(book)] == ["addChart"]
+    assert _actions(book)[0]["args"][8] == "Rows"
+    assert chart.plot_by == "rows"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_pending_plot_by_overridden_by_source_data_argument():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+    chart.plot_by = "rows"
+    chart.set_source_data(sheet["A1:B2"], plot_by="columns")
+    assert [a["func"] for a in _actions(book)] == ["addChart"]
+    assert _actions(book)[0]["args"][8] == "Columns"
+    assert chart.plot_by == "columns"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_no_plot_by_means_auto():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+    chart.set_source_data(sheet["A1:B2"])
+    assert _actions(book)[0]["args"][8] is None
+    with pytest.raises(NotImplementedError, match="plot_by"):
+        chart.plot_by
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_set_source_data_plot_by_on_existing_chart():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts[0]
+    chart.set_source_data(sheet["A1:B2"], plot_by="rows")
+    assert _actions(book)[-1]["func"] == "setChartSourceData"
+    assert _actions(book)[-1]["args"] == [0, sheet.name, "$A$1:$B$2", "Rows"]
+    assert chart.plot_by == "rows"
+    assert sheet.charts[0].plot_by == "rows"
+    # replacing the data without an orientation lets Office.js pick (Auto),
+    # so the cached value is gone
+    chart.set_source_data(sheet["A1:B2"])
+    assert _actions(book)[-1]["args"] == [0, sheet.name, "$A$1:$B$2"]
+    with pytest.raises(NotImplementedError, match="plot_by"):
+        chart.plot_by
+
+
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_range_note(book):
     # The payload says which cells have a note, not what they say, so this is

@@ -46,6 +46,91 @@ BorderWeight = Literal["hairline", "thin", "medium", "thick"]
 BORDER_SIDES: tuple[str, ...] = get_args(BorderSide)
 BORDER_GRID_SIDES = BORDER_SIDES[:6]
 
+# The chart vocabulary, same idea as the borders: lowercase strings are the API,
+# main.Chart validates them so engines only ever see the canonical names.
+ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
+ChartPlotBy = Literal["rows", "columns"]
+CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
+CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
+# The documented chart type names (see main.Chart.chart_type); the desktop
+# engines map all of them, the remote engine all but "combination".
+CHART_TYPES: tuple[str, ...] = (
+    "3d_area",
+    "3d_area_stacked",
+    "3d_area_stacked_100",
+    "3d_bar_clustered",
+    "3d_bar_stacked",
+    "3d_bar_stacked_100",
+    "3d_column",
+    "3d_column_clustered",
+    "3d_column_stacked",
+    "3d_column_stacked_100",
+    "3d_line",
+    "3d_pie",
+    "3d_pie_exploded",
+    "area",
+    "area_stacked",
+    "area_stacked_100",
+    "bar_clustered",
+    "bar_of_pie",
+    "bar_stacked",
+    "bar_stacked_100",
+    "bubble",
+    "bubble_3d_effect",
+    "column_clustered",
+    "column_stacked",
+    "column_stacked_100",
+    "combination",
+    "cone_bar_clustered",
+    "cone_bar_stacked",
+    "cone_bar_stacked_100",
+    "cone_col",
+    "cone_col_clustered",
+    "cone_col_stacked",
+    "cone_col_stacked_100",
+    "cylinder_bar_clustered",
+    "cylinder_bar_stacked",
+    "cylinder_bar_stacked_100",
+    "cylinder_col",
+    "cylinder_col_clustered",
+    "cylinder_col_stacked",
+    "cylinder_col_stacked_100",
+    "doughnut",
+    "doughnut_exploded",
+    "line",
+    "line_markers",
+    "line_markers_stacked",
+    "line_markers_stacked_100",
+    "line_stacked",
+    "line_stacked_100",
+    "pie",
+    "pie_exploded",
+    "pie_of_pie",
+    "pyramid_bar_clustered",
+    "pyramid_bar_stacked",
+    "pyramid_bar_stacked_100",
+    "pyramid_col",
+    "pyramid_col_clustered",
+    "pyramid_col_stacked",
+    "pyramid_col_stacked_100",
+    "radar",
+    "radar_filled",
+    "radar_markers",
+    "stock_hlc",
+    "stock_ohlc",
+    "stock_vhlc",
+    "stock_vohlc",
+    "surface",
+    "surface_top_view",
+    "surface_top_view_wireframe",
+    "surface_wireframe",
+    "xy_scatter",
+    "xy_scatter_lines",
+    "xy_scatter_lines_no_markers",
+    "xy_scatter_smooth",
+    "xy_scatter_smooth_no_markers",
+)
+
 
 class Apps:
     def keys(self):
@@ -1339,7 +1424,7 @@ class Chart:
     def parent(self):
         raise NotImplementedError()
 
-    def set_source_data(self, rng):
+    def set_source_data(self, rng, plot_by=None):
         raise NotImplementedError()
 
     @property
@@ -1348,6 +1433,34 @@ class Chart:
 
     @chart_type.setter
     def chart_type(self, chart_type):
+        raise NotImplementedError()
+
+    @property
+    def title(self):
+        raise NotImplementedError()
+
+    @title.setter
+    def title(self, value):
+        raise NotImplementedError()
+
+    @property
+    def legend(self):
+        raise NotImplementedError()
+
+    @property
+    def plot_by(self):
+        raise NotImplementedError()
+
+    @plot_by.setter
+    def plot_by(self, value):
+        raise NotImplementedError()
+
+    @property
+    def style(self):
+        raise NotImplementedError()
+
+    @style.setter
+    def style(self, value):
         raise NotImplementedError()
 
     @property
@@ -1395,11 +1508,44 @@ class Chart:
         raise NotImplementedError("get_png() is only supported in xlwings Lite")
 
 
+class ChartLegend:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def visible(self):
+        raise NotImplementedError()
+
+    @visible.setter
+    def visible(self, value):
+        raise NotImplementedError()
+
+    @property
+    def position(self):
+        raise NotImplementedError()
+
+    @position.setter
+    def position(self, value):
+        raise NotImplementedError()
+
+
 class Charts:
     def _wrap(self, xl):
         raise NotImplementedError()
 
-    def add(self, left, top, width, height):
+    def add(
+        self,
+        left,
+        top,
+        width,
+        height,
+        chart_type=None,
+        source=None,
+        plot_by=None,
+        name=None,
+        anchor=None,
+    ):
         raise NotImplementedError()
 
 

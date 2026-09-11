@@ -296,6 +296,180 @@ class TestCharts(TestBase):
         self.assertEqual(sht.charts.count, 0)
 
 
+class TestChartFormatting(TestBase):
+    def test_collection_parent(self):
+        sht = self.wb1.sheets[0]
+        try:
+            self.assertEqual(sht.charts.parent, sht)
+        except NotImplementedError:
+            self.fail("Charts.parent must be implemented on desktop engines")
+
+    def _chart(self):
+        sht = self.wb1.sheets[0]
+        sht.range("A1").value = [["x", "a", "b"], [1, 10, 20], [2, 30, 40]]
+        return sht, sht.charts.add(source=sht.range("A1:C3"), chart_type="line")
+
+    def test_title(self):
+        sht, chart = self._chart()
+        self.assertIsNone(chart.title)
+        chart.title = "Sales"
+        self.assertEqual(sht.charts[0].title, "Sales")
+        chart.title = None
+        self.assertIsNone(sht.charts[0].title)
+        with self.assertRaises(ValueError):
+            chart.title = 1
+
+    def test_legend(self):
+        sht, chart = self._chart()
+        chart.legend.visible = False
+        self.assertFalse(sht.charts[0].legend.visible)
+        self.assertIsNone(sht.charts[0].legend.position)
+        for position in ["top", "bottom", "left", "right", "corner"]:
+            chart.legend.position = position
+            self.assertTrue(sht.charts[0].legend.visible)
+            self.assertEqual(sht.charts[0].legend.position, position)
+        # position then hide
+        chart.legend.position = "bottom"
+        chart.legend.visible = False
+        self.assertFalse(chart.legend.visible)
+        self.assertIsNone(chart.legend.position)
+        # hide then position
+        chart.legend.visible = False
+        chart.legend.position = "top"
+        self.assertTrue(chart.legend.visible)
+        self.assertEqual(chart.legend.position, "top")
+        with self.assertRaises(ValueError):
+            chart.legend.position = "middle"
+
+    def test_legend_retained_after_rename(self):
+        sht, chart = self._chart()
+        legend = chart.legend
+        chart.name = "Renamed"
+        legend.position = "bottom"
+        self.assertEqual(sht.charts["Renamed"].legend.position, "bottom")
+        legend.visible = False
+        self.assertFalse(sht.charts["Renamed"].legend.visible)
+        self.assertFalse(chart.legend.visible)
+        chart.title = "After"
+        self.assertEqual(sht.charts["Renamed"].title, "After")
+
+    def test_plot_by(self):
+        sht, chart = self._chart()
+        chart.set_source_data(sht.range("A1:C3"), plot_by="rows")
+        self.assertEqual(sht.charts[0].plot_by, "rows")
+        chart.plot_by = "columns"
+        self.assertEqual(sht.charts[0].plot_by, "columns")
+        with self.assertRaises(ValueError):
+            chart.plot_by = "cols"
+
+    def test_style(self):
+        sht, chart = self._chart()
+        chart.style = 10
+        self.assertEqual(sht.charts[0].style, 10)
+        for value in [0, 49, 12.0, True, "12", None]:
+            with self.assertRaises(ValueError):
+                chart.style = value
+
+    def test_add_with_options(self):
+        sht = self.wb1.sheets[0]
+        sht.range("A1").value = [["x", "a", "b"], [1, 10, 20], [2, 30, 40]]
+        chart = sht.charts.add(
+            source=sht.range("A1:C3"),
+            chart_type="pie",
+            plot_by="rows",
+            name="MyChart",
+            width=300,
+            height=200,
+        )
+        self.assertEqual(chart.name, "MyChart")
+        self.assertEqual(sht.charts["MyChart"].chart_type, "pie")
+        self.assertEqual(sht.charts["MyChart"].plot_by, "rows")
+        self.assertEqual(chart.width, 300)
+        self.assertEqual(chart.height, 200)
+        try:
+            with self.assertRaises(xw.ShapeAlreadyExists):
+                sht.charts.add(name="MyChart")
+        except NotImplementedError:
+            # TestBase otherwise turns a missing implementation into a skip.
+            self.fail("Duplicate chart names must raise ShapeAlreadyExists")
+
+    def test_add_anchor(self):
+        sht = self.wb1.sheets[0]
+        chart = sht.charts.add(anchor=sht.range("D5"))
+        self.assertEqual(chart.top, sht.range("D5").top)
+        self.assertEqual(chart.left, sht.range("D5").left)
+        with self.assertRaises(ValueError):
+            sht.charts.add(left=10, anchor=sht.range("D5"))
+        with self.assertRaises(ValueError):
+            sht.charts.add(top=10, anchor=sht.range("D5"))
+
+    def test_add_plot_by_requires_source(self):
+        with self.assertRaises(ValueError):
+            self.wb1.sheets[0].charts.add(plot_by="rows")
+        with self.assertRaises(ValueError):
+            self.wb1.sheets[0].charts.add(chart_type="nonsense")
+
+
+class TestChartSheet(TestBase):
+    """Chart sheets aren't reachable via the public collections (Chart.parent
+    assumes a worksheet), so they're created natively and wrapped directly."""
+
+    def _source(self):
+        sht = self.wb1.sheets[0]
+        sht.range("A1").value = [["x", "a", "b"], [1, 10, 20], [2, 30, 40]]
+        return sht
+
+    @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
+    def test_chart_sheet_mac(self):
+        from appscript import k as kw
+
+        from xlwings._xlmac import Chart as MacChart
+
+        sht = self._source()
+        embedded = sht.charts.add(source=sht.range("A1:C3"), chart_type="line")
+        embedded.api[1].chart_location(where=kw.location_as_new_sheet, name="CS")
+        chart = xw.Chart(impl=MacChart(self.wb1.impl, "CS"))
+        self.assertEqual(chart.name, "CS")
+        self.assertEqual(chart.chart_type, "line")
+        chart.title = "Title"
+        chart.name = "Renamed"
+        self.assertEqual(chart.name, "Renamed")
+        self.assertEqual(chart.title, "Title")
+        chart.style = 3
+        self.assertEqual(chart.style, 3)
+        chart.legend.position = "bottom"
+        self.assertEqual(chart.legend.position, "bottom")
+        with self.assertRaises(Exception):
+            chart.left
+        n_chart_sheets = self.wb1.api.count(each=kw.chart_sheet)
+        chart.delete()
+        self.assertEqual(self.wb1.api.count(each=kw.chart_sheet), n_chart_sheets - 1)
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
+    def test_chart_sheet_win(self):
+        from xlwings._xlwindows import Chart as WinChart
+
+        sht = self._source()
+        embedded = sht.charts.add(source=sht.range("A1:C3"), chart_type="line")
+        embedded.api[1].Location(1, "CS")  # xlLocationAsNewSheet
+        chart = xw.Chart(impl=WinChart(xl=self.wb1.api.Charts("CS")))
+        self.assertEqual(chart.name, "CS")
+        self.assertEqual(chart.chart_type, "line")
+        chart.title = "Title"
+        self.assertEqual(chart.title, "Title")
+        chart.name = "Renamed"
+        self.assertEqual(chart.name, "Renamed")
+        chart.legend.position = "bottom"
+        self.assertEqual(chart.legend.position, "bottom")
+        n_chart_sheets = self.wb1.api.Charts.Count
+        self.wb1.app.display_alerts = False
+        try:
+            chart.delete()
+        finally:
+            self.wb1.app.display_alerts = True
+        self.assertEqual(self.wb1.api.Charts.Count, n_chart_sheets - 1)
+
+
 class TestChart(TestBase):
     def test_len(self):
         self.wb1.sheets[0].charts.add()
