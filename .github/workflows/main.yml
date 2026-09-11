@@ -203,6 +203,7 @@ jobs:
           cd ..
           python -c "import xlwings;print(xlwings.__version__)"
           python -c "import xlwings;print(xlwings.__path__)"
+          pytest xlwings/tests/test_engines/test_chunksize_defaults.py
           XLWINGS_ENGINE=remote pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsm pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsb pytest xlwings/tests/test_engines/test_engines.py
@@ -250,6 +251,7 @@ jobs:
           python -m pip install --break-system-packages xlwings --no-index --no-deps --find-links dist
           cd ..
           python -c "import sys, xlwings; print(sys.platform, xlwings.__version__, xlwings.__file__)"
+          python -m pytest xlwings/tests/test_engines/test_chunksize_defaults.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsm python -m pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsb python -m pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xls python -m pytest xlwings/tests/test_engines/test_engines.py

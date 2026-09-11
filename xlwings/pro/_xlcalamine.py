@@ -369,6 +369,13 @@ class Range(base_classes.Range):
             return 1, 1
 
     @property
+    def max_cells_per_read(self):
+        # Preserve the file reader's whole-sheet used-range shortcut: sheet.cells
+        # spans the full grid, so implicit slicing would request billions of cells
+        # and reopen the workbook once per chunk.
+        return None
+
+    @property
     def raw_value(self):
         err_to_str = self.options.get("err_to_str", False)
         if self.arg2 is None:

@@ -32,13 +32,10 @@ from .. import utils
 def _is_jsnull(value):
     """Return True if ``value`` is Pyodide's ``JsNull`` sentinel (Pyodide >= 0.28).
 
-    Returns False on older Pyodide versions (no ``JsNull``) or outside Pyodide.
+    Thin alias of :func:`xlwings.utils.is_jsnull`, kept so this engine and its
+    tests are unaffected by where the helper lives.
     """
-    try:
-        from pyodide.ffi import JsNull
-    except ImportError:
-        return False
-    return isinstance(value, JsNull)
+    return utils.is_jsnull(value)
 
 
 def datetime_to_formatted_number(datetime_object, date_format, runtime):

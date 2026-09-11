@@ -26,6 +26,15 @@ BorderSide = Literal[
     "diagonal_up",
 ]
 BorderGroup = Literal["outside", "inside", "all", "everything"]
+
+# Office.js limits range get operations to 5,000,000 cells on all platforms.
+# A lower cross-engine default also reduces timeout and memory pressure on
+# desktop engines. Individual engines may override or disable it.
+DEFAULT_MAX_CELLS_PER_READ = 4_000_000
+
+# Initial write heuristic; cell count does not guarantee a payload byte size.
+# Engines can tune this independently of the read budget.
+DEFAULT_MAX_CELLS_PER_WRITE = 100_000
 BorderLineStyle = Literal[
     "continuous",
     "dash",
@@ -609,6 +618,20 @@ class Range:
     @raw_value.setter
     def raw_value(self, value):
         raise NotImplementedError()
+
+    @property
+    def max_cells_per_read(self):
+        """Cell budget above which value reads are chunked automatically when the
+        user hasn't passed an explicit ``chunksize``. Engines may override this;
+        ``None`` disables implicit read chunking for the engine."""
+        return DEFAULT_MAX_CELLS_PER_READ
+
+    @property
+    def max_cells_per_write(self):
+        """Cell budget above which value writes are chunked automatically when the
+        user hasn't passed an explicit ``chunksize``. Engines may override this;
+        ``None`` disables implicit write chunking for the engine."""
+        return DEFAULT_MAX_CELLS_PER_WRITE
 
     def clear_contents(self):
         raise NotImplementedError()

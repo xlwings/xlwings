@@ -197,7 +197,9 @@ The `expand` method is only available on `Range` objects as UDFs only allow to m
 
 ### chunksize
 
-When you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal `chunksize` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well:
+When you read and write from or to big ranges, xlwings splits the transfer into row chunks automatically: reads above 4,000,000 cells and writes above 100,000 cells are chunked on desktop Excel (Windows and macOS) and the remote engines (xlwings Lite and xlwings Server). This reduces timeout and memory pressure on desktop Excel. For xlwings Lite's on-demand `await myrange.get_value()` reads, automatic chunking keeps each Office.js read below its all-platform 5,000,000-cell limit. xlwings Server and synchronous xlwings Lite books still load cell values eagerly before Python conversion; Python-side chunking does not protect that initial transfer from the limit. Use an async book in Lite to avoid that eager transfer. xlwings Reader (`mode="r"`) reads unchunked by default. Chunking applies to the normal value pipeline, including DataFrames, NumPy arrays, lists and scalar fills; `raw_value` is not chunked.
+
+Set `chunksize` explicitly to tune the number of rows per chunk in either direction, or set `chunksize=None` to disable chunking. Both defaults count cells, not bytes, so you may still need a much smaller explicit `chunksize` if your cells hold long strings---Excel on the web additionally caps each request and response at 5 MB---or if you hit a timeout or a memory error. Note that a chunked write that fails partway through leaves the earlier chunks written.
 
 ```python
 import pandas as pd

@@ -2034,10 +2034,14 @@ class Range:
             empty: Transformation of empty cells.
             transpose: Transpose values.
             expand: One of `'table'`, `'down'`, `'right'`.
-            chunksize: Use a chunksize, e.g. `10000` to prevent timeout or
-                memory issues when reading or writing large amounts of data.
-                Works with all formats, including DataFrames, NumPy arrays,
-                and list of lists.
+            chunksize: Number of rows per chunk when reading or writing large
+                amounts of data, e.g. `10000`. Large ranges are chunked
+                automatically (reads above 4,000,000 cells, writes above
+                100,000 cells on desktop Excel and the remote engines); set
+                `chunksize` explicitly to tune the row count, e.g. to prevent
+                timeout, memory or payload-size issues, or `chunksize=None` to
+                disable chunking. Works with all formats, including DataFrames,
+                NumPy arrays, and list of lists.
             err_to_str: If `True`, will include cell errors such as `#N/A` as
                 strings. By default, they will be converted to `None`.
                 *New in version 0.28.0.*
