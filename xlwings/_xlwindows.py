@@ -63,7 +63,9 @@ from .constants import (
     HtmlType,
     InsertFormatOrigin,
     InsertShiftDirection,
+    LegendPosition,
     ListObjectSourceType,
+    RowCol,
     SourceType,
     UpdateLinks,
 )
@@ -2308,8 +2310,11 @@ class Chart(base_classes.Chart):
         else:
             return Sheet(xl=self.xl_obj.Parent)
 
-    def set_source_data(self, rng):
-        self.xl.SetSourceData(rng.xl)
+    def set_source_data(self, rng, plot_by=None):
+        if plot_by is None:
+            self.xl.SetSourceData(rng.xl)
+        else:
+            self.xl.SetSourceData(rng.xl, plot_by_s2i[plot_by])
 
     @property
     def chart_type(self):
@@ -2318,6 +2323,39 @@ class Chart(base_classes.Chart):
     @chart_type.setter
     def chart_type(self, chart_type):
         self.xl.ChartType = chart_types_s2i[chart_type]
+
+    @property
+    def title(self):
+        return self.xl.ChartTitle.Text if self.xl.HasTitle else None
+
+    @title.setter
+    def title(self, value):
+        if value is None:
+            self.xl.HasTitle = False
+        else:
+            # ChartTitle is only reachable once HasTitle is True
+            self.xl.HasTitle = True
+            self.xl.ChartTitle.Text = value
+
+    @property
+    def legend(self):
+        return ChartLegend(self)
+
+    @property
+    def plot_by(self):
+        return plot_by_i2s[self.xl.PlotBy]
+
+    @plot_by.setter
+    def plot_by(self, value):
+        self.xl.PlotBy = plot_by_s2i[value]
+
+    @property
+    def style(self):
+        return self.xl.ChartStyle
+
+    @style.setter
+    def style(self, value):
+        self.xl.ChartStyle = value
 
     @property
     def left(self):
@@ -2368,8 +2406,11 @@ class Chart(base_classes.Chart):
         self.xl_obj.Height = value
 
     def delete(self):
-        # todo: what about chart sheets?
-        self.xl_obj.Delete()
+        if self.xl_obj is None:
+            # chart sheet
+            self.xl.Delete()
+        else:
+            self.xl_obj.Delete()
 
     def to_png(self, path):
         self.xl.Export(path)
@@ -2390,12 +2431,70 @@ class Chart(base_classes.Chart):
             pass
 
 
+class ChartLegend(base_classes.ChartLegend):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def xl(self):
+        return self.parent.xl
+
+    @property
+    def api(self):
+        return self.xl.Legend if self.xl.HasLegend else None
+
+    @property
+    def visible(self):
+        return bool(self.xl.HasLegend)
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.HasLegend = value
+
+    @property
+    def position(self):
+        if not self.xl.HasLegend:
+            # Legend.Position raises on a hidden legend
+            return None
+        return legend_positions_i2s.get(self.xl.Legend.Position)
+
+    @position.setter
+    def position(self, value):
+        self.xl.HasLegend = True
+        self.xl.Legend.Position = legend_positions_s2i[value]
+
+
 class Charts(Collection, base_classes.Charts):
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
 
-    def add(self, left, top, width, height):
-        return Chart(xl_obj=self.xl.Add(left, top, width, height))
+    def add(
+        self,
+        left,
+        top,
+        width,
+        height,
+        chart_type=None,
+        source=None,
+        plot_by=None,
+        name=None,
+        anchor=None,
+    ):
+        if anchor:
+            top, left = anchor.top, anchor.left
+        chart = Chart(xl_obj=self.xl.Add(left, top, width, height))
+        # data before type: stock/xy types need series to exist
+        if source is not None:
+            chart.set_source_data(source, plot_by)
+        if chart_type is not None:
+            chart.chart_type = chart_type
+        if name is not None:
+            chart.name = name
+        return chart
 
 
 class Picture(base_classes.Picture):
@@ -2642,6 +2741,21 @@ chart_types_s2i = {
 }
 
 chart_types_i2s = {v: k for k, v in chart_types_s2i.items()}
+
+plot_by_s2i = {"rows": RowCol.xlRows, "columns": RowCol.xlColumns}
+plot_by_i2s = {v: k for k, v in plot_by_s2i.items()}
+
+legend_positions_s2i = {
+    "top": LegendPosition.xlLegendPositionTop,
+    "bottom": LegendPosition.xlLegendPositionBottom,
+    "left": LegendPosition.xlLegendPositionLeft,
+    "right": LegendPosition.xlLegendPositionRight,
+    "corner": LegendPosition.xlLegendPositionCorner,
+}
+legend_positions_i2s = {v: k for k, v in legend_positions_s2i.items()}
+# only ever read back, e.g. after a user dragged the legend
+legend_positions_i2s[LegendPosition.xlLegendPositionCustom] = "custom"
+
 
 directions_s2i = {
     "d": -4121,

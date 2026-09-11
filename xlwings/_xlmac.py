@@ -1943,8 +1943,9 @@ class Chart(base_classes.Chart):
             self.xl_obj = parent.xl.chart_objects[key]
             self.xl = self.xl_obj.chart
         else:
+            # chart sheet
             self.xl_obj = None
-            self.xl = self.charts[key]
+            self.xl = parent.xl.chart_sheets[key]
 
     @property
     def parent(self):
@@ -1954,8 +1955,11 @@ class Chart(base_classes.Chart):
     def api(self):
         return self.xl_obj, self.xl
 
-    def set_source_data(self, rng):
-        self.xl.set_source_data(source=rng.xl)
+    def set_source_data(self, rng, plot_by=None):
+        if plot_by is None:
+            self.xl.set_source_data(source=rng.xl)
+        else:
+            self.xl.set_source_data(source=rng.xl, plot_by=plot_by_s2k[plot_by])
 
     @property
     def name(self):
@@ -1966,10 +1970,15 @@ class Chart(base_classes.Chart):
 
     @name.setter
     def name(self, value):
+        # Charts are addressed by name, so the references have to be
+        # re-resolved after renaming (same as Table.name)
         if self.xl_obj is not None:
             self.xl_obj.name.set(value)
+            self.xl_obj = self._parent.xl.chart_objects[value]
+            self.xl = self.xl_obj.chart
         else:
-            self.xl.name.get(value)
+            self.xl.name.set(value)
+            self.xl = self._parent.xl.chart_sheets[value]
 
     @property
     def chart_type(self):
@@ -1978,6 +1987,41 @@ class Chart(base_classes.Chart):
     @chart_type.setter
     def chart_type(self, value):
         self.xl.chart_type.set(chart_types_s2k[value])
+
+    @property
+    def title(self):
+        if not self.xl.has_title.get():
+            return None
+        text = self.xl.chart_title.chart_title_text.get()
+        return None if text == kw.missing_value else text
+
+    @title.setter
+    def title(self, value):
+        if value is None:
+            self.xl.has_title.set(False)
+        else:
+            self.xl.has_title.set(True)
+            self.xl.chart_title.chart_title_text.set(value)
+
+    @property
+    def legend(self):
+        return ChartLegend(self)
+
+    @property
+    def plot_by(self):
+        return plot_by_k2s[self.xl.plot_by.get()]
+
+    @plot_by.setter
+    def plot_by(self, value):
+        self.xl.plot_by.set(plot_by_s2k[value])
+
+    @property
+    def style(self):
+        return self.xl.chart_style.get()
+
+    @style.setter
+    def style(self, value):
+        self.xl.chart_style.set(value)
 
     @property
     def left(self):
@@ -2028,7 +2072,17 @@ class Chart(base_classes.Chart):
         self.xl_obj.height.set(value)
 
     def delete(self):
-        self.xl_obj.delete()
+        if self.xl_obj is None:
+            # chart sheet: Excel asks for confirmation like for any sheet
+            app_xl = self._parent.app.xl
+            alerts_state = app_xl.display_alerts.get()
+            app_xl.display_alerts.set(False)
+            try:
+                self.xl.delete()
+            finally:
+                app_xl.display_alerts.set(alerts_state)
+        else:
+            self.xl_obj.delete()
 
     def to_png(self, path):
         raise xlwings.XlwingsError("Chart.to_png() isn't supported on macOS.")
@@ -2054,14 +2108,61 @@ class Chart(base_classes.Chart):
         raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
 
 
+class ChartLegend(base_classes.ChartLegend):
+    def __init__(self, parent):
+        # Only the parent is kept: the chart's native reference is name-based
+        # and gets replaced when the chart is renamed
+        self.parent = parent
+
+    @property
+    def xl(self):
+        return self.parent.xl
+
+    @property
+    def api(self):
+        return self.xl.legend_object
+
+    @property
+    def visible(self):
+        return self.xl.has_legend.get()
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.has_legend.set(value)
+
+    @property
+    def position(self):
+        if not self.xl.has_legend.get():
+            return None
+        return legend_positions_k2s[self.xl.legend_object.position.get()]
+
+    @position.setter
+    def position(self, value):
+        self.xl.has_legend.set(True)
+        self.xl.legend_object.position.set(legend_positions_s2k[value])
+
+
 class Charts(Collection, base_classes.Charts):
     _attr = "chart_objects"
     _kw = kw.chart_object
     _wrap = Chart
 
-    def add(self, left, top, width, height):
+    def add(
+        self,
+        left,
+        top,
+        width,
+        height,
+        chart_type=None,
+        source=None,
+        plot_by=None,
+        name=None,
+        anchor=None,
+    ):
+        if anchor:
+            top, left = anchor.top, anchor.left
         sheet_index = self.parent.xl.entry_index.get()
-        return Chart(
+        chart = Chart(
             self.parent,
             self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
@@ -2074,6 +2175,15 @@ class Charts(Collection, base_classes.Charts):
                 },
             ).name.get(),
         )
+        # data before type: stock/xy types need series to exist; name last as
+        # the chart is addressed by name
+        if source is not None:
+            chart.set_source_data(source, plot_by)
+        if chart_type is not None:
+            chart.chart_type = chart_type
+        if name is not None:
+            chart.name = name
+        return chart
 
 
 class Picture(base_classes.Picture):
@@ -2569,6 +2679,21 @@ chart_types_k2s = {
 }
 
 chart_types_s2k = {v: k for k, v in chart_types_k2s.items()}
+
+legend_positions_k2s = {
+    kw.legend_position_top: "top",
+    kw.legend_position_bottom: "bottom",
+    kw.legend_position_left: "left",
+    kw.legend_position_right: "right",
+    kw.legend_position_corner: "corner",
+}
+legend_positions_s2k = {v: k for k, v in legend_positions_k2s.items()}
+
+# by_rows is defined twice in mac_dict (XlRowCol and XlSearchOrder); appscript
+# packs the first definition, which is the XlRowCol one that plot_by expects
+plot_by_k2s = {kw.by_rows: "rows", kw.by_columns: "columns"}
+plot_by_s2k = {v: k for k, v in plot_by_k2s.items()}
+
 
 directions_s2k = {
     "d": kw.toward_the_bottom,

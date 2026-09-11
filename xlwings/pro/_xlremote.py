@@ -29,7 +29,14 @@ try:
 except ImportError:
     pd = None
 
-from .. import NoSuchObjectError, XlwingsError, __version__, base_classes, utils
+from .. import (
+    NoSuchObjectError,
+    ShapeAlreadyExists,
+    XlwingsError,
+    __version__,
+    base_classes,
+    utils,
+)
 from ..constants import MAX_COLUMNS, MAX_ROWS
 
 # Private marker set on a sheet's api dict once its cell values have been loaded
@@ -176,6 +183,17 @@ _SHAPE_SCALE_FROM = {
     "scale_from_middle": "ScaleFromMiddle",
     "scale_from_bottom_right": "ScaleFromBottomRight",
 }
+
+# Chart vocabulary mapped to Office.js' Excel.ChartLegendPosition and
+# Excel.ChartPlotBy / Excel.ChartSeriesBy.
+_LEGEND_POSITION_PY2JS = {
+    "top": "Top",
+    "bottom": "Bottom",
+    "left": "Left",
+    "right": "Right",
+    "corner": "Corner",
+}
+_PLOT_BY_PY2JS = {"rows": "Rows", "columns": "Columns"}
 
 
 def _mark_sheet_values_loaded(sheet_api):
@@ -2641,6 +2659,9 @@ class Chart(base_classes.Chart):
         self._pending = pending
         self._uses_default_name = pending is not None
         self._api = None if pending is not None else parent.api["charts"][key - 1]
+        # Formatting written while pending, replayed in call order once the
+        # chart exists (order matters: a legend position implies visibility).
+        self._pending_actions = []
 
     def append_json_action(self, **kwargs):
         self.parent.book.append_json_action(
@@ -2700,11 +2721,80 @@ class Chart(base_classes.Chart):
                 func="setChartType", args=[self.index - 1, js_value]
             )
 
-    def set_source_data(self, rng):
+    def _local_or_raise(self, key, what):
+        """Local state written earlier in this script, or an error.
+
+        The payload only carries a chart's name, type and geometry; everything
+        else is known only once it has been set here.
+        """
+        if key in self.api:
+            return self.api[key]
+        raise NotImplementedError(
+            f"Reading a chart's {what} isn't supported on this engine."
+        )
+
+    def _set_format(self, key, value, func, args):
+        """Write through to the local state and queue (or buffer) the action."""
+        self.api[key] = value
+        if self._pending is not None:
+            self._pending_actions.append((func, list(args)))
+        else:
+            self.append_json_action(func=func, args=[self.index - 1, *args])
+
+    @property
+    def title(self):
+        return self._local_or_raise("title", "title")
+
+    @title.setter
+    def title(self, value):
+        self._set_format("title", value, "setChartTitle", [value])
+
+    @property
+    def legend(self):
+        return ChartLegend(self)
+
+    @property
+    def plot_by(self):
+        return self._local_or_raise("plot_by", "plot_by")
+
+    @plot_by.setter
+    def plot_by(self, value):
+        # While pending, the orientation rides on the addChart action instead
+        self.api["plot_by"] = value
+        if self._pending is None:
+            self.append_json_action(
+                func="setChartPlotBy", args=[self.index - 1, _PLOT_BY_PY2JS[value]]
+            )
+
+    @property
+    def style(self):
+        return self._local_or_raise("style", "style")
+
+    @style.setter
+    def style(self, value):
+        self._set_format("style", value, "setChartStyle", [value])
+
+    def set_source_data(self, rng, plot_by=None):
         if self._pending is not None:
             # First source data: this is where the chart can finally be
             # created, since Office.js needs the type and data together.
             pending = self._pending
+            # A name can be taken while this chart waits for source data.
+            # Check before changing pending state so callers can rename and retry.
+            if not self._uses_default_name and any(
+                chart["name"] == pending["name"] for chart in self.parent.api["charts"]
+            ):
+                raise ShapeAlreadyExists(
+                    f"'{pending['name']}' is already present on {self.parent.name}."
+                )
+            if plot_by is None:
+                # a plot_by set while pending applies now
+                plot_by = pending.get("plot_by")
+            if plot_by is None:
+                pending.pop("plot_by", None)
+            else:
+                pending["plot_by"] = plot_by
+            anchor = pending.pop("anchor", None)
             if self._uses_default_name:
                 pending["name"] = Charts.unique_default_name(self.parent.api["charts"])
             self.parent.api["charts"].append(pending)
@@ -2722,13 +2812,33 @@ class Chart(base_classes.Chart):
                     pending["top"],
                     pending["width"],
                     pending["height"],
+                    None if plot_by is None else _PLOT_BY_PY2JS[plot_by],
+                    anchor,
                 ],
             )
+            for func, args in self._pending_actions:
+                self.append_json_action(func=func, args=[self.index - 1, *args])
+            self._pending_actions = []
             return
-        self.append_json_action(
-            func="setChartSourceData",
-            args=[self.index - 1, rng.sheet.name, rng.address],
-        )
+        if plot_by is None:
+            # Office.js' setData() defaults to Auto, so the cached orientation
+            # is no longer known
+            self.api.pop("plot_by", None)
+            self.append_json_action(
+                func="setChartSourceData",
+                args=[self.index - 1, rng.sheet.name, rng.address],
+            )
+        else:
+            self.api["plot_by"] = plot_by
+            self.append_json_action(
+                func="setChartSourceData",
+                args=[
+                    self.index - 1,
+                    rng.sheet.name,
+                    rng.address,
+                    _PLOT_BY_PY2JS[plot_by],
+                ],
+            )
 
     def _set_position(self, attribute, value):
         self.api[attribute] = value
@@ -2773,6 +2883,7 @@ class Chart(base_classes.Chart):
         if self._pending is not None:
             # Never created in Excel, so there's nothing to delete there.
             self._pending = None
+            self._pending_actions = []
             return
         del self.parent.api["charts"][self.index - 1]
         self.append_json_action(func="deleteChart", args=[self.index - 1])
@@ -2801,6 +2912,49 @@ class Chart(base_classes.Chart):
         )
 
 
+class ChartLegend(base_classes.ChartLegend):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartLegend.api isn't available on this engine: there is no native "
+            "legend object, only queued actions."
+        )
+
+    @property
+    def visible(self):
+        return self.parent._local_or_raise("legend_visible", "legend visibility")
+
+    @visible.setter
+    def visible(self, value):
+        value = bool(value)
+        if not value:
+            # hiding forgets the position; showing again doesn't restore it
+            self.parent.api.pop("legend_position", None)
+        self.parent._set_format(
+            "legend_visible", value, "setChartLegend", ["visible", value]
+        )
+
+    @property
+    def position(self):
+        if self.parent.api.get("legend_visible") is False:
+            return None
+        return self.parent._local_or_raise("legend_position", "legend position")
+
+    @position.setter
+    def position(self, value):
+        # setting a position shows the legend, on the JS side too
+        self.parent.api["legend_visible"] = True
+        self.parent._set_format(
+            "legend_position",
+            value,
+            "setChartLegend",
+            ["position", _LEGEND_POSITION_PY2JS[value]],
+        )
+
+
 class Charts(Collection, base_classes.Charts):
     _attr = "charts"
     _wrap = Chart
@@ -2815,19 +2969,46 @@ class Charts(Collection, base_classes.Charts):
             suffix += 1
         return name
 
-    def add(self, left, top, width, height):
+    def add(
+        self,
+        left,
+        top,
+        width,
+        height,
+        chart_type=None,
+        source=None,
+        plot_by=None,
+        name=None,
+        anchor=None,
+    ):
         # Office.js' charts.add() needs a type and source data, which xlwings
-        # doesn't have yet at this point -- so hold the geometry and create the
-        # chart on the first set_source_data().
+        # doesn't necessarily have yet at this point -- so hold the geometry and
+        # create the chart on the first set_source_data().
+        chart_type = chart_type or "column_clustered"
+        try:
+            js_type = _CHART_TYPE_PY2JS[chart_type]
+        except KeyError:
+            raise ValueError(
+                f"Invalid chart type: {chart_type!r}. Must be one of "
+                f"{sorted(_CHART_TYPE_PY2JS)}."
+            ) from None
         pending = {
-            "name": self.unique_default_name(self.api),
-            "chart_type": _CHART_TYPE_PY2JS["column_clustered"],
-            "left": left,
-            "top": top,
+            "name": name if name else self.unique_default_name(self.api),
+            "chart_type": js_type,
+            # Range.left/top aren't readable synchronously on this engine, so
+            # the anchor's address goes to the client instead
+            "left": None if anchor is not None else left,
+            "top": None if anchor is not None else top,
             "width": width,
             "height": height,
         }
-        return Chart(self.parent, len(self.api) + 1, pending=pending)
+        if anchor is not None:
+            pending["anchor"] = anchor.address
+        chart = Chart(self.parent, len(self.api) + 1, pending=pending)
+        chart._uses_default_name = name is None
+        if source is not None:
+            chart.set_source_data(source, plot_by)
+        return chart
 
 
 class Characters(base_classes.Characters):

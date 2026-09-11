@@ -24,6 +24,7 @@ border
 borders
 characters
 chart
+chart_legend
 charts
 font
 name

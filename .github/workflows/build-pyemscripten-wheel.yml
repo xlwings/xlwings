@@ -1,0 +1,51 @@
+# No dlls, no built Excel files
+name: Build pyemscripten wheel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build pyemscripten wheel
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pyodide 314.x (CPython 3.14) is the minimum supported Pyodide version for the
+        # pyemscripten wheel (PEP 783). Older Pyodide versions use the "any" wheel.
+        python-version: ["3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stamp version with commit hash
+        # maturin takes the wheel version from Cargo.toml
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          sed -i "s/__version__ = \"0.0.0\"/__version__ = \"0.0.0+${COMMIT_HASH}\"/" xlwings/__init__.py
+          sed -i "s/^version = \"0.0.0\"/version = \"0.0.0+${COMMIT_HASH}\"/" Cargo.toml
+      - name: Stamp license secret
+        shell: python
+        env:
+          XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
+        run: |
+          import os
+          from pathlib import Path
+
+          secret = os.environ["XLWINGS_LICENSE_KEY_SECRET"]
+          if not secret:
+              raise SystemExit("XLWINGS_LICENSE_KEY_SECRET is required to build the wheel")
+          path = Path("xlwings/pro/utils.py")
+          path.write_text(
+              path.read_text().replace(
+                  'os.getenv("XLWINGS_LICENSE_KEY_SECRET")', repr(secret)
+              )
+          )
+      - name: Build pyemscripten wheel
+        uses: ./.github/actions/build-pyemscripten-wheel
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: pyemscripten-wheel
+          path: ./dist
+          if-no-files-found: error
