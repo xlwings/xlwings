@@ -11,6 +11,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - xlwings Lite and xlwings Server: Added support for charts: `Sheet.charts`, `Charts.add()`, `Chart.chart_type`, `Chart.set_source_data()`, position/size, `Chart.to_png()` and, on xlwings Lite, `await mychart.get_png()`.
 - Fixed accessing, renaming (macOS) and deleting (macOS and Windows) chart sheets via the `Chart` object.
 - Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
+- Added support for pivot tables ({issue}`191`): `Sheet.pivot_tables`, `PivotTables.add()` (Windows and the remote engines), field placement via `PivotTable.rows/columns/filters/values`, summary functions, number formats, layout, grand totals, `refresh()` and `delete()`, see {class}`PivotTable <xlwings.main.PivotTable>`. macOS can work with existing pivot tables but can't create them.
 - xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 
 ## v0.37.2 (Sep 9, 2026)
