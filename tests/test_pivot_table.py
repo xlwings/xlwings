@@ -375,8 +375,10 @@ class TestPivotTablesAdd(unittest.TestCase):
         # the filters area goes above the destination cell, which stays the
         # top-left of the report body; range excludes the filters area
         self.assertEqual(pt.range.address[:4], "$A$3")
+        # last row: Grand Total, per-year values, then the overall totals of
+        # both value fields
         self.assertEqual(pt.range.value[-1][0], "Grand Total")
-        self.assertEqual(pt.range.value[-1][-1], 1000.0)
+        self.assertEqual(pt.range.value[-1][-2:], [1000.0, 4.0])
 
     def test_add_steps_and_table_source(self):
         table = self.data.tables.add(self.data["A1"].expand(), name="SourceTable")
