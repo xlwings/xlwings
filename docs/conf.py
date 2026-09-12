@@ -96,6 +96,8 @@ version = xlwings.__version__
 release = version
 
 add_module_names = False
+# Type hints and return types link as `Range`, not `xlwings.main.Range`
+python_use_unqualified_type_names = True
 
 # -- extlinks -----------------------------------------------------------------
 

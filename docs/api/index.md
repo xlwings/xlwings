@@ -33,6 +33,12 @@ note
 page_setup
 picture
 pictures
+pivot_field
+pivot_fields
+pivot_table
+pivot_tables
+pivot_value_field
+pivot_value_fields
 range
 range_columns
 range_rows

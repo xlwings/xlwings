@@ -26,7 +26,9 @@ from typing import (
     Generator,
     Generic,
     Iterator,
+    Mapping,
     TypeVar,
+    cast,
     get_args,
     overload,
 )
@@ -41,12 +43,16 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    PIVOT_FUNCTIONS,
+    PIVOT_LAYOUTS,
     BorderGroup,
     BorderLineStyle,
     BorderSide,
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    PivotFunction,
+    PivotLayout,
 )
 
 # Optional imports
@@ -1803,6 +1809,15 @@ class Sheet:
         ```
         """
         return Tables(impl=self.impl.tables)
+
+    @property
+    def pivot_tables(self) -> PivotTables:
+        """See `PivotTables`
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return PivotTables(impl=self.impl.pivot_tables)
 
     @property
     def pictures(self) -> Pictures:
@@ -4541,6 +4556,620 @@ class Charts(Collection[Chart]):
         )
 
         return Chart(impl=impl)
+
+
+def _pivot_function(value: Any) -> PivotFunction:
+    if isinstance(value, str) and str(value) in PIVOT_FUNCTIONS:
+        return cast(PivotFunction, str(value))
+    raise ValueError(
+        f"Invalid function {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in PIVOT_FUNCTIONS)}."
+    )
+
+
+def _pivot_layout(value: Any) -> PivotLayout:
+    if isinstance(value, str) and str(value) in PIVOT_LAYOUTS:
+        return cast(PivotLayout, str(value))
+    raise ValueError(
+        f"Invalid layout {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in PIVOT_LAYOUTS)}."
+    )
+
+
+def _pivot_field_list(value: Any, what: str) -> list[str]:
+    """Normalize the rows/columns/filters arguments of PivotTables.add()."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    names = list(value)
+    for name in names:
+        if not isinstance(name, str):
+            raise TypeError(f"'{what}' must be a field name or a list of field names.")
+    return names
+
+
+def _pivot_value_specs(values: Any) -> list[tuple[str, PivotFunction | None]]:
+    """Normalize the `values` argument of PivotTables.add() into
+    (field, function) tuples."""
+    if values is None:
+        return []
+    if isinstance(values, str):
+        return [(values, None)]
+    if isinstance(values, Mapping):
+        items = list(values.items())
+    else:
+        items = []
+        for item in values:
+            if isinstance(item, str):
+                items.append((item, None))
+            else:
+                try:
+                    field, function = item
+                except (TypeError, ValueError):
+                    raise TypeError(
+                        "'values' must be a field name, a list of field names or "
+                        "(field, function) tuples, or a {field: function} mapping."
+                    ) from None
+                items.append((field, function))
+    for field, _ in items:
+        if not isinstance(field, str):
+            raise TypeError("The field name must be a string.")
+    return [
+        (field, None if function is None else _pivot_function(function))
+        for field, function in items
+    ]
+
+
+class PivotTable:
+    """The pivot table object is a member of the `pivot_tables` collection:
+
+    ```pycon
+    >>> import xlwings as xw
+    >>> mysheet = xw.books['Book1'].sheets[0]
+    >>> mysheet.pivot_tables[0]  # or mysheet.pivot_tables['PivotTable1']
+    <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
+    ```
+
+    Fields are placed via the four areas of Excel's field list, see
+    {attr}`rows <xlwings.PivotTable.rows>`,
+    {attr}`columns <xlwings.PivotTable.columns>`,
+    {attr}`filters <xlwings.PivotTable.filters>` and
+    {attr}`values <xlwings.PivotTable.values>`:
+
+    ```pycon
+    >>> pt = mysheet.pivot_tables['PivotTable1']
+    >>> pt.rows.add('Region')
+    >>> pt.values.add('Sales', function='sum', number_format='#,##0')
+    >>> pt.layout = 'tabular'
+    >>> pt.refresh()
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def parent(self) -> Sheet:
+        """Returns the sheet the pivot table is on."""
+        return Sheet(impl=self.impl.parent)
+
+    @property
+    def name(self) -> str:
+        """Returns or sets the name of the pivot table."""
+        return self.impl.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.impl.name = value
+
+    @property
+    def field_names(self) -> list[str]:
+        """The names of the source fields (the column headers of the source
+        data), i.e. what can be passed to `rows.add()`, `columns.add()`,
+        `filters.add()` and `values.add()`.
+        """
+        return list(self.impl.field_names)
+
+    @property
+    def rows(self) -> PivotFields:
+        """The fields in the *Rows* area, see
+        {class}`PivotFields <xlwings.PivotFields>`.
+        """
+        return PivotFields(impl=self.impl.rows)
+
+    @property
+    def columns(self) -> PivotFields:
+        """The fields in the *Columns* area, see
+        {class}`PivotFields <xlwings.PivotFields>`.
+        """
+        return PivotFields(impl=self.impl.columns)
+
+    @property
+    def filters(self) -> PivotFields:
+        """The fields in the *Filters* area, see
+        {class}`PivotFields <xlwings.PivotFields>`.
+        """
+        return PivotFields(impl=self.impl.filters)
+
+    @property
+    def values(self) -> PivotValueFields:
+        """The fields in the *Values* area, see
+        {class}`PivotValueFields <xlwings.PivotValueFields>`.
+        """
+        return PivotValueFields(impl=self.impl.values)
+
+    @property
+    def layout(self) -> PivotLayout | None:
+        """Returns or sets the report layout: `"compact"`, `"outline"` or
+        `"tabular"`. Returns `None` if the row fields use mixed layouts.
+
+        On xlwings Lite and xlwings Server, reading it returns the layout as it
+        was when the script started, or the value set in the same script.
+        """
+        return self.impl.layout
+
+    @layout.setter
+    def layout(self, value: PivotLayout) -> None:
+        self.impl.layout = _pivot_layout(value)
+
+    @property
+    def show_row_grand_totals(self) -> bool:
+        """Returns or sets whether the grand totals for rows are shown."""
+        return self.impl.show_row_grand_totals
+
+    @show_row_grand_totals.setter
+    def show_row_grand_totals(self, value: bool) -> None:
+        self.impl.show_row_grand_totals = bool(value)
+
+    @property
+    def show_column_grand_totals(self) -> bool:
+        """Returns or sets whether the grand totals for columns are shown."""
+        return self.impl.show_column_grand_totals
+
+    @show_column_grand_totals.setter
+    def show_column_grand_totals(self, value: bool) -> None:
+        self.impl.show_column_grand_totals = bool(value)
+
+    @property
+    def range(self) -> Range:
+        """The range of the pivot table report, excluding the filters area.
+
+        Not yet available on xlwings Lite and xlwings Server.
+        """
+        return Range(impl=self.impl.range)
+
+    @property
+    def data_body_range(self) -> Range | None:
+        """The range of the values area, or `None` if the pivot table has no
+        value fields.
+
+        Not yet available on xlwings Lite and xlwings Server.
+        """
+        impl = self.impl.data_body_range
+        return Range(impl=impl) if impl is not None else None
+
+    def refresh(self) -> None:
+        """Refreshes the pivot table from its source data."""
+        self.impl.refresh()
+
+    def delete(self) -> None:
+        """Deletes the pivot table."""
+        self.impl.delete()
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PivotTable)
+            and other.parent == self.parent
+            and other.name == self.name
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __repr__(self) -> str:
+        return "<PivotTable '{0}' in {1}>".format(self.name, self.parent)
+
+
+class PivotField:
+    """A source field placed in the *Rows*, *Columns* or *Filters* area of a
+    pivot table, accessed via the {class}`PivotFields <xlwings.PivotFields>`
+    collections:
+
+    ```pycon
+    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> field = pt.rows.add('Region')
+    >>> field.name
+    'Region'
+    >>> field.parent
+    <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
+    >>> field.remove()
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def parent(self) -> PivotTable:
+        """Returns the pivot table the field belongs to."""
+        return PivotTable(impl=self.impl.parent)
+
+    @property
+    def name(self) -> str:
+        """The name of the source field."""
+        return self.impl.name
+
+    def remove(self) -> None:
+        """Removes the field from its area."""
+        self.impl.remove()
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PivotField)
+            and other.parent == self.parent
+            and other.name == self.name
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __repr__(self) -> str:
+        return "<PivotField '{0}' in {1}>".format(self.name, self.parent)
+
+
+class PivotFields(Collection[PivotField]):
+    """The fields in one area of a pivot table, i.e. `pt.rows`, `pt.columns`
+    or `pt.filters`. Iteration follows the field order.
+
+    ```pycon
+    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> pt.rows
+    PivotFields([<PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
+    >>> pt.rows[0]  # or pt.rows['Region']
+    <PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    _wrap = PivotField
+
+    @property
+    def parent(self) -> PivotTable:
+        """Returns the pivot table the area belongs to."""
+        return PivotTable(impl=self.impl.parent)
+
+    def add(self, name: str) -> PivotField:
+        """Places a source field in this area, after the existing fields.
+
+        A field that is already in this area stays where it is; a field in
+        another of the rows/columns/filters areas is moved here.
+
+        Args:
+            name: Name of the source field, see
+                {attr}`PivotTable.field_names <xlwings.PivotTable.field_names>`.
+        """
+        if not isinstance(name, str):
+            raise TypeError("The field name must be a string.")
+        return PivotField(impl=self.impl.add(name))
+
+
+class PivotValueField:
+    """A field in the *Values* area of a pivot table, accessed via {class}`PivotValueFields <xlwings.PivotValueFields>`:
+
+    ```pycon
+    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> value_field = pt.values.add('Sales')
+    >>> value_field.name, value_field.function
+    ('Sum of Sales', 'sum')
+    >>> value_field.function = 'average'
+    >>> value_field.number_format = '#,##0.00'
+    >>> value_field.name = 'Average Sales'
+    >>> pt.values['Average Sales'].source_field
+    'Sales'
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def parent(self) -> PivotTable:
+        """Returns the pivot table the field belongs to."""
+        return PivotTable(impl=self.impl.parent)
+
+    @property
+    def name(self) -> str:
+        """Returns or sets the caption, e.g. `"Sum of Sales"`. Excel rejects a
+        name that equals the name of a source field.
+
+        On xlwings Lite and xlwings Server, reading it only works for value
+        fields that already existed when the script started or if the name
+        was set in the same script. The automatic caption of a value field
+        added in the same script can't be read.
+        """
+        return self.impl.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.impl.name = value
+
+    @property
+    def source_field(self) -> str:
+        """The name of the source field this value field summarizes."""
+        return self.impl.source_field
+
+    @property
+    def function(self) -> PivotFunction | None:
+        """Returns or sets the summary function: `"sum"`, `"count"`,
+        `"average"`, `"max"`, `"min"`, `"product"`, `"count_numbers"`,
+        `"stdev"`, `"stdevp"`, `"var"` or `"varp"`. Returns `None` if the
+        engine only knows that Excel picked the default.
+        """
+        return self.impl.function
+
+    @function.setter
+    def function(self, value: PivotFunction) -> None:
+        self.impl.function = _pivot_function(value)
+
+    @property
+    def number_format(self) -> str:
+        """Returns or sets the number format of the value field.
+
+        On xlwings Lite and xlwings Server, reading it only works for value
+        fields that already existed when the script started or if the format
+        was set in the same script.
+        """
+        return self.impl.number_format
+
+    @number_format.setter
+    def number_format(self, value: str) -> None:
+        self.impl.number_format = value
+
+    def remove(self) -> None:
+        """Removes the field from the values area."""
+        self.impl.remove()
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PivotValueField)
+            and other.parent == self.parent
+            and other.name == self.name
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __repr__(self) -> str:
+        try:
+            name = self.name
+        except NotImplementedError:
+            name = "?"
+        return "<PivotValueField '{0}' in {1}>".format(name, self.parent)
+
+
+class PivotValueFields(Collection[PivotValueField]):
+    """The fields in the *Values* area of a pivot table, i.e. `pt.values`.
+    Iteration follows the field order.
+
+    ```pycon
+    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> pt.values
+    PivotValueFields([<PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
+    >>> pt.values[0]  # or pt.values['Sum of Sales']
+    <PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    _wrap = PivotValueField
+
+    @property
+    def parent(self) -> PivotTable:
+        """Returns the pivot table the area belongs to."""
+        return PivotTable(impl=self.impl.parent)
+
+    def add(
+        self,
+        field: str,
+        function: PivotFunction | None = None,
+        name: str | None = None,
+        number_format: str | None = None,
+    ) -> PivotValueField:
+        """Adds a source field to the values area, after the existing value
+        fields. The same source field can be added more than once, e.g. as a
+        sum and as a count.
+
+        Args:
+            field: Name of the source field, see
+                {attr}`PivotTable.field_names <xlwings.PivotTable.field_names>`.
+            function: Summary function, see
+                {attr}`PivotValueField.function <xlwings.PivotValueField.function>`.
+                Defaults to Excel's choice: `"sum"` for numeric fields,
+                `"count"` otherwise.
+            name: Caption, e.g. `"Total Sales"`. Defaults to Excel's caption,
+                e.g. `"Sum of Sales"`. Excel rejects a name that equals the
+                name of a source field.
+            number_format: Number format, e.g. `"#,##0.00"`.
+        """
+        if not isinstance(field, str):
+            raise TypeError("The field name must be a string.")
+        if function is not None:
+            function = _pivot_function(function)
+        return PivotValueField(
+            impl=self.impl.add(
+                field, function=function, name=name, number_format=number_format
+            )
+        )
+
+
+class PivotTables(Collection[PivotTable]):
+    """A collection of all {class}`PivotTable <xlwings.PivotTable>`
+    objects on the specified sheet:
+
+    ```pycon
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].pivot_tables
+    PivotTables([<PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>])
+    ```
+
+    ```{versionadded} 0.37.3
+    ```
+    """
+
+    _wrap = PivotTable
+
+    @property
+    def parent(self) -> Sheet:
+        """Returns the sheet the collection belongs to."""
+        return Sheet(impl=self.impl.parent)
+
+    def add(
+        self,
+        source: Range | Table,
+        destination: Range,
+        name: str | None = None,
+        rows: str | list[str] | None = None,
+        columns: str | list[str] | None = None,
+        filters: str | list[str] | None = None,
+        values: (
+            str
+            | list[str | tuple[str, PivotFunction | None]]
+            | dict[str, PivotFunction | None]
+            | None
+        ) = None,
+        layout: PivotLayout | None = None,
+    ) -> PivotTable:
+        """Creates a pivot table on the sheet of this collection.
+
+        On macOS, only the first pivot table on a sheet can be created; a
+        second one on the same sheet raises `NotImplementedError`. Existing
+        pivot tables can be modified without that restriction.
+
+        Args:
+            source: The source data, either a range including the header row
+                or a {class}`Table <xlwings.main.Table>`. Can be on another sheet.
+                On xlwings Lite, `expand()` doesn't see values written in the
+                same script until you run `await book.flush()` followed by
+                `await sheet.load()`; on xlwings Server, spell out the range.
+            destination: The cell where the top-left corner of the pivot
+                table goes. Must be on the sheet of this collection.
+            name: Name of the pivot table. Defaults to Excel's standard
+                name, e.g. `"PivotTable1"`.
+            rows: Field name(s) for the *Rows* area.
+            columns: Field name(s) for the *Columns* area.
+            filters: Field name(s) for the *Filters* area.
+            values: Field name(s) for the *Values* area. Use a mapping
+                (`{"Sales": "sum"}`) or `(field, function)` tuples to pick the
+                summary function; `None` keeps Excel's default. The same field
+                can only be listed twice via tuples, see
+                {meth}`PivotValueFields.add <xlwings.PivotValueFields.add>`.
+            layout: `"compact"`, `"outline"` or `"tabular"`.
+
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> book = xw.Book()
+            >>> data = book.sheets[0]
+            >>> report = book.sheets.add('Report', after=data)
+            >>> data['A1'].value = [['Region', 'Year', 'Sales'],
+            ...                     ['North', 2023, 100], ['South', 2024, 200]]
+            >>> pt = report.pivot_tables.add(
+            ...     source=data['A1:C3'],
+            ...     destination=report['A3'],
+            ...     rows='Region',
+            ...     columns='Year',
+            ...     values={'Sales': 'sum'},
+            ... )
+            >>> pt.values[0].number_format = '#,##0'
+            ```
+
+            The same in steps:
+
+            ```pycon
+            >>> pt = report.pivot_tables.add(data['A1:C3'], report['A3'])
+            >>> pt.rows.add('Region')
+            >>> pt.columns.add('Year')
+            >>> pt.values.add('Sales', function='sum', number_format='#,##0')
+            ```
+        """
+        if not isinstance(source, (Range, Table)):
+            raise TypeError("'source' must be a Range or a Table.")
+        if not isinstance(destination, Range):
+            raise TypeError("'destination' must be a Range.")
+        if destination.sheet != self.parent:
+            raise ValueError(
+                "'destination' must be on the sheet of this collection "
+                f"({self.parent.name!r}), not on {destination.sheet.name!r}."
+            )
+        if isinstance(source, Range) and source.shape == (1, 1):
+            raise ValueError(
+                f"'source' must cover the header row and the data, but is the "
+                f"single cell {source.address}. On xlwings Lite, expand() only "
+                "sees values written in the same script after 'await "
+                "book.flush()' and 'await sheet.load()'; on xlwings Server, use "
+                "an explicit range."
+            )
+        rows = _pivot_field_list(rows, "rows")
+        columns = _pivot_field_list(columns, "columns")
+        filters = _pivot_field_list(filters, "filters")
+        value_specs = _pivot_value_specs(values)
+        if layout is not None:
+            layout = _pivot_layout(layout)
+        if name and name in self:
+            raise XlwingsError(
+                f"A pivot table named {name!r} already exists on {self.parent.name!r}."
+            )
+
+        impl = self.impl.add(
+            source=source.impl, destination=destination.impl, name=name
+        )
+        pt = PivotTable(impl=impl)
+        for field in rows:
+            pt.rows.add(field)
+        for field in columns:
+            pt.columns.add(field)
+        for field in filters:
+            pt.filters.add(field)
+        for field, function in value_specs:
+            pt.values.add(field, function=function)
+        if layout is not None:
+            pt.layout = layout
+        return pt
 
 
 class Picture:

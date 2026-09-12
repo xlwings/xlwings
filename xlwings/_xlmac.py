@@ -10,6 +10,7 @@ from collections import Counter
 from contextlib import contextmanager
 from pathlib import Path
 from uuid import uuid4
+from weakref import WeakValueDictionary
 
 import aem
 import appscript
@@ -505,7 +506,9 @@ class Book(base_classes.Book):
         return Sheets(self)
 
     def close(self):
+        pivot_key = (self.app.pid, self.name)
         self.xl.close(saving=kw.no)
+        _invalidate_pivot_value_states(pivot_key)
 
     def save(self, path, password):
         saved_path = self.xl.properties().get(kw.path)
@@ -783,6 +786,10 @@ class Sheet(base_classes.Sheet):
     @property
     def tables(self):
         return Tables(self)
+
+    @property
+    def pivot_tables(self):
+        return PivotTables(self)
 
     @property
     def pictures(self):
@@ -2196,6 +2203,449 @@ class Charts(Collection, base_classes.Charts):
         return chart
 
 
+def _mac_list(ref):
+    """The items of an appscript element list, or [] when Excel reports
+    `missing value` for an empty collection."""
+    items = ref.get()
+    return [] if items == kw.missing_value else items
+
+
+_pivot_value_states = WeakValueDictionary()
+
+
+def _pivot_key(pivot):
+    sheet = pivot.parent
+    book = sheet.book
+    # Names normalize references obtained by numeric and string lookup.
+    return (book.app.pid, book.name, sheet.name, pivot.name)
+
+
+def _invalidate_pivot_value_states(prefix):
+    for key, state in list(_pivot_value_states.items()):
+        if key[: len(prefix)] == prefix:
+            state.deleted = True
+            del _pivot_value_states[key]
+
+
+class _PivotValueState:
+    def __init__(self, key):
+        self.key = key
+        self.name = key[-1]
+        self.deleted = False
+
+    def rename(self, name):
+        _pivot_value_states.pop(self.key, None)
+        self.name = name
+        self.key = (*self.key[:-1], name)
+        _pivot_value_states[self.key] = self
+
+
+class PivotTable(base_classes.PivotTable):
+    def __init__(self, parent, key):
+        self._parent = parent
+        self.xl = parent.xl.pivot_tables[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @name.setter
+    def name(self, value):
+        old_key = _pivot_key(self)
+        self.xl.name.set(value)
+        # the native reference is name-based
+        self.xl = self.parent.xl.pivot_tables[value]
+        for key, state in list(_pivot_value_states.items()):
+            if key[:-1] == old_key:
+                del _pivot_value_states[key]
+                state.key = (*old_key[:-1], value, state.name)
+                _pivot_value_states[state.key] = state
+
+    @property
+    def field_names(self):
+        # pivot_fields lists the source fields plus, with two or more value
+        # fields, the "Values" pseudo field (data_pivot_field)
+        try:
+            values_name = self.xl.data_pivot_field.name.get()
+        except CommandError:
+            values_name = None
+        return [
+            field.name.get()
+            for field in _mac_list(self.xl.pivot_fields)
+            if field.name.get() != values_name
+            and field.pivot_field_orientation.get() != kw.orient_as_data_field
+        ]
+
+    @property
+    def rows(self):
+        return PivotFields(pivot=self, area="rows")
+
+    @property
+    def columns(self):
+        return PivotFields(pivot=self, area="columns")
+
+    @property
+    def filters(self):
+        return PivotFields(pivot=self, area="filters")
+
+    @property
+    def values(self):
+        return PivotValueFields(pivot=self)
+
+    @property
+    def layout(self):
+        # layout_row_default only applies to fields added later, so read the
+        # actual layout off the row fields; None when they disagree.
+        row_fields = _mac_list(self.xl.row_fields)
+        if not row_fields:
+            return pivot_layouts_k2s.get(self.xl.layout_row_default.get())
+        layouts = set()
+        for field in row_fields:
+            # address the source field: some properties don't resolve via
+            # the row_fields element reference
+            field = self.xl.pivot_fields[field.name.get()]
+            if field.layout_compact_row.get():
+                layouts.add("compact")
+            elif field.layout_form.get() == kw.tabular:
+                layouts.add("tabular")
+            elif field.layout_form.get() == kw.outline:
+                layouts.add("outline")
+            else:
+                layouts.add(pivot_layouts_k2s.get(self.xl.layout_row_default.get()))
+        return layouts.pop() if len(layouts) == 1 else None
+
+    @layout.setter
+    def layout(self, value):
+        self.xl.row_axis_layout(layout=pivot_layouts_s2k[value])
+        self.xl.layout_row_default.set(pivot_layouts_s2k[value])
+
+    @property
+    def show_row_grand_totals(self):
+        return self.xl.row_grand.get()
+
+    @show_row_grand_totals.setter
+    def show_row_grand_totals(self, value):
+        self.xl.row_grand.set(value)
+
+    @property
+    def show_column_grand_totals(self):
+        return self.xl.column_grand.get()
+
+    @show_column_grand_totals.setter
+    def show_column_grand_totals(self, value):
+        self.xl.column_grand.set(value)
+
+    @property
+    def range(self):
+        return Range(self.parent, self.xl.table_range1.get_address())
+
+    @property
+    def data_body_range(self):
+        # Excel for Mac answers with the row labels area when there are no
+        # value fields
+        if not _mac_list(self.xl.data_fields):
+            return None
+        return Range(self.parent, self.xl.data_body_range.get_address())
+
+    def refresh(self):
+        self.xl.refresh_table()
+
+    def delete(self):
+        # There is no delete command; clearing the full report range (incl.
+        # the filters area) removes it.
+        key = _pivot_key(self)
+        self.xl.table_range2.clear_range()
+        _invalidate_pivot_value_states(key)
+
+
+class PivotField(base_classes.PivotField):
+    def __init__(self, pivot, name):
+        # addressed as the source field, so the wrapper follows the field
+        # when it is moved to another area
+        self._pivot = pivot
+        self._name = name
+
+    @property
+    def xl(self):
+        return self._pivot.xl.pivot_fields[self._name]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def name(self):
+        return self._name
+
+    def remove(self):
+        self.xl.pivot_field_orientation.set(kw.orient_as_hidden)
+
+
+class PivotFields(base_classes.PivotFields):
+    def __init__(self, pivot, area):
+        self._pivot = pivot
+        self._area = area
+
+    @property
+    def xl(self):
+        return getattr(self._pivot.xl, pivot_area_elements[self._area])
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def area(self):
+        return self._area
+
+    def _names(self):
+        # in position order; Excel's "Values" pseudo field isn't a source
+        # field, so hide it, like field_names does and like Office.js
+        try:
+            values_name = self._pivot.xl.data_pivot_field.name.get()
+        except CommandError:
+            values_name = None
+        return [
+            name
+            for name in (field.name.get() for field in _mac_list(self.xl))
+            if name != values_name
+        ]
+
+    def __call__(self, key):
+        names = self._names()
+        if isinstance(key, numbers.Number):
+            if key < 1 or key > len(names):
+                raise KeyError(key)
+            return PivotField(self._pivot, names[key - 1])
+        if key not in names:
+            raise KeyError(key)
+        return PivotField(self._pivot, key)
+
+    def __len__(self):
+        return len(self._names())
+
+    def __iter__(self):
+        for name in self._names():
+            yield PivotField(self._pivot, name)
+
+    def __contains__(self, key):
+        return key in self._names()
+
+    def add(self, name):
+        field = self._pivot.xl.pivot_fields[name]
+        if not field.exists():
+            raise KeyError(name)
+        orientation = pivot_area_orientations[self._area]
+        # setting the orientation appends the field to the area; leave a
+        # field that is already here where it is
+        if field.pivot_field_orientation.get() != orientation:
+            field.pivot_field_orientation.set(orientation)
+        return PivotField(self._pivot, name)
+
+
+class PivotValueField(base_classes.PivotValueField):
+    def __init__(self, pivot, name):
+        self._pivot = pivot
+        key = (*_pivot_key(pivot), name)
+        state = _pivot_value_states.get(key)
+        if state is None:
+            state = _PivotValueState(key)
+            _pivot_value_states[key] = state
+        self._state = state
+
+    @property
+    def xl(self):
+        if self._state.deleted:
+            raise KeyError("The value field has been removed.")
+        # Resolve from the shared state so aliases also survive a pivot rename.
+        _, book, sheet, pivot, name = self._state.key
+        return (
+            self._pivot.parent.book.app.xl.workbooks[book]
+            .worksheets[sheet]
+            .pivot_tables[pivot]
+            .data_fields[name]
+        )
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def name(self):
+        return self._state.name
+
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+        self._state.rename(value)
+
+    @property
+    def source_field(self):
+        return self.xl.source_name.get()
+
+    @property
+    def function(self):
+        return pivot_functions_k2s.get(self.xl.function.get())
+
+    @function.setter
+    def function(self, value):
+        # Excel renames an automatic caption ("Sum of X" -> "Count of X")
+        # along with the function, so re-resolve the field by its position
+        field = self.xl
+        position = field.position.get()
+        field.function.set(pivot_functions_s2k[value])
+        _, book, sheet, pivot, _ = self._state.key
+        fields = (
+            self._pivot.parent.book.app.xl.workbooks[book]
+            .worksheets[sheet]
+            .pivot_tables[pivot]
+            .data_fields
+        )
+        self._state.rename(fields[position].name.get())
+
+    @property
+    def number_format(self):
+        return self.xl.number_format.get()
+
+    @number_format.setter
+    def number_format(self, value):
+        self.xl.number_format.set(value)
+
+    def remove(self):
+        self.xl.pivot_field_orientation.set(kw.orient_as_hidden)
+        self._state.deleted = True
+        _pivot_value_states.pop(self._state.key, None)
+
+
+class PivotValueFields(base_classes.PivotValueFields):
+    def __init__(self, pivot):
+        self._pivot = pivot
+
+    @property
+    def xl(self):
+        return self._pivot.xl.data_fields
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    def _names(self):
+        return [field.name.get() for field in _mac_list(self.xl)]
+
+    def __call__(self, key):
+        names = self._names()
+        if isinstance(key, numbers.Number):
+            if key < 1 or key > len(names):
+                raise KeyError(key)
+            return PivotValueField(self._pivot, names[key - 1])
+        if key not in names:
+            raise KeyError(key)
+        return PivotValueField(self._pivot, key)
+
+    def __len__(self):
+        return len(self._names())
+
+    def __iter__(self):
+        for name in self._names():
+            yield PivotValueField(self._pivot, name)
+
+    def __contains__(self, key):
+        return key in self._names()
+
+    def add(self, field, function=None, name=None, number_format=None):
+        source = self._pivot.xl.pivot_fields[field]
+        if not source.exists():
+            raise KeyError(field)
+        # add_data_field is broken in Excel's AppleScript interface (it either
+        # does nothing or crashes Excel); setting the orientation of the source
+        # field appends a value field with Excel's default function
+        source.pivot_field_orientation.set(kw.orient_as_data_field)
+        new = PivotValueField(self._pivot, _mac_list(self.xl)[-1].name.get())
+        # function first: it resets an automatic caption
+        if function is not None:
+            new.function = function
+        if name is not None:
+            new.name = name
+        if number_format is not None:
+            new.number_format = number_format
+        return new
+
+
+class PivotTables(Collection, base_classes.PivotTables):
+    _attr = "pivot_tables"
+    _kw = kw.pivot_table
+    _wrap = PivotTable
+
+    def add(self, source, destination, name=None):
+        # `make new pivot table` creates the pivot cache itself. It takes the
+        # source as an A1-style reference with the sheet name, a defined name
+        # or a structured reference; an R1C1 string is rejected across sheets
+        # with a bare "parameter error", as is `make new pivot cache`.
+        # Qualify the workbook: Excel resolves unqualified sources against
+        # the active workbook even when `make` targets a different book.
+        if isinstance(source, Table):
+            sheet = source.parent
+            prefix = f"[{sheet.book.name}]{sheet.name}".replace("'", "''")
+            source_data = f"'{prefix}'!{source.name}[#All]"
+        else:
+            source_data = source.get_address(True, True, True)
+        # On a sheet that already has a pivot table, `make` silently answers
+        # with the existing one instead of creating another (whatever the
+        # `at` target), and the pivot table's location property can't move
+        # one in from elsewhere, so a second pivot table per sheet is out.
+        before = [pt.name.get() for pt in _mac_list(self.parent.xl.pivot_tables)]
+        if before:
+            raise NotImplementedError(
+                "On macOS, only the first pivot table on a sheet can be created; "
+                f"sheet {self.parent.name!r} already has {before!r}. Create it on "
+                "another sheet."
+            )
+        top_left = Range(self.parent, (destination.row, destination.column, 1, 1))
+        self.parent.book.xl.make(
+            at=self.parent.xl,
+            new=kw.pivot_table,
+            with_properties={
+                kw.source_data: source_data,
+                kw.table_range1: top_left.xl,
+            },
+        )
+        # `make` may answer with an index-based reference, so address the
+        # new pivot table by its name
+        after = [pt.name.get() for pt in _mac_list(self.parent.xl.pivot_tables)]
+        if len(after) != 1:
+            raise xlwings.XlwingsError(
+                f"Excel didn't create the pivot table on sheet {self.parent.name!r}."
+            )
+        pivot = PivotTable(self.parent, after[0])
+        if name:
+            pivot.name = name
+        return pivot
+
+
 class Picture(base_classes.Picture):
     def __init__(self, parent, key):
         self._parent = parent
@@ -2770,3 +3220,37 @@ scaling = {
 }
 
 shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}
+
+pivot_functions_s2k = {
+    "sum": kw.do_sum,
+    "count": kw.do_count,
+    "average": kw.do_average,
+    "max": kw.do_maximum,
+    "min": kw.do_minimum,
+    "product": kw.do_product,
+    "count_numbers": kw.do_count_numbers,
+    "stdev": kw.do_standard_deviation,
+    "stdevp": kw.do_standard_deviation_p,
+    "var": kw.do_var,
+    "varp": kw.do_var_p,
+}
+pivot_functions_k2s = {v: k for k, v in pivot_functions_s2k.items()}
+
+pivot_layouts_s2k = {
+    "compact": kw.compact_row,
+    "outline": kw.outline_row,
+    "tabular": kw.tabular_row,
+}
+pivot_layouts_k2s = {v: k for k, v in pivot_layouts_s2k.items()}
+
+# xlwings' field areas -> the pivot table element / the orientation
+pivot_area_elements = {
+    "rows": "row_fields",
+    "columns": "column_fields",
+    "filters": "page_fields",
+}
+pivot_area_orientations = {
+    "rows": kw.orient_as_row_field,
+    "columns": kw.orient_as_column_field,
+    "filters": kw.orient_as_page_field,
+}

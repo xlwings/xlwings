@@ -12,6 +12,7 @@ methods gate on ``sys.platform == "emscripten"``, so the fixtures below fake jus
 enough of that surface to run the real branching logic.
 """
 
+import copy
 import sys
 from types import ModuleType, SimpleNamespace
 
@@ -199,3 +200,116 @@ async def test_public_wrapper_forwards_values_kwarg(fake_emscripten):
     await book.load(values=True)
     # Values are now readable through the public wrapper.
     assert book.sheets[0]["A1"].value is not None
+
+
+def _pivot_metadata(name="Pivot", id="pivot-1"):
+    return {
+        "id": id,
+        "name": name,
+        "field_names": ["Region", "Sales"],
+        "rows": ["Region"],
+        "columns": [],
+        "filters": [],
+        "values": [
+            {
+                "id": "value-1",
+                "name": "Sum of Sales",
+                "source_field": "Sales",
+                "function": "Sum",
+                "number_format": "General",
+            },
+            {
+                "id": "value-2",
+                "name": "Count of Sales",
+                "source_field": "Sales",
+                "function": "Count",
+                "number_format": "General",
+            },
+        ],
+        "layout": "Compact",
+        "show_row_grand_totals": True,
+        "show_column_grand_totals": True,
+    }
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("scope", ["book", "sheet"])
+async def test_pivot_aliases_survive_metadata_reload(
+    fake_emscripten, monkeypatch, scope
+):
+    payload = _book_json()
+    payload["sheets"][0]["pivot_tables"] = [_pivot_metadata()]
+    app = R.App(R.Apps(), add_book=False)
+    book = xw.Book(impl=app.books.open(copy.deepcopy(payload)))
+    try:
+        sheet = book.sheets[0]
+        collection = sheet.pivot_tables
+        pt = collection[0]
+        values = pt.values
+        first, removed = values[0], values[1]
+
+        async def get_book_data(opts=None):
+            return SimpleNamespace(to_py=lambda: copy.deepcopy(payload))
+
+        monkeypatch.setattr(sys.modules["js"].xlwings, "getBookData", get_book_data)
+        reload = book.load if scope == "book" else sheet.load
+        await reload()
+        pt.refresh()
+        first.number_format = "0.00"
+        assert values[0].number_format == "0.00"
+
+        # IDs preserve wrappers across external renames and reordering. An
+        # object with a reused caption but a different ID is a replacement.
+        incoming = payload["sheets"][0]["pivot_tables"][0]
+        incoming["name"] = "Renamed"
+        incoming["values"][0]["name"] = "Revenue"
+        incoming["values"][1]["id"] = "replacement-value"
+        incoming["values"].reverse()
+        payload["sheets"][0]["pivot_tables"].insert(
+            0, _pivot_metadata("Other", "pivot-2")
+        )
+        await reload()
+        assert pt.name == "Renamed"
+        assert first.name == "Revenue"
+        assert collection[1].impl.api is pt.impl.api
+        assert values[1].impl.api is first.impl.api
+        first.number_format = "0.000"
+        assert book.json()["actions"][-1]["args"] == [1, 1, "number_format", "0.000"]
+        with pytest.raises(KeyError, match="removed"):
+            removed.remove()
+        payload["sheets"][0]["pivot_tables"].pop()
+        await reload()
+        with pytest.raises(KeyError, match="deleted"):
+            pt.refresh()
+    finally:
+        book.close()
+
+
+@pytest.mark.anyio
+async def test_new_unnamed_values_survive_first_reload(fake_emscripten, monkeypatch):
+    payload = _book_json()
+    payload["sheets"][0]["pivot_tables"] = []
+    app = R.App(R.Apps(), add_book=False)
+    book = xw.Book(impl=app.books.open(copy.deepcopy(payload)))
+    try:
+        sheet = book.sheets[0]
+        pt = sheet.pivot_tables.add(sheet["A1:B3"], sheet["D1"])
+        first = pt.values.add("Sales", function="sum")
+        second = pt.values.add("Sales", function="count")
+        # Mimic Excel's metadata after this script's queued actions were flushed.
+        payload["sheets"][0]["pivot_tables"] = [_pivot_metadata(pt.name)]
+
+        async def get_book_data(opts=None):
+            return SimpleNamespace(to_py=lambda: copy.deepcopy(payload))
+
+        monkeypatch.setattr(sys.modules["js"].xlwings, "getBookData", get_book_data)
+        await book.load()
+        assert first.name == "Sum of Sales"
+        assert second.name == "Count of Sales"
+        first.remove()
+        second.number_format = "0.0"
+        assert book.json()["actions"][-1]["args"] == [0, 0, "number_format", "0.0"]
+        with pytest.raises(KeyError):
+            first.remove()
+    finally:
+        book.close()
