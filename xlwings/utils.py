@@ -34,6 +34,18 @@ import xlwings
 missing = object()
 
 
+def is_jsnull(value):
+    """Return True if ``value`` is Pyodide's ``JsNull`` sentinel (Pyodide >= 0.28).
+
+    Returns False on older Pyodide versions (no ``JsNull``) or outside Pyodide.
+    """
+    try:
+        from pyodide.ffi import JsNull
+    except ImportError:
+        return False
+    return isinstance(value, JsNull)
+
+
 def int_to_rgb(number):
     """Given an integer, return the rgb"""
     number = int(number)

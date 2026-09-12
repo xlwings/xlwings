@@ -5,9 +5,9 @@ import math
 from collections import OrderedDict
 from typing import Any, Sequence
 
-from .. import LicenseError
+from .. import LicenseError, XlwingsError
 from ..main import Range
-from ..utils import chunk, xlserial_to_datetime
+from ..utils import chunk, is_jsnull, xlserial_to_datetime
 from . import Accessor, Converter, Options, Pipeline, accessors
 
 try:
@@ -31,6 +31,70 @@ _number_handlers = {
     int: lambda x: int(round(x)),
     "raw int": int,
 }
+
+# Distinguishes "chunksize not supplied" from an explicit opt-out
+# (``chunksize=None`` / ``chunksize=0``), which must keep disabling chunking.
+_MISSING = object()
+
+
+def _budget_chunksize(budget, nrows, ncols):
+    """Rows per chunk for an implicit cell budget, or None if the range fits."""
+    if budget is None or nrows * ncols <= budget:
+        return None
+    return max(1, budget // ncols)
+
+
+def _resolve_read_chunksize(options, rng):
+    """Effective read chunksize: the user's explicit value wins (including falsy
+    opt-outs); otherwise the engine's read budget applies only when the range is
+    larger than the budget. Shape is only resolved when a budget is in effect."""
+    chunksize = options.get("chunksize", _MISSING)
+    if chunksize is not _MISSING:
+        return chunksize
+    budget = rng.impl.max_cells_per_read
+    if budget is None:
+        return None
+    nrows, ncols = rng.shape
+    return _budget_chunksize(budget, nrows, ncols)
+
+
+def _resolve_write_chunksize(options, rng, value, scalar):
+    """Effective write chunksize with the same precedence as reads. Non-scalar
+    values are sized from the final converted matrix; scalar fills from the
+    target range's shape (only resolved when a budget is in effect)."""
+    chunksize = options.get("chunksize", _MISSING)
+    if chunksize is not _MISSING:
+        return chunksize
+    budget = rng.impl.max_cells_per_write
+    if budget is None:
+        return None
+    if scalar:
+        nrows, ncols = rng.shape
+    else:
+        nrows, ncols = len(value), len(value[0])
+    return _budget_chunksize(budget, nrows, ncols)
+
+
+def _rows_2d(raw_value):
+    """Normalize a chunk's raw value to a list of rows: COM and AppleScript return
+    a scalar for a single cell and a flat list for a single row."""
+    if not isinstance(raw_value, (list, tuple)):
+        return [[raw_value]]
+    if not isinstance(raw_value[0], (list, tuple)):
+        return [raw_value]
+    return raw_value
+
+
+def _check_live_values(values_js, rng):
+    """Office.js may return null instead of raising when a range get exceeds its
+    5,000,000-cell limit. Catch it before ``.to_py()`` and say what to do."""
+    if values_js is None or is_jsnull(values_js):
+        raise XlwingsError(
+            f"Excel returned no values for '{rng.sheet.name}'!{rng.address}. "
+            "Office.js caps a single range read at 5,000,000 cells and may "
+            "return null instead of raising. Read fewer rows or columns, "
+            "or use a smaller explicit chunksize."
+        )
 
 
 class ExpandRangeStage:
@@ -78,14 +142,20 @@ class WriteValueToRangeStage:
             else:
                 rng = rng.resize(len(value), len(value[0]))
 
-            chunksize = self.options.get("chunksize")
-            if chunksize:
+            chunksize = _resolve_write_chunksize(self.options, rng, value, scalar)
+            if not chunksize:
+                rng.raw_value = value
+            elif scalar:
+                # Keep the scalar a scalar: each row slice fills itself with it
+                # (the engines expand a scalar to the target shape).
+                nrows = rng.shape[0]
+                for start in range(0, nrows, chunksize):
+                    rng[start : start + chunksize, :].raw_value = value
+            else:
                 for ix, value_chunk in enumerate(chunk(value, chunksize)):
                     rng[
                         ix * chunksize : ix * chunksize + chunksize, :
                     ].raw_value = value_chunk
-            else:
-                rng.raw_value = value
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
@@ -105,21 +175,20 @@ class ReadValueFromRangeStage:
         self.options = options
 
     def __call__(self, c):
-        chunksize = self.options.get("chunksize")
-        if c.range and chunksize:
+        if not c.range:
+            # UDF arguments arrive pre-materialized via conversion.read(None, ...)
+            return
+        chunksize = _resolve_read_chunksize(self.options, c.range)
+        if chunksize:
             parts = []
             for i in range(math.ceil(c.range.shape[0] / chunksize)):
-                raw_value = c.range[
-                    i * chunksize : (i * chunksize) + chunksize, :
-                ].raw_value
-                if isinstance(raw_value[0], (list, tuple)):
-                    parts.extend(raw_value)
-                else:
-                    # Turn a single row list into a 2d list
-                    parts.extend([raw_value])
-
+                chunk_range = c.range[i * chunksize : (i * chunksize) + chunksize, :]
+                # Slicing creates a fresh range without the read options, but
+                # AppleScript and Calamine need e.g. err_to_str on the raw read.
+                chunk_range = Range(impl=chunk_range.impl, **self.options)
+                parts.extend(_rows_2d(chunk_range.raw_value))
             c.value = parts
-        elif c.range:
+        else:
             c.value = c.range.raw_value
 
 
@@ -135,7 +204,7 @@ class AsyncReadValueFromRangeStage:
             return
         import js
 
-        chunksize = self.options.get("chunksize")
+        chunksize = _resolve_read_chunksize(self.options, c.range)
         if chunksize:
             parts = []
             for i in range(math.ceil(c.range.shape[0] / chunksize)):
@@ -143,16 +212,14 @@ class AsyncReadValueFromRangeStage:
                 values_js = await js.xlwings.getRangeValues(
                     c.range.sheet.name, chunk_range.address
                 )
-                chunk_values = values_js.to_py()
-                if isinstance(chunk_values[0], (list, tuple)):
-                    parts.extend(chunk_values)
-                else:
-                    parts.extend([chunk_values])
+                _check_live_values(values_js, chunk_range)
+                parts.extend(_rows_2d(values_js.to_py()))
             c.value = parts
         else:
             values_js = await js.xlwings.getRangeValues(
                 c.range.sheet.name, c.range.address
             )
+            _check_live_values(values_js, c.range)
             c.value = values_js.to_py()
 
 

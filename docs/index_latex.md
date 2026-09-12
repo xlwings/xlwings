@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 ```{toctree}
 :maxdepth: 2
 :hidden:
