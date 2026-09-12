@@ -1,10 +1,17 @@
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 import xlwings as xw
 
 this_dir = Path(__file__).parent
+
+
+def _invalid(value: object) -> Any:
+    """An argument that the Literal types reject statically: these tests exercise
+    the runtime validation, which type checkers can't stand in for."""
+    return value
 
 
 class TestPivotTable(unittest.TestCase):
@@ -182,7 +189,7 @@ class TestPivotTable(unittest.TestCase):
         with self.assertRaises(KeyError):
             pt.values.add("Nope")
         with self.assertRaises(ValueError):
-            pt.values.add("Qty", function="total")
+            pt.values.add("Qty", function=_invalid("total"))
 
     def test_value_field_setters(self):
         field = self.pt.values.add("Qty")
@@ -200,7 +207,7 @@ class TestPivotTable(unittest.TestCase):
             field.function = "max"
             self.assertEqual(field.function, "max")
             with self.assertRaises(ValueError):
-                field.function = "total"
+                field.function = _invalid("total")
         finally:
             field.remove()
         self.assertEqual(len(self.pt.values), 1)
@@ -217,7 +224,7 @@ class TestPivotTable(unittest.TestCase):
             pt.layout = "compact"
         self.assertEqual(pt.layout, "compact")
         with self.assertRaises(ValueError):
-            pt.layout = "fancy"
+            pt.layout = _invalid("fancy")
 
     def test_value_field_aliases(self):
         field = self.pt.values.add("Qty")
@@ -278,8 +285,10 @@ class TestPivotTable(unittest.TestCase):
                 ["Grand Total", 1000.0],
             ],
         )
-        self.assertEqual(pt.data_body_range.address, "$B$4:$B$6")
-        self.assertEqual(pt.data_body_range.sheet, self.sheet)
+        body = pt.data_body_range
+        assert body is not None
+        self.assertEqual(body.address, "$B$4:$B$6")
+        self.assertEqual(body.sheet, self.sheet)
 
     def test_data_body_range_without_values(self):
         pt = self.pt
@@ -301,6 +310,25 @@ class TestPivotTable(unittest.TestCase):
             self.data["D2"].value = 100
             pt.refresh()
         self.assertEqual(pt.range.value[1], ["North", 300.0])
+
+    def test_add_validation_errors(self):
+        # rejected before any engine call, so this runs on macOS too
+        source = self.data["A1"].expand()
+        with self.assertRaises(ValueError):
+            self.sheet.pivot_tables.add(source, self.data["H1"])
+        with self.assertRaises(TypeError):
+            self.sheet.pivot_tables.add(_invalid("A1:E5"), self.sheet["A30"])
+        with self.assertRaises(ValueError):
+            self.sheet.pivot_tables.add(
+                source, self.sheet["A30"], layout=_invalid("wide")
+            )
+        with self.assertRaises(ValueError):
+            self.sheet.pivot_tables.add(
+                source, self.sheet["A30"], values=_invalid({"Sales": "total"})
+            )
+        with self.assertRaises(TypeError):
+            self.sheet.pivot_tables.add(source, self.sheet["A30"], rows=_invalid([1]))
+        self.assertEqual(len(self.sheet.pivot_tables), 1)
 
 
 class TestPivotTableDelete(unittest.TestCase):
@@ -405,18 +433,8 @@ class TestPivotTablesAdd(unittest.TestCase):
         pt.delete()
         self.assertNotIn(name, [p.name for p in self.report.pivot_tables])
 
-    def test_add_errors(self):
+    def test_add_duplicate_name(self):
         source = self.data["A1"].expand()
-        with self.assertRaises(ValueError):
-            self.report.pivot_tables.add(source, self.data["H1"])
-        with self.assertRaises(TypeError):
-            self.report.pivot_tables.add("A1:E5", self.report["A30"])
-        with self.assertRaises(ValueError):
-            self.report.pivot_tables.add(source, self.report["A30"], layout="wide")
-        with self.assertRaises(ValueError):
-            self.report.pivot_tables.add(
-                source, self.report["A30"], values={"Sales": "total"}
-            )
         pt = self.report.pivot_tables.add(source, self.report["A30"], name="Dup")
         with self.assertRaises(xw.XlwingsError):
             self.report.pivot_tables.add(source, self.report["A40"], name="Dup")

@@ -29,6 +29,7 @@ from typing import (
     Mapping,
     Sequence,
     TypeVar,
+    cast,
     get_args,
     overload,
 )
@@ -4558,18 +4559,18 @@ class Charts(Collection[Chart]):
         return Chart(impl=impl)
 
 
-def _pivot_function(value: Any) -> str:
+def _pivot_function(value: Any) -> PivotFunction:
     if isinstance(value, str) and str(value) in PIVOT_FUNCTIONS:
-        return str(value)
+        return cast(PivotFunction, str(value))
     raise ValueError(
         f"Invalid function {value!r}. Valid values are: "
         f"{', '.join(repr(v) for v in PIVOT_FUNCTIONS)}."
     )
 
 
-def _pivot_layout(value: Any) -> str:
+def _pivot_layout(value: Any) -> PivotLayout:
     if isinstance(value, str) and str(value) in PIVOT_LAYOUTS:
-        return str(value)
+        return cast(PivotLayout, str(value))
     raise ValueError(
         f"Invalid layout {value!r}. Valid values are: "
         f"{', '.join(repr(v) for v in PIVOT_LAYOUTS)}."
@@ -4589,7 +4590,7 @@ def _pivot_field_list(value: Any, what: str) -> list[str]:
     return names
 
 
-def _pivot_value_specs(values: Any) -> list[tuple[str, str | None]]:
+def _pivot_value_specs(values: Any) -> list[tuple[str, PivotFunction | None]]:
     """Normalize the `values` argument of PivotTables.add() into
     (field, function) tuples."""
     if values is None:
