@@ -5083,6 +5083,9 @@ class PivotTables(Collection[PivotTable]):
         Args:
             source: The source data, either a range including the header row
                 or a {class}`Table <xlwings.main.Table>`. Can be on another sheet.
+                On xlwings Lite, `expand()` doesn't see values written in the
+                same script until you run `await book.flush()` followed by
+                `await sheet.load()`; on xlwings Server, spell out the range.
             destination: The cell where the top-left corner of the pivot
                 table goes. Must be on the sheet of this collection.
             name: Name of the pivot table. Defaults to Excel's standard
@@ -5106,7 +5109,7 @@ class PivotTables(Collection[PivotTable]):
             >>> data['A1'].value = [['Region', 'Year', 'Sales'],
             ...                     ['North', 2023, 100], ['South', 2024, 200]]
             >>> pt = report.pivot_tables.add(
-            ...     source=data['A1'].expand(),
+            ...     source=data['A1:C3'],
             ...     destination=report['A3'],
             ...     rows='Region',
             ...     columns='Year',
@@ -5118,7 +5121,7 @@ class PivotTables(Collection[PivotTable]):
             The same in steps:
 
             ```pycon
-            >>> pt = report.pivot_tables.add(data['A1'].expand(), report['A3'])
+            >>> pt = report.pivot_tables.add(data['A1:C3'], report['A3'])
             >>> pt.rows.add('Region')
             >>> pt.columns.add('Year')
             >>> pt.values.add('Sales', function='sum', number_format='#,##0')
@@ -5132,6 +5135,14 @@ class PivotTables(Collection[PivotTable]):
             raise ValueError(
                 "'destination' must be on the sheet of this collection "
                 f"({self.parent.name!r}), not on {destination.sheet.name!r}."
+            )
+        if isinstance(source, Range) and source.shape == (1, 1):
+            raise ValueError(
+                f"'source' must cover the header row and the data, but is the "
+                f"single cell {source.address}. On xlwings Lite, expand() only "
+                "sees values written in the same script after 'await "
+                "book.flush()' and 'await sheet.load()'; on xlwings Server, use "
+                "an explicit range."
             )
         rows = _pivot_field_list(rows, "rows")
         columns = _pivot_field_list(columns, "columns")

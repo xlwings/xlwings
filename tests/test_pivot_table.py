@@ -374,6 +374,8 @@ def test_add_validation_errors(fx):
         )
     with pytest.raises(TypeError):
         fx.sheet.pivot_tables.add(source, fx.sheet["A30"], rows=_invalid([1]))
+    with pytest.raises(ValueError, match="single cell"):
+        fx.sheet.pivot_tables.add(fx.data["A1"], fx.sheet["A30"])
     assert len(fx.sheet.pivot_tables) == 1
 
 
