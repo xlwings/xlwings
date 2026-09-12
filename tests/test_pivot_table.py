@@ -52,12 +52,16 @@ class TestPivotTable(unittest.TestCase):
         self.assertEqual(
             self.pt.field_names, ["Region", "Product", "Year", "Sales", "Qty"]
         )
-        # the "Values" pseudo field that appears with 2+ value fields is excluded
+        # the "Values" pseudo field that appears with 2+ value fields is excluded,
+        # from the areas too (Excel puts it into the columns area)
         qty = self.pt.values.add("Qty")
         try:
             self.assertEqual(
                 self.pt.field_names, ["Region", "Product", "Year", "Sales", "Qty"]
             )
+            self.assertEqual(len(self.pt.columns), 0)
+            self.assertEqual(list(self.pt.columns), [])
+            self.assertEqual([f.name for f in self.pt.rows], ["Region"])
         finally:
             qty.remove()
 
@@ -368,7 +372,9 @@ class TestPivotTablesAdd(unittest.TestCase):
         self.assertEqual([v.name for v in pt.values], ["Sum of Sales", "Count of Qty"])
         self.assertEqual([v.function for v in pt.values], ["sum", "count"])
         self.assertEqual(pt.layout, "tabular")
-        self.assertEqual(pt.range.address[:4], "$A$5")
+        # the filters area goes above the destination cell, which stays the
+        # top-left of the report body; range excludes the filters area
+        self.assertEqual(pt.range.address[:4], "$A$3")
         self.assertEqual(pt.range.value[-1][0], "Grand Total")
         self.assertEqual(pt.range.value[-1][-1], 1000.0)
 
@@ -393,8 +399,9 @@ class TestPivotTablesAdd(unittest.TestCase):
                 ["Grand Total", 1000.0, 4.0],
             ],
         )
+        name = pt.name
         pt.delete()
-        self.assertNotIn(pt.name, [p.name for p in self.report.pivot_tables])
+        self.assertNotIn(name, [p.name for p in self.report.pivot_tables])
 
     def test_add_errors(self):
         source = self.data["A1"].expand()

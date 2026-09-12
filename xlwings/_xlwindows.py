@@ -2527,15 +2527,19 @@ class PivotTable(base_classes.PivotTable):
     def name(self, value):
         self.xl.Name = value
 
+    def _values_pseudo_field_name(self):
+        """The name of the "Values" pseudo field that Excel places in the
+        columns (or rows) area once there are two or more value fields."""
+        try:
+            return self.xl.DataPivotField.Name
+        except pywintypes.com_error:
+            return None
+
     @property
     def field_names(self):
-        # PivotFields lists the source fields plus, with two or more value
-        # fields, the "Values" pseudo field (DataPivotField); value fields
-        # themselves have the data orientation.
-        try:
-            values_name = self.xl.DataPivotField.Name
-        except pywintypes.com_error:
-            values_name = None
+        # PivotFields lists the source fields plus the "Values" pseudo field;
+        # value fields themselves have the data orientation.
+        values_name = self._values_pseudo_field_name()
         return [
             field.Name
             for field in self.xl.PivotFields()
@@ -2563,7 +2567,7 @@ class PivotTable(base_classes.PivotTable):
     def layout(self):
         # LayoutRowDefault only applies to fields added later, so read the
         # actual layout off the row fields; None when they disagree.
-        row_fields = list(self.xl.RowFields())
+        row_fields = list(self.xl.RowFields)
         if not row_fields:
             return layout_row_types_i2s.get(self.xl.LayoutRowDefault)
         layouts = set()
@@ -2603,7 +2607,7 @@ class PivotTable(base_classes.PivotTable):
 
     @property
     def data_body_range(self):
-        if self.xl.DataFields().Count == 0:
+        if self.xl.DataFields.Count == 0:
             return None
         return Range(xl=self.xl.DataBodyRange)
 
@@ -2646,9 +2650,11 @@ class PivotFields(base_classes.PivotFields):
 
     @property
     def xl(self):
-        # RowFields()/ColumnFields()/PageFields() are snapshots, so fetch
-        # them on every access
-        return getattr(self._pivot.xl, pivot_area_collections[self._area])()
+        # RowFields/ColumnFields/PageFields are parameterized properties, which
+        # pywin32's early binding exposes as plain attributes (calling the
+        # returned collection fails). They're snapshots, so fetch them on
+        # every access.
+        return getattr(self._pivot.xl, pivot_area_collections[self._area])
 
     @property
     def api(self):
@@ -2662,25 +2668,34 @@ class PivotFields(base_classes.PivotFields):
     def area(self):
         return self._area
 
+    def _fields(self):
+        # Excel's "Values" pseudo field isn't a source field: hide it, like
+        # field_names does and like Office.js
+        values_name = self._pivot._values_pseudo_field_name()
+        return [xl for xl in self.xl if xl.Name != values_name]
+
     def __call__(self, key):
-        try:
-            return PivotField(xl=self.xl.Item(key), pivot=self._pivot)
-        except pywintypes.com_error:
-            raise KeyError(key)
+        fields = self._fields()
+        if isinstance(key, numbers.Number):
+            if key < 1 or key > len(fields):
+                raise KeyError(key)
+            return PivotField(xl=fields[key - 1], pivot=self._pivot)
+        for xl in fields:
+            if xl.Name == key:
+                return PivotField(xl=xl, pivot=self._pivot)
+        raise KeyError(key)
 
     def __len__(self):
-        return self.xl.Count
+        return len(self._fields())
 
     def __iter__(self):
-        for xl in self.xl:
+        for xl in self._fields():
             yield PivotField(xl=xl, pivot=self._pivot)
 
     def __contains__(self, key):
-        try:
-            self.xl.Item(key)
-            return True
-        except pywintypes.com_error:
-            return False
+        if isinstance(key, numbers.Number):
+            return 1 <= key <= len(self)
+        return any(xl.Name == key for xl in self._fields())
 
     def add(self, name):
         try:
@@ -2746,7 +2761,8 @@ class PivotValueFields(base_classes.PivotValueFields):
 
     @property
     def xl(self):
-        return self._pivot.xl.DataFields()
+        # a parameterized property, see PivotFields.xl
+        return self._pivot.xl.DataFields
 
     @property
     def api(self):
@@ -2805,9 +2821,8 @@ class PivotTables(Collection, base_classes.PivotTables):
         else:
             # Microsoft's docs warn that passing a Range object as SourceData
             # can raise a type mismatch, so pass an external R1C1 address
-            source_data = source.xl.Address(
-                ReferenceStyle=ReferenceStyle.xlR1C1, External=True
-            )
+            # (GetAddress: pywin32's form of the parameterized Address property)
+            source_data = source.xl.GetAddress(True, True, ReferenceStyle.xlR1C1, True)
         book = self.xl.Parent.Parent
         cache = book.PivotCaches().Create(
             SourceType=PivotTableSourceType.xlDatabase, SourceData=source_data

@@ -2415,8 +2415,17 @@ class PivotFields(base_classes.PivotFields):
         return self._area
 
     def _names(self):
-        # in position order
-        return [field.name.get() for field in _mac_list(self.xl)]
+        # in position order; Excel's "Values" pseudo field isn't a source
+        # field, so hide it, like field_names does and like Office.js
+        try:
+            values_name = self._pivot.xl.data_pivot_field.name.get()
+        except CommandError:
+            values_name = None
+        return [
+            name
+            for name in (field.name.get() for field in _mac_list(self.xl))
+            if name != values_name
+        ]
 
     def __call__(self, key):
         names = self._names()
