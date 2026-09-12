@@ -1,6 +1,6 @@
 # PivotTable
 
 ```{eval-rst}
-.. autoclass:: xlwings.main.PivotTable
+.. autoclass:: xlwings.PivotTable
     :members:
 ```

@@ -1,6 +1,6 @@
 # PivotValueFields
 
 ```{eval-rst}
-.. autoclass:: xlwings.main.PivotValueFields
+.. autoclass:: xlwings.PivotValueFields
     :members:
 ```

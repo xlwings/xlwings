@@ -4633,10 +4633,10 @@ class PivotTable:
     ```
 
     Fields are placed via the four areas of Excel's field list, see
-    {attr}`rows <xlwings.main.PivotTable.rows>`,
-    {attr}`columns <xlwings.main.PivotTable.columns>`,
-    {attr}`filters <xlwings.main.PivotTable.filters>` and
-    {attr}`values <xlwings.main.PivotTable.values>`:
+    {attr}`rows <xlwings.PivotTable.rows>`,
+    {attr}`columns <xlwings.PivotTable.columns>`,
+    {attr}`filters <xlwings.PivotTable.filters>` and
+    {attr}`values <xlwings.PivotTable.values>`:
 
     ```pycon
     >>> pt = sht.pivot_tables['PivotTable1']
@@ -4685,28 +4685,28 @@ class PivotTable:
     @property
     def rows(self) -> PivotFields:
         """The fields in the *Rows* area (VBA: `RowFields`), see
-        {class}`PivotFields <xlwings.main.PivotFields>`.
+        {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.rows)
 
     @property
     def columns(self) -> PivotFields:
         """The fields in the *Columns* area (VBA: `ColumnFields`), see
-        {class}`PivotFields <xlwings.main.PivotFields>`.
+        {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.columns)
 
     @property
     def filters(self) -> PivotFields:
         """The fields in the *Filters* area (VBA: `PageFields`), see
-        {class}`PivotFields <xlwings.main.PivotFields>`.
+        {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.filters)
 
     @property
     def values(self) -> PivotValueFields:
         """The fields in the *Values* area (VBA: `DataFields`), see
-        {class}`PivotValueFields <xlwings.main.PivotValueFields>`.
+        {class}`PivotValueFields <xlwings.PivotValueFields>`.
         """
         return PivotValueFields(impl=self.impl.values)
 
@@ -4789,7 +4789,7 @@ class PivotTable:
 
 class PivotField:
     """A source field placed in the *Rows*, *Columns* or *Filters* area of a
-    pivot table, accessed via the {class}`PivotFields <xlwings.main.PivotFields>`
+    pivot table, accessed via the {class}`PivotFields <xlwings.PivotFields>`
     collections:
 
     ```pycon
@@ -4876,7 +4876,7 @@ class PivotFields(Collection[PivotField]):
 
         Args:
             name: Name of the source field, see
-                {attr}`PivotTable.field_names <xlwings.main.PivotTable.field_names>`.
+                {attr}`PivotTable.field_names <xlwings.PivotTable.field_names>`.
         """
         if not isinstance(name, str):
             raise TypeError("The field name must be a string.")
@@ -4885,7 +4885,7 @@ class PivotFields(Collection[PivotField]):
 
 class PivotValueField:
     """A field in the *Values* area of a pivot table (VBA: `DataField`),
-    accessed via {class}`PivotValueFields <xlwings.main.PivotValueFields>`:
+    accessed via {class}`PivotValueFields <xlwings.PivotValueFields>`:
 
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
@@ -5019,9 +5019,9 @@ class PivotValueFields(Collection[PivotValueField]):
 
         Args:
             field: Name of the source field, see
-                {attr}`PivotTable.field_names <xlwings.main.PivotTable.field_names>`.
+                {attr}`PivotTable.field_names <xlwings.PivotTable.field_names>`.
             function: Summary function, see
-                {attr}`PivotValueField.function <xlwings.main.PivotValueField.function>`.
+                {attr}`PivotValueField.function <xlwings.PivotValueField.function>`.
                 Defaults to Excel's choice: `"sum"` for numeric fields,
                 `"count"` otherwise.
             name: Caption, e.g. `"Total Sales"`. Defaults to Excel's caption,
@@ -5041,7 +5041,7 @@ class PivotValueFields(Collection[PivotValueField]):
 
 
 class PivotTables(Collection[PivotTable]):
-    """A collection of all {class}`PivotTable <xlwings.main.PivotTable>`
+    """A collection of all {class}`PivotTable <xlwings.PivotTable>`
     objects on the specified sheet:
 
     ```pycon
@@ -5096,7 +5096,7 @@ class PivotTables(Collection[PivotTable]):
                 (`{"Sales": "sum"}`) or `(field, function)` tuples to pick the
                 summary function; `None` keeps Excel's default. The same field
                 can only be listed twice via tuples, see
-                {meth}`PivotValueFields.add <xlwings.main.PivotValueFields.add>`.
+                {meth}`PivotValueFields.add <xlwings.PivotValueFields.add>`.
             layout: `"compact"`, `"outline"` or `"tabular"`.
 
         Examples:

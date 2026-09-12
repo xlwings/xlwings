@@ -31,7 +31,7 @@ class Fixture:
     book: xw.Book
     data: xw.Sheet
     sheet: xw.Sheet
-    pt: xw.main.PivotTable | None = None
+    pt: xw.PivotTable | None = None
 
 
 @pytest.fixture(scope="module")
