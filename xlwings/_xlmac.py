@@ -912,6 +912,16 @@ class Range(base_classes.Range):
         return self.coords[2], self.coords[3]
 
     @property
+    def max_cells_per_read(self):
+        # Below the shared 4M default: a single Apple Event reply has a size
+        # cap, and exceeding it fails with -1741 (buffer for AEFlattenDesc too
+        # small). Measured with float cells: 2,000,000 fail, 1,500,000 work
+        # (10M cells read in 35s vs. 44s with a 1M budget). The cap is in bytes,
+        # not cells, so a text-heavy range can still hit it and needs a smaller
+        # explicit chunksize.
+        return 1_500_000
+
+    @property
     def raw_value(self):
         def ensure_2d(values):
             # Usually done in converter, but macOS doesn't deliver any info about
