@@ -49,24 +49,27 @@ def fx():
 
 
 @pytest.fixture(scope="module")
-def report():
-    """A fresh book with source data on 'Data' and an empty 'Report' sheet, for
-    the creation tests. Creating pivot tables isn't possible on macOS."""
+def source():
+    """A fresh book with the source data on a sheet whose name needs quoting,
+    for the creation tests."""
     app = xw.App(visible=False)
     book = app.books.add()
     data = book.sheets[0]
-    data.name = "Data"
+    data.name = "Source Data"
     data["A1"].value = SOURCE_DATA
-    report = book.sheets.add("Report", after=data)
     try:
-        if sys.platform.startswith("darwin"):
-            with pytest.raises(NotImplementedError):
-                report.pivot_tables.add(data["A1"].expand(), report["A3"])
-            pytest.skip("Creating pivot tables isn't supported on macOS")
-        yield Fixture(book=book, data=data, sheet=report)
+        yield Fixture(book=book, data=data, sheet=data)
     finally:
         book.close()
         app.quit()
+
+
+@pytest.fixture
+def report(source):
+    """A fresh, empty report sheet per test: macOS can only create a pivot table
+    on a sheet that has none yet."""
+    sheet = source.book.sheets.add(after=source.book.sheets[-1])
+    return Fixture(book=source.book, data=source.data, sheet=sheet)
 
 
 def test_collection(fx):
@@ -409,10 +412,11 @@ def test_add_one_shot(report):
     # the filters area goes above the destination cell, which stays the
     # top-left of the report body; range excludes the filters area
     assert pt.range.address[:4] == "$A$3"
-    # last row: Grand Total, per-year values, then the overall totals of
-    # both value fields
-    assert pt.range.value[-1][0] == "Grand Total"
-    assert pt.range.value[-1][-2:] == [1000.0, 4.0]
+    # Excel places the "Values" field in the columns area on Windows and in
+    # the rows area on macOS, so only check the overall totals are reported
+    cells = [cell for row in pt.range.value for cell in row]
+    assert "Grand Total" in cells
+    assert 1000.0 in cells and 4.0 in cells
 
 
 def test_add_steps_and_table_source(report):
@@ -427,12 +431,11 @@ def test_add_steps_and_table_source(report):
     pt.values.add("Sales", function="count")
     assert [v.name for v in pt.values] == ["Total", "Count of Sales"]
     assert pt.values["Total"].number_format == "#,##0"
-    assert pt.range.value == [
-        ["Row Labels", "Total", "Count of Sales"],
-        ["North", 300.0, 2.0],
-        ["South", 700.0, 2.0],
-        ["Grand Total", 1000.0, 4.0],
-    ]
+    # the report's shape depends on where Excel puts the "Values" field (see
+    # test_add_one_shot), so check content, not positions
+    cells = [cell for row in pt.range.value for cell in row]
+    for expected in ["North", "South", 300.0, 700.0, 1000.0, 4.0]:
+        assert expected in cells
     name = pt.name
     pt.delete()
     assert name not in [p.name for p in report.sheet.pivot_tables]
@@ -440,7 +443,59 @@ def test_add_steps_and_table_source(report):
 
 def test_add_duplicate_name(report):
     source = report.data["A1"].expand()
-    pt = report.sheet.pivot_tables.add(source, report.sheet["A30"], name="Dup")
-    with pytest.raises(xw.XlwingsError):
+    report.sheet.pivot_tables.add(source, report.sheet["A3"], name="Dup")
+    # rejected before the engine is asked
+    with pytest.raises(xw.XlwingsError, match="already exists"):
         report.sheet.pivot_tables.add(source, report.sheet["A40"], name="Dup")
-    pt.delete()
+
+
+@pytest.mark.parametrize("source_kind", ["range", "table"])
+def test_add_with_another_workbook_active(source_kind):
+    app = xw.App(visible=False)
+    try:
+        book = app.books.add()
+        data = book.sheets[0]
+        data.name = "O'Brien Data"
+        data["A1"].value = [["Region", "Sales"], ["North", 100], ["South", 200]]
+        source = data["A1:B3"]
+        if source_kind == "table":
+            source = data.tables.add(source, name="SourceTable")
+        report = book.sheets.add("Report", after=data)
+
+        other = app.books.add()
+        other_data = other.sheets[0]
+        other_data.name = data.name
+        other_data["A1"].value = [["Region", "Sales"], ["Wrong", 999], ["Wrong2", 888]]
+        if source_kind == "table":
+            other_data.tables.add(other_data["A1:B3"], name="SourceTable")
+        other.activate()
+
+        pt = report.pivot_tables.add(
+            source, report["A3"], rows="Region", values={"Sales": "sum"}
+        )
+        assert pt.parent == report
+        assert pt.data_body_range.value == [100.0, 200.0, 300.0]
+        data["B2"].value = 150
+        pt.refresh()
+        assert pt.data_body_range.value == [150.0, 200.0, 350.0]
+        if source_kind == "table":
+            source.resize(data["A1:B4"])
+            data["A4"].value = ["South", 100]
+            pt.refresh()
+            assert pt.data_body_range.value == [150.0, 300.0, 450.0]
+    finally:
+        app.quit()
+
+
+def test_add_second_pivot_table_on_sheet(report):
+    source = report.data["A1"].expand()
+    report.sheet.pivot_tables.add(source, report.sheet["A3"], rows="Region")
+    if sys.platform.startswith("darwin"):
+        # `make new pivot table` is a silent no-op on a sheet that has one
+        with pytest.raises(NotImplementedError, match="another sheet"):
+            report.sheet.pivot_tables.add(source, report.sheet["J3"])
+        assert len(report.sheet.pivot_tables) == 1
+    else:
+        second = report.sheet.pivot_tables.add(source, report.sheet["J3"])
+        assert len(report.sheet.pivot_tables) == 2
+        assert second.name != report.sheet.pivot_tables[0].name

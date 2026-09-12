@@ -2601,12 +2601,49 @@ class PivotTables(Collection, base_classes.PivotTables):
     _wrap = PivotTable
 
     def add(self, source, destination, name=None):
-        # Neither `make new pivot cache` nor `make new pivot table` are
-        # accepted by Excel for Mac, so there is no way to create one.
-        raise NotImplementedError(
-            "Creating pivot tables isn't supported on macOS: Excel's AppleScript "
-            "interface can't create them. Existing pivot tables can be modified."
+        # `make new pivot table` creates the pivot cache itself. It takes the
+        # source as an A1-style reference with the sheet name, a defined name
+        # or a structured reference; an R1C1 string is rejected across sheets
+        # with a bare "parameter error", as is `make new pivot cache`.
+        # Qualify the workbook: Excel resolves unqualified sources against
+        # the active workbook even when `make` targets a different book.
+        if isinstance(source, Table):
+            sheet = source.parent
+            prefix = f"[{sheet.book.name}]{sheet.name}".replace("'", "''")
+            source_data = f"'{prefix}'!{source.name}[#All]"
+        else:
+            source_data = source.get_address(True, True, True)
+        # On a sheet that already has a pivot table, `make` silently answers
+        # with the existing one instead of creating another (whatever the
+        # `at` target), and the pivot table's location property can't move
+        # one in from elsewhere, so a second pivot table per sheet is out.
+        before = [pt.name.get() for pt in _mac_list(self.parent.xl.pivot_tables)]
+        if before:
+            raise NotImplementedError(
+                "On macOS, Excel's AppleScript interface only creates a pivot table "
+                f"on a sheet that has none yet; sheet {self.parent.name!r} already "
+                f"has {before!r}. Create it on another sheet."
+            )
+        top_left = Range(self.parent, (destination.row, destination.column, 1, 1))
+        self.parent.book.xl.make(
+            at=self.parent.xl,
+            new=kw.pivot_table,
+            with_properties={
+                kw.source_data: source_data,
+                kw.table_range1: top_left.xl,
+            },
         )
+        # `make` may answer with an index-based reference, so address the
+        # new pivot table by its name
+        after = [pt.name.get() for pt in _mac_list(self.parent.xl.pivot_tables)]
+        if len(after) != 1:
+            raise xlwings.XlwingsError(
+                f"Excel didn't create the pivot table on sheet {self.parent.name!r}."
+            )
+        pivot = PivotTable(self.parent, after[0])
+        if name:
+            pivot.name = name
+        return pivot
 
 
 class Picture(base_classes.Picture):

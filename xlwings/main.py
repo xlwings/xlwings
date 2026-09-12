@@ -5079,8 +5079,10 @@ class PivotTables(Collection[PivotTable]):
     ) -> PivotTable:
         """Creates a pivot table on the sheet of this collection.
 
-        Not available on macOS (Excel's AppleScript interface can't create
-        pivot tables); existing pivot tables can be worked with, though.
+        On macOS, Excel's AppleScript interface only creates a pivot table on
+        a sheet that doesn't have one yet; a second one on the same sheet
+        raises `NotImplementedError`. Existing pivot tables can be modified
+        without that restriction.
 
         Args:
             source: The source data, either a range including the header row
