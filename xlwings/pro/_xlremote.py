@@ -3342,7 +3342,8 @@ class PivotValueField(base_classes.PivotValueField):
             return self._entry[key]
         raise NotImplementedError(
             f"Reading a value field's {what} isn't supported on this engine "
-            "unless it's known from the payload or was set in this script."
+            "unless the value field already existed when the script started "
+            "or it was set in this script."
         )
 
     @property

@@ -20,6 +20,12 @@ SOURCE_DATA = [
 ]
 
 
+def _body_values(pt: xw.PivotTable) -> Any:
+    body = pt.data_body_range
+    assert body is not None
+    return body.value
+
+
 def _invalid(value: object) -> Any:
     """An argument that the Literal types reject statically: these tests exercise
     the runtime validation, which type checkers can't stand in for."""
@@ -457,9 +463,10 @@ def test_add_with_another_workbook_active(source_kind):
         data = book.sheets[0]
         data.name = "O'Brien Data"
         data["A1"].value = [["Region", "Sales"], ["North", 100], ["South", 200]]
-        source = data["A1:B3"]
+        source: xw.Range | xw.main.Table = data["A1:B3"]
+        table = None
         if source_kind == "table":
-            source = data.tables.add(source, name="SourceTable")
+            table = source = data.tables.add(data["A1:B3"], name="SourceTable")
         report = book.sheets.add("Report", after=data)
 
         other = app.books.add()
@@ -474,15 +481,15 @@ def test_add_with_another_workbook_active(source_kind):
             source, report["A3"], rows="Region", values={"Sales": "sum"}
         )
         assert pt.parent == report
-        assert pt.data_body_range.value == [100.0, 200.0, 300.0]
+        assert _body_values(pt) == [100.0, 200.0, 300.0]
         data["B2"].value = 150
         pt.refresh()
-        assert pt.data_body_range.value == [150.0, 200.0, 350.0]
-        if source_kind == "table":
-            source.resize(data["A1:B4"])
+        assert _body_values(pt) == [150.0, 200.0, 350.0]
+        if table is not None:
+            table.resize(data["A1:B4"])
             data["A4"].value = ["South", 100]
             pt.refresh()
-            assert pt.data_body_range.value == [150.0, 300.0, 450.0]
+            assert _body_values(pt) == [150.0, 300.0, 450.0]
     finally:
         app.quit()
 

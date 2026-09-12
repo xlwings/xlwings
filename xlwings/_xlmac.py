@@ -2620,9 +2620,9 @@ class PivotTables(Collection, base_classes.PivotTables):
         before = [pt.name.get() for pt in _mac_list(self.parent.xl.pivot_tables)]
         if before:
             raise NotImplementedError(
-                "On macOS, Excel's AppleScript interface only creates a pivot table "
-                f"on a sheet that has none yet; sheet {self.parent.name!r} already "
-                f"has {before!r}. Create it on another sheet."
+                "On macOS, only the first pivot table on a sheet can be created; "
+                f"sheet {self.parent.name!r} already has {before!r}. Create it on "
+                "another sheet."
             )
         top_left = Range(self.parent, (destination.row, destination.column, 1, 1))
         self.parent.book.xl.make(

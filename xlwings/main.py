@@ -27,7 +27,6 @@ from typing import (
     Generic,
     Iterator,
     Mapping,
-    Sequence,
     TypeVar,
     cast,
     get_args,
@@ -4627,8 +4626,8 @@ class PivotTable:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.pivot_tables[0]  # or sht.pivot_tables['PivotTable1']
+    >>> mysheet = xw.books['Book1'].sheets[0]
+    >>> mysheet.pivot_tables[0]  # or mysheet.pivot_tables['PivotTable1']
     <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
     ```
 
@@ -4639,7 +4638,7 @@ class PivotTable:
     {attr}`values <xlwings.PivotTable.values>`:
 
     ```pycon
-    >>> pt = sht.pivot_tables['PivotTable1']
+    >>> pt = mysheet.pivot_tables['PivotTable1']
     >>> pt.rows.add('Region')
     >>> pt.values.add('Sales', function='sum', number_format='#,##0')
     >>> pt.layout = 'tabular'
@@ -4684,28 +4683,28 @@ class PivotTable:
 
     @property
     def rows(self) -> PivotFields:
-        """The fields in the *Rows* area (VBA: `RowFields`), see
+        """The fields in the *Rows* area, see
         {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.rows)
 
     @property
     def columns(self) -> PivotFields:
-        """The fields in the *Columns* area (VBA: `ColumnFields`), see
+        """The fields in the *Columns* area, see
         {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.columns)
 
     @property
     def filters(self) -> PivotFields:
-        """The fields in the *Filters* area (VBA: `PageFields`), see
+        """The fields in the *Filters* area, see
         {class}`PivotFields <xlwings.PivotFields>`.
         """
         return PivotFields(impl=self.impl.filters)
 
     @property
     def values(self) -> PivotValueFields:
-        """The fields in the *Values* area (VBA: `DataFields`), see
+        """The fields in the *Values* area, see
         {class}`PivotValueFields <xlwings.PivotValueFields>`.
         """
         return PivotValueFields(impl=self.impl.values)
@@ -4715,9 +4714,8 @@ class PivotTable:
         """Returns or sets the report layout: `"compact"`, `"outline"` or
         `"tabular"`. Returns `None` if the row fields use mixed layouts.
 
-        On xlwings Lite and xlwings Server, reading it only works for the
-        value in the initial payload or after it has been set in the same
-        script.
+        On xlwings Lite and xlwings Server, reading it returns the layout as it
+        was when the script started, or the value set in the same script.
         """
         return self.impl.layout
 
@@ -4727,8 +4725,7 @@ class PivotTable:
 
     @property
     def show_row_grand_totals(self) -> bool:
-        """Returns or sets whether the grand totals for rows are shown
-        (VBA: `RowGrand`)."""
+        """Returns or sets whether the grand totals for rows are shown."""
         return self.impl.show_row_grand_totals
 
     @show_row_grand_totals.setter
@@ -4737,8 +4734,7 @@ class PivotTable:
 
     @property
     def show_column_grand_totals(self) -> bool:
-        """Returns or sets whether the grand totals for columns are shown
-        (VBA: `ColumnGrand`)."""
+        """Returns or sets whether the grand totals for columns are shown."""
         return self.impl.show_column_grand_totals
 
     @show_column_grand_totals.setter
@@ -4747,30 +4743,28 @@ class PivotTable:
 
     @property
     def range(self) -> Range:
-        """The range of the pivot table report, excluding the filters area
-        (VBA: `TableRange1`).
+        """The range of the pivot table report, excluding the filters area.
 
-        Not available on xlwings Lite and xlwings Server.
+        Not yet available on xlwings Lite and xlwings Server.
         """
         return Range(impl=self.impl.range)
 
     @property
     def data_body_range(self) -> Range | None:
-        """The range of the values area (VBA: `DataBodyRange`), or `None` if
-        the pivot table has no value fields.
+        """The range of the values area, or `None` if the pivot table has no
+        value fields.
 
-        Not available on xlwings Lite and xlwings Server.
+        Not yet available on xlwings Lite and xlwings Server.
         """
         impl = self.impl.data_body_range
         return Range(impl=impl) if impl is not None else None
 
     def refresh(self) -> None:
-        """Refreshes the pivot table from its source data
-        (VBA: `RefreshTable`)."""
+        """Refreshes the pivot table from its source data."""
         self.impl.refresh()
 
     def delete(self) -> None:
-        """Deletes the pivot table (VBA: `TableRange2.Clear`)."""
+        """Deletes the pivot table."""
         self.impl.delete()
 
     def __eq__(self, other: object) -> bool:
@@ -4794,7 +4788,12 @@ class PivotField:
 
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
-    >>> pt.rows['Region'].remove()
+    >>> field = pt.rows.add('Region')
+    >>> field.name
+    'Region'
+    >>> field.parent
+    <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
+    >>> field.remove()
     ```
 
     ```{versionadded} 0.37.3
@@ -4822,7 +4821,7 @@ class PivotField:
         return self.impl.name
 
     def remove(self) -> None:
-        """Removes the field from its area (VBA: `Orientation = xlHidden`)."""
+        """Removes the field from its area."""
         self.impl.remove()
 
     def __eq__(self, other: object) -> bool:
@@ -4841,13 +4840,12 @@ class PivotField:
 
 class PivotFields(Collection[PivotField]):
     """The fields in one area of a pivot table, i.e. `pt.rows`, `pt.columns`
-    or `pt.filters` (not to be confused with VBA's `PivotFields`, which lists
-    all fields). Iteration follows the field order.
+    or `pt.filters`. Iteration follows the field order.
 
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
-    >>> pt.rows.add('Region')
-    <PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    >>> pt.rows
+    PivotFields([<PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
     >>> pt.rows[0]  # or pt.rows['Region']
     <PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
     ```
@@ -4863,13 +4861,8 @@ class PivotFields(Collection[PivotField]):
         """Returns the pivot table the area belongs to."""
         return PivotTable(impl=self.impl.parent)
 
-    @property
-    def _name(self) -> str:
-        return f"PivotFields({self.impl.area})"
-
     def add(self, name: str) -> PivotField:
-        """Places a source field in this area, after the existing fields
-        (VBA: `PivotFields(name).Orientation = ...`).
+        """Places a source field in this area, after the existing fields.
 
         A field that is already in this area stays where it is; a field in
         another of the rows/columns/filters areas is moved here.
@@ -4884,15 +4877,18 @@ class PivotFields(Collection[PivotField]):
 
 
 class PivotValueField:
-    """A field in the *Values* area of a pivot table (VBA: `DataField`),
-    accessed via {class}`PivotValueFields <xlwings.PivotValueFields>`:
+    """A field in the *Values* area of a pivot table, accessed via {class}`PivotValueFields <xlwings.PivotValueFields>`:
 
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
-    >>> value_field = pt.values['Sum of Sales']
+    >>> value_field = pt.values.add('Sales')
+    >>> value_field.name, value_field.function
+    ('Sum of Sales', 'sum')
     >>> value_field.function = 'average'
     >>> value_field.number_format = '#,##0.00'
     >>> value_field.name = 'Average Sales'
+    >>> pt.values['Average Sales'].source_field
+    'Sales'
     ```
 
     ```{versionadded} 0.37.3
@@ -4919,8 +4915,10 @@ class PivotValueField:
         """Returns or sets the caption, e.g. `"Sum of Sales"`. Excel rejects a
         name that equals the name of a source field.
 
-        On xlwings Lite and xlwings Server, reading it only works if the name
-        is known from the initial payload or was set in the same script.
+        On xlwings Lite and xlwings Server, reading it only works for value
+        fields that already existed when the script started or if the name
+        was set in the same script. The automatic caption of a value field
+        added in the same script can't be read.
         """
         return self.impl.name
 
@@ -4930,8 +4928,7 @@ class PivotValueField:
 
     @property
     def source_field(self) -> str:
-        """The name of the source field this value field summarizes
-        (VBA: `SourceName`)."""
+        """The name of the source field this value field summarizes."""
         return self.impl.source_field
 
     @property
@@ -4951,9 +4948,9 @@ class PivotValueField:
     def number_format(self) -> str:
         """Returns or sets the number format of the value field.
 
-        On xlwings Lite and xlwings Server, reading it only works if the
-        format is known from the initial payload or was set in the same
-        script.
+        On xlwings Lite and xlwings Server, reading it only works for value
+        fields that already existed when the script started or if the format
+        was set in the same script.
         """
         return self.impl.number_format
 
@@ -4984,15 +4981,15 @@ class PivotValueField:
 
 
 class PivotValueFields(Collection[PivotValueField]):
-    """The fields in the *Values* area of a pivot table, i.e. `pt.values`
-    (VBA: `DataFields`). Iteration follows the field order.
+    """The fields in the *Values* area of a pivot table, i.e. `pt.values`.
+    Iteration follows the field order.
 
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
-    >>> pt.values.add('Sales', function='sum', name='Total Sales')
-    >>> pt.values.add('Sales', function='count')
-    >>> pt.values[0]  # or pt.values['Total Sales']
-    <PivotValueField 'Total Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    >>> pt.values
+    PivotValueFields([<PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
+    >>> pt.values[0]  # or pt.values['Sum of Sales']
+    <PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
     ```
 
     ```{versionadded} 0.37.3
@@ -5014,8 +5011,8 @@ class PivotValueFields(Collection[PivotValueField]):
         number_format: str | None = None,
     ) -> PivotValueField:
         """Adds a source field to the values area, after the existing value
-        fields (VBA: `AddDataField`). The same source field can be added more
-        than once, e.g. as a sum and as a count.
+        fields. The same source field can be added more than once, e.g. as a
+        sum and as a count.
 
         Args:
             field: Name of the source field, see
@@ -5066,23 +5063,22 @@ class PivotTables(Collection[PivotTable]):
         source: Range | Table,
         destination: Range,
         name: str | None = None,
-        rows: str | Sequence[str] | None = None,
-        columns: str | Sequence[str] | None = None,
-        filters: str | Sequence[str] | None = None,
+        rows: str | list[str] | None = None,
+        columns: str | list[str] | None = None,
+        filters: str | list[str] | None = None,
         values: (
             str
-            | Sequence[str | tuple[str, PivotFunction | None]]
-            | Mapping[str, PivotFunction | None]
+            | list[str | tuple[str, PivotFunction | None]]
+            | dict[str, PivotFunction | None]
             | None
         ) = None,
         layout: PivotLayout | None = None,
     ) -> PivotTable:
         """Creates a pivot table on the sheet of this collection.
 
-        On macOS, Excel's AppleScript interface only creates a pivot table on
-        a sheet that doesn't have one yet; a second one on the same sheet
-        raises `NotImplementedError`. Existing pivot tables can be modified
-        without that restriction.
+        On macOS, only the first pivot table on a sheet can be created; a
+        second one on the same sheet raises `NotImplementedError`. Existing
+        pivot tables can be modified without that restriction.
 
         Args:
             source: The source data, either a range including the header row
@@ -5105,7 +5101,8 @@ class PivotTables(Collection[PivotTable]):
             ```pycon
             >>> import xlwings as xw
             >>> book = xw.Book()
-            >>> data, report = book.sheets[0], book.sheets.add('Report')
+            >>> data = book.sheets[0]
+            >>> report = book.sheets.add('Report', after=data)
             >>> data['A1'].value = [['Region', 'Year', 'Sales'],
             ...                     ['North', 2023, 100], ['South', 2024, 200]]
             >>> pt = report.pivot_tables.add(
