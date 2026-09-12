@@ -5086,7 +5086,7 @@ class PivotTables(Collection[PivotTable]):
 
         Args:
             source: The source data, either a range including the header row
-                or a table (`xlwings.main.Table`). Can be on another sheet.
+                or a {class}`Table <xlwings.main.Table>`. Can be on another sheet.
             destination: The cell where the top-left corner of the pivot
                 table goes. Must be on the sheet of this collection.
             name: Name of the pivot table. Defaults to Excel's standard
