@@ -3760,6 +3760,161 @@ def test_borders_sync_getters_point_at_async(book, prop, hint):
         getattr(book.sheets[0].range("A1").borders, prop)
 
 
+# Alignment
+
+_HORIZONTAL_ALIGNMENTS = [
+    ("general", "General"),
+    ("left", "Left"),
+    ("center", "Center"),
+    ("right", "Right"),
+    ("fill", "Fill"),
+    ("justify", "Justify"),
+    ("center_across_selection", "CenterAcrossSelection"),
+    ("distributed", "Distributed"),
+]
+_VERTICAL_ALIGNMENTS = [
+    ("top", "Top"),
+    ("center", "Center"),
+    ("bottom", "Bottom"),
+    ("justify", "Justify"),
+    ("distributed", "Distributed"),
+]
+
+
+def _officejs_book():
+    payload = json.loads(json.dumps(data))
+    payload["client"] = "Office.js"
+    return xw.Book(json=payload)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value,expected", _HORIZONTAL_ALIGNMENTS)
+def test_horizontal_alignment_setter(value, expected):
+    book = _officejs_book()
+    book.sheets[0].range("B3:C4").horizontal_alignment = value
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setHorizontalAlignment"
+    assert action["args"] == [expected]
+    assert action["sheet_position"] == 0
+    # B3:C4, zero-based
+    assert action["start_row"] == 2
+    assert action["start_column"] == 1
+    assert action["row_count"] == 2
+    assert action["column_count"] == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value,expected", _VERTICAL_ALIGNMENTS)
+def test_vertical_alignment_setter(value, expected):
+    book = _officejs_book()
+    book.sheets[0].range("B3:C4").vertical_alignment = value
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setVerticalAlignment"
+    assert action["args"] == [expected]
+    assert action["sheet_position"] == 0
+    # B3:C4, zero-based
+    assert action["start_row"] == 2
+    assert action["start_column"] == 1
+    assert action["row_count"] == 2
+    assert action["column_count"] == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "client", ["Microsoft Office Scripts", "Google Apps Script", "VBA"]
+)
+@pytest.mark.parametrize(
+    "attribute,value",
+    [("horizontal_alignment", "center"), ("vertical_alignment", "top")],
+)
+def test_alignment_setters_unsupported_client(client, attribute, value):
+    # Only the Office.js client implements these callbacks; the others must
+    # raise rather than queue an action that would fail in the client.
+    payload = json.loads(json.dumps(data))
+    payload["client"] = client
+    book = xw.Book(json=payload)
+    rng = book.sheets[0].range("A1")
+    actions = list(book.json()["actions"])
+    with pytest.raises(NotImplementedError, match="Office.js"):
+        setattr(rng, attribute, value)
+    assert book.json()["actions"] == actions
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,valid_values",
+    [
+        ("horizontal_alignment", _HORIZONTAL_ALIGNMENTS),
+        ("vertical_alignment", _VERTICAL_ALIGNMENTS),
+    ],
+)
+@pytest.mark.parametrize("value", [None, 1, True, [], {}, "centre", "Center"])
+def test_alignment_invalid_values_do_not_queue_actions(attribute, valid_values, value):
+    book = _officejs_book()
+    rng = book.sheets[0].range("A1")
+    with pytest.raises(ValueError, match=f"Invalid {attribute}") as exc:
+        setattr(rng, attribute, value)
+    for name, _ in valid_values:
+        assert repr(name) in str(exc.value)
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,hint",
+    [
+        ("horizontal_alignment", "await myrange.get_horizontal_alignment()"),
+        ("vertical_alignment", "await myrange.get_vertical_alignment()"),
+    ],
+)
+def test_alignment_sync_getters_point_at_async(book, attribute, hint):
+    with pytest.raises(NotImplementedError, match=re.escape(hint)):
+        getattr(book.sheets[0].range("A1"), attribute)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,key,js_value,expected",
+    [
+        ("get_horizontal_alignment", "horizontal_alignment", js, py)
+        for py, js in _HORIZONTAL_ALIGNMENTS
+    ]
+    + [
+        ("get_vertical_alignment", "vertical_alignment", js, py)
+        for py, js in _VERTICAL_ALIGNMENTS
+    ]
+    # a range whose cells disagree reports None
+    + [
+        ("get_horizontal_alignment", "horizontal_alignment", None, None),
+        ("get_vertical_alignment", "vertical_alignment", None, None),
+    ],
+)
+def test_alignment_async_getters(book, getter, key, js_value, expected):
+    requested = []
+
+    async def fake(self, attr):
+        requested.append(attr)
+        return js_value
+
+    rng = book.sheets[0].range("A1:B2")
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(getattr(rng, getter)()) == expected
+    assert requested == [key]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter", ["get_horizontal_alignment", "get_vertical_alignment"]
+)
+def test_alignment_async_getters_require_lite(book, getter):
+    # Without the mock, _get_range_data raises the Lite-only error off-Emscripten
+    with pytest.raises(
+        NotImplementedError,
+        match=re.escape(f"{getter}() is only supported in xlwings Lite"),
+    ):
+        asyncio.run(getattr(book.sheets[0].range("A1"), getter)())
+
+
 def test_get_value_not_supported(book):
     with pytest.raises(NotImplementedError):
         asyncio.run(book.sheets[0].range("A1").get_value())

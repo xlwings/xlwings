@@ -86,6 +86,29 @@ PIVOT_LAYOUTS: tuple[str, ...] = get_args(PivotLayout)
 # The three field areas that PivotFields can stand for (the values area is a
 # separate class); engines receive these names.
 PIVOT_AREAS: tuple[str, ...] = ("rows", "columns", "filters")
+
+# The alignment vocabulary. Excel, macOS and Office.js all support the same
+# eight horizontal and five vertical values; main.Range validates them so
+# engines only ever see the canonical names.
+HorizontalAlignment = Literal[
+    "general",
+    "left",
+    "center",
+    "right",
+    "fill",
+    "justify",
+    "center_across_selection",
+    "distributed",
+]
+VerticalAlignment = Literal[
+    "top",
+    "center",
+    "bottom",
+    "justify",
+    "distributed",
+]
+HORIZONTAL_ALIGNMENTS: tuple[str, ...] = get_args(HorizontalAlignment)
+VERTICAL_ALIGNMENTS: tuple[str, ...] = get_args(VerticalAlignment)
 # The documented chart type names (see main.Chart.chart_type); the desktop
 # engines map all of them, the remote engine all but "combination".
 CHART_TYPES: tuple[str, ...] = (
@@ -564,6 +587,16 @@ class Range:
     async def get_wrap_text(self):
         raise NotImplementedError("get_wrap_text() is only supported in xlwings Lite")
 
+    async def get_horizontal_alignment(self):
+        raise NotImplementedError(
+            "get_horizontal_alignment() is only supported in xlwings Lite"
+        )
+
+    async def get_vertical_alignment(self):
+        raise NotImplementedError(
+            "get_vertical_alignment() is only supported in xlwings Lite"
+        )
+
     async def get_column_width(self):
         raise NotImplementedError(
             "get_column_width() is only supported in xlwings Lite"
@@ -842,6 +875,22 @@ class Range:
 
     @wrap_text.setter
     def wrap_text(self, value):
+        raise NotImplementedError()
+
+    @property
+    def horizontal_alignment(self):
+        raise NotImplementedError()
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value):
+        raise NotImplementedError()
+
+    @property
+    def vertical_alignment(self):
+        raise NotImplementedError()
+
+    @vertical_alignment.setter
+    def vertical_alignment(self, value):
         raise NotImplementedError()
 
     @property

@@ -43,16 +43,20 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    HORIZONTAL_ALIGNMENTS,
     PIVOT_FUNCTIONS,
     PIVOT_LAYOUTS,
+    VERTICAL_ALIGNMENTS,
     BorderGroup,
     BorderLineStyle,
     BorderSide,
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    HorizontalAlignment,
     PivotFunction,
     PivotLayout,
+    VerticalAlignment,
 )
 
 # Optional imports
@@ -2593,6 +2597,24 @@ class Range:
         """
         return await self._impl.get_wrap_text()
 
+    async def get_horizontal_alignment(self) -> HorizontalAlignment | None:
+        """Fetch the horizontal alignment on demand.
+
+        `None` if the cells in the range don't all have the same alignment.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_horizontal_alignment()
+
+    async def get_vertical_alignment(self) -> VerticalAlignment | None:
+        """Fetch the vertical alignment on demand.
+
+        `None` if the cells in the range don't all have the same alignment.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_vertical_alignment()
+
     async def get_column_width(self) -> float | None:
         """Fetch the column width on demand, in points.
 
@@ -3056,6 +3078,66 @@ class Range:
     @wrap_text.setter
     def wrap_text(self, value: bool) -> None:
         self.impl.wrap_text = value
+
+    @property
+    def horizontal_alignment(self) -> HorizontalAlignment | None:
+        """Returns or sets the horizontal alignment of the range.
+
+        One of `'general'`, `'left'`, `'center'`, `'right'`, `'fill'`,
+        `'justify'`, `'center_across_selection'` or `'distributed'`. Returns
+        `None` if the cells in the range don't all have the same alignment.
+        The default is `'general'`, which right-aligns numbers and dates and
+        left-aligns text.
+
+        Reading this property synchronously requires a locally installed Excel.
+        Setting it is additionally supported on Office.js clients (xlwings Lite
+        and xlwings Server); in xlwings Lite, read it via
+        {meth}`get_horizontal_alignment() <xlwings.Range.get_horizontal_alignment>`.
+
+        Examples:
+            ```pycon
+            >>> sheet["A1"].horizontal_alignment = "center"
+            >>> sheet["A1"].horizontal_alignment
+            'center'
+            ```
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.horizontal_alignment
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value: HorizontalAlignment) -> None:
+        self.impl.horizontal_alignment = _horizontal_alignment(value)
+
+    @property
+    def vertical_alignment(self) -> VerticalAlignment | None:
+        """Returns or sets the vertical alignment of the range.
+
+        One of `'top'`, `'center'`, `'bottom'`, `'justify'` or `'distributed'`.
+        Returns `None` if the cells in the range don't all have the same
+        alignment. The default is `'bottom'`.
+
+        Reading this property synchronously requires a locally installed Excel.
+        Setting it is additionally supported on Office.js clients (xlwings Lite
+        and xlwings Server); in xlwings Lite, read it via
+        {meth}`get_vertical_alignment() <xlwings.Range.get_vertical_alignment>`.
+
+        Examples:
+            ```pycon
+            >>> sheet["A1"].vertical_alignment = "top"
+            >>> sheet["A1"].vertical_alignment
+            'top'
+            ```
+
+        ```{versionadded} 0.37.3
+        ```
+        """
+        return self.impl.vertical_alignment
+
+    @vertical_alignment.setter
+    def vertical_alignment(self, value: VerticalAlignment) -> None:
+        self.impl.vertical_alignment = _vertical_alignment(value)
 
     @property
     def note(self) -> Note | None:
@@ -6191,6 +6273,24 @@ def _border_weight(value: Any) -> str:
     raise ValueError(
         f"Invalid weight {value!r}. Valid values are: "
         f"{', '.join(repr(weight) for weight in _BORDER_WEIGHTS)}."
+    )
+
+
+def _horizontal_alignment(value: Any) -> str:
+    if isinstance(value, str) and str(value) in HORIZONTAL_ALIGNMENTS:
+        return str(value)
+    raise ValueError(
+        f"Invalid horizontal_alignment {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in HORIZONTAL_ALIGNMENTS)}."
+    )
+
+
+def _vertical_alignment(value: Any) -> str:
+    if isinstance(value, str) and str(value) in VERTICAL_ALIGNMENTS:
+        return str(value)
+    raise ValueError(
+        f"Invalid vertical_alignment {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in VERTICAL_ALIGNMENTS)}."
     )
 
 
