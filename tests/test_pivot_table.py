@@ -420,8 +420,6 @@ def test_add_one_shot(report):
     # the filters area goes above the destination cell, which stays the
     # top-left of the report body; range excludes the filters area
     assert pt.range.address[:4] == "$A$3"
-    # Excel places the "Values" field in the columns area on Windows and in
-    # the rows area on macOS, so only check the overall totals are reported
     cells = [cell for row in pt.range.value for cell in row]
     assert "Grand Total" in cells
     assert 1000.0 in cells and 4.0 in cells
@@ -439,8 +437,9 @@ def test_add_steps_and_table_source(report):
     pt.values.add("Sales", function="count")
     assert [v.name for v in pt.values] == ["Total", "Count of Sales"]
     assert pt.values["Total"].number_format == "#,##0"
-    # the report's shape depends on where Excel puts the "Values" field (see
-    # test_add_one_shot), so check content, not positions
+    # the "Values" field goes to the columns area on all platforms, so the
+    # value fields sit side by side
+    assert pt.range.value[1] == ["Row Labels", "Total", "Count of Sales"]
     cells = [cell for row in pt.range.value for cell in row]
     for expected in ["North", "South", 300.0, 700.0, 1000.0, 4.0]:
         assert expected in cells
@@ -455,6 +454,58 @@ def test_add_duplicate_name(report):
     # rejected before the engine is asked
     with pytest.raises(xw.XlwingsError, match="already exists"):
         report.sheet.pivot_tables.add(source, report.sheet["A40"], name="Dup")
+
+
+def test_add_defaults_through_collection_lookups(report):
+    pt = report.sheet.pivot_tables.add(report.data["A1"].expand(), report.sheet["A3"])
+    pt.name = "Renamed"
+    del pt
+    report.sheet.pivot_tables["Renamed"].rows.add("Region")
+    report.sheet.pivot_tables[0].values.add("Sales", name="Total")
+    report.sheet.pivot_tables["Renamed"].values.add("Qty")
+    pt = report.sheet.pivot_tables[0]
+    assert pt.layout == "compact"
+    assert pt.range.value[1] == ["Row Labels", "Total", "Sum of Qty"]
+    assert _body_values(pt) == [[300.0, 3.0], [700.0, 7.0], [1000.0, 10.0]]
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS values caption defaults")
+@pytest.mark.parametrize("caption_position", [0, 1])
+def test_add_values_caption_collision(report, caption_position):
+    pt = report.sheet.pivot_tables.add(
+        report.data["A1"].expand(), report.sheet["A3"], rows="Region"
+    )
+    captions = ["Total", "Quantity"]
+    captions[caption_position] = "Values"
+    pt.values.add("Sales", name=captions[0])
+    pt.values.add("Qty", name=captions[1])
+    assert [field.name for field in pt.values] == captions
+    assert pt.range.value[1] == ["Row Labels", *captions]
+    assert _body_values(pt) == [[300.0, 3.0], [700.0, 7.0], [1000.0, 10.0]]
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS saved pivot defaults")
+def test_add_defaults_after_reopening(tmp_path):
+    app = xw.App(visible=False)
+    try:
+        book = app.books.add()
+        data = book.sheets[0]
+        data["A1"].value = SOURCE_DATA
+        report = book.sheets.add("Report", after=data)
+        report.pivot_tables.add(
+            data["A1:E5"], report["A3"], rows="Region", values="Sales"
+        )
+        path = tmp_path / "pending_defaults.xlsx"
+        book.save(path)
+        book.close()
+        book = app.books.open(path)
+        pt = book.sheets["Report"].pivot_tables[0]
+        pt.values.add("Qty")
+        assert pt.range.value[1] == ["Row Labels", "Sum of Sales", "Sum of Qty"]
+        assert _body_values(pt) == [[300.0, 3.0], [700.0, 7.0], [1000.0, 10.0]]
+        book.close()
+    finally:
+        app.quit()
 
 
 @pytest.mark.parametrize("source_kind", ["range", "table"])

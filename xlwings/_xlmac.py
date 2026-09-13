@@ -2212,6 +2212,10 @@ def _mac_list(ref):
 
 _pivot_value_states = WeakValueDictionary()
 
+# Stored on the native pivot so defaults survive collection lookups and saves.
+_pivot_defaults_pending = "xlwings:defaults:pending-values"
+_pivot_defaults_applied = "xlwings:defaults"
+
 
 def _pivot_key(pivot):
     sheet = pivot.parent
@@ -2456,6 +2460,15 @@ class PivotFields(base_classes.PivotFields):
         # field that is already here where it is
         if field.pivot_field_orientation.get() != orientation:
             field.pivot_field_orientation.set(orientation)
+        if self._pivot.xl.tag.get() in (
+            _pivot_defaults_pending,
+            _pivot_defaults_applied,
+        ):
+            # see PivotTables.add: fields added this way ignore the pivot
+            # table's default layout, so re-apply it to all of them
+            self._pivot.xl.row_axis_layout(
+                layout=self._pivot.xl.layout_row_default.get()
+            )
         return PivotField(self._pivot, name)
 
 
@@ -2584,7 +2597,32 @@ class PivotValueFields(base_classes.PivotValueFields):
         # does nothing or crashes Excel); setting the orientation of the source
         # field appends a value field with Excel's default function
         source.pivot_field_orientation.set(kw.orient_as_data_field)
-        new = PivotValueField(self._pivot, _mac_list(self.xl)[-1].name.get())
+        data_fields = _mac_list(self.xl)
+        defaults = self._pivot.xl.tag.get()
+        if defaults == _pivot_defaults_pending and len(data_fields) >= 2:
+            # see PivotTables.add: the pseudo field only accepts changes once
+            # it's shown, i.e. with two or more value fields
+            pseudo = self._pivot.xl.data_pivot_field
+            # Captions share a namespace with the value fields. Also reserve
+            # the requested caption, which is applied below.
+            captions = {field.name.get().casefold() for field in data_fields}
+            if name is not None:
+                captions.add(name.casefold())
+            caption = "Values"
+            suffix = 2
+            while caption.casefold() in captions:
+                caption = f"Values{suffix}"
+                suffix += 1
+            pseudo.name.set(caption)
+            pseudo.pivot_field_orientation.set(kw.orient_as_column_field)
+            self._pivot.xl.tag.set(_pivot_defaults_applied)
+        if defaults in (_pivot_defaults_pending, _pivot_defaults_applied):
+            # adding a value field reverts the captions to the classic form,
+            # see PivotFields.add
+            self._pivot.xl.row_axis_layout(
+                layout=self._pivot.xl.layout_row_default.get()
+            )
+        new = PivotValueField(self._pivot, data_fields[-1].name.get())
         # function first: it resets an automatic caption
         if function is not None:
             new.function = function
@@ -2641,6 +2679,18 @@ class PivotTables(Collection, base_classes.PivotTables):
                 f"Excel didn't create the pivot table on sheet {self.parent.name!r}."
             )
         pivot = PivotTable(self.parent, after[0])
+        # `make` answers with a classic (Excel 2003 style) pivot table: no
+        # table style, tabular layout with in-grid drop zones, and the values
+        # pseudo field captioned "Data" and laid out down the rows. Apply
+        # Excel's defaults for a new pivot table instead, as Windows and
+        # Office.js do, so the report looks the same on all platforms. The
+        # values pseudo field only accepts changes once it's shown, and the
+        # default layout isn't applied to fields added by script, so
+        # PivotValueFields.add and PivotFields.add finish the job.
+        pivot.xl.table_style2.set("PivotStyleLight16")
+        pivot.xl.in_grid_drop_zones.set(False)
+        pivot.xl.layout_row_default.set(kw.compact_row)
+        pivot.xl.tag.set(_pivot_defaults_pending)
         if name:
             pivot.name = name
         return pivot
