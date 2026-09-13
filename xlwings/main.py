@@ -3090,8 +3090,8 @@ class Range:
         left-aligns text.
 
         Reading this property synchronously requires a locally installed Excel.
-        Setting it is additionally supported on Office.js clients (xlwings Lite
-        and xlwings Server); in xlwings Lite, read it via
+        Setting it is also supported on xlwings Lite
+        and xlwings Server; in xlwings Lite, read it via
         {meth}`get_horizontal_alignment() <xlwings.Range.get_horizontal_alignment>`.
 
         Examples:
@@ -3119,8 +3119,8 @@ class Range:
         alignment. The default is `'bottom'`.
 
         Reading this property synchronously requires a locally installed Excel.
-        Setting it is additionally supported on Office.js clients (xlwings Lite
-        and xlwings Server); in xlwings Lite, read it via
+        Setting it is alos supported with xlwings Lite
+        and xlwings Server; in xlwings Lite, read it via
         {meth}`get_vertical_alignment() <xlwings.Range.get_vertical_alignment>`.
 
         Examples:
@@ -5685,8 +5685,8 @@ class Names:
     def add(self, name: str, refers_to: str) -> Name:
         """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
-        Full support for named constants and formulas requires Excel desktop or an
-        Office.js client (xlwings Lite or Server). Google Sheets supports named
+        Full support for named constants and formulas requires Excel desktop or xlwings
+        Lite or Server. Google Sheets supports named
         ranges only; Office Scripts only returns named ranges in its snapshot.
 
         Args:
