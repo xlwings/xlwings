@@ -199,6 +199,19 @@ fn get_range_values(
 }
 
 #[pyfunction]
+#[pyo3(text_signature = "path: str, sheet_index: int")]
+fn get_used_range(
+    path: &str,
+    sheet_index: usize,
+) -> Result<Option<((u32, u32), (u32, u32))>, CalamineError> {
+    let mut book = open_workbook_auto(path)?;
+    let used_range = book
+        .worksheet_range_at(sheet_index)
+        .ok_or(Error::Msg("Worksheet index out of range"))??;
+    Ok(used_range.start().zip(used_range.end()))
+}
+
+#[pyfunction]
 #[pyo3(text_signature = "path: str")]
 fn get_sheet_names(path: &str) -> Result<Vec<String>, CalamineError> {
     let book = open_workbook_auto(path)?;
@@ -216,6 +229,7 @@ fn get_defined_names(path: &str) -> Result<Vec<(String, String)>, CalamineError>
 fn xlwingslib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_range_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_values, m)?)?;
+    m.add_function(wrap_pyfunction!(get_used_range, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_names, m)?)?;
     m.add_function(wrap_pyfunction!(get_defined_names, m)?)?;
     Ok(())

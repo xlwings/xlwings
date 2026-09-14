@@ -304,6 +304,18 @@ class Sheet(base_classes.Sheet):
             arg2=(MAX_ROWS, MAX_COLUMNS),
         )
 
+    @property
+    def used_range(self):
+        bounds = xlwingslib.get_used_range(self.book.fullname, self.index - 1)
+        if bounds is None:
+            # Excel reports A1 as the used range of an empty sheet.
+            return self.range((1, 1))
+        (first_row, first_column), (last_row, last_column) = bounds
+        return self.range(
+            (first_row + 1, first_column + 1),
+            (last_row + 1, last_column + 1),
+        )
+
 
 class Range(base_classes.Range):
     def __init__(self, sheet, book, arg1, arg2=None):

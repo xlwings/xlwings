@@ -453,6 +453,12 @@ def test_sheets_iteration(book):
         assert sheet.name == "Sheet 1" if ix == 0 else "Sheet2"
 
 
+@pytest.mark.skipif(engine != "calamine", reason="requires calamine engine")
+def test_sheet_used_range(book):
+    assert book.sheets[0].used_range.address == "$A$1:$D$17"
+    assert book.sheets[1].used_range.address == "$A$1:$B$2"
+
+
 @pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_sheet_page_setup_print_area(book):
     assert book.sheets[0].page_setup.print_area == "$A$1:$B$3"
