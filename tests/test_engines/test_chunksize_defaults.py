@@ -394,8 +394,15 @@ def calamine_range_reads(monkeypatch):
 
 
 def test_calamine_whole_sheet_shortcut_is_preserved(
-    calamine_book, calamine_range_reads
+    calamine_book, calamine_range_reads, monkeypatch
 ):
+    def overflow_on_truthiness(self):
+        raise OverflowError("cannot fit 'int' into an index-sized integer")
+
+    # On wasm32, truth-testing the full-sheet Range falls back to __len__, whose
+    # 17,179,869,184 cells exceed Py_ssize_t. The conversion pipeline only needs
+    # to distinguish a Range from None and must therefore never call __len__.
+    monkeypatch.setattr(xw.Range, "__len__", overflow_on_truthiness)
     sheet = calamine_book.sheets[0]
     values = sheet.cells.value
     assert isinstance(values, list) and len(values) < 100  # used portion only

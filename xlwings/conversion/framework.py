@@ -12,7 +12,11 @@ class ConversionContext:
             self.engine = xlwings.engines[engine_name]
         else:
             # rng can only be None if used via COM server UDFs
-            self.engine = rng.sheet.book.app.engine if rng else xlwings.engines["excel"]
+            self.engine = (
+                rng.sheet.book.app.engine
+                if rng is not None
+                else xlwings.engines["excel"]
+            )
         self.value = value
         # used for markdown (could be replaced by handing the parsed ast from
         # the converter stage to the formatting stage

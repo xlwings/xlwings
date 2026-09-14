@@ -102,7 +102,7 @@ class ExpandRangeStage:
         self.expand = options.get("expand", None)
 
     def __call__(self, c):
-        if c.range:
+        if c.range is not None:
             # auto-expand the range
             if self.expand:
                 c.range = c.range.expand(self.expand)
@@ -115,7 +115,7 @@ class AsyncExpandRangeStage:
         self.expand = options.get("expand", None)
 
     async def __call__(self, c):
-        if c.range and self.expand:
+        if c.range is not None and self.expand:
             import js
 
             expanded_address = await js.xlwings.getExpandedAddress(
@@ -158,7 +158,7 @@ class WriteValueToRangeStage:
                     ].raw_value = value_chunk
 
     def __call__(self, ctx):
-        if ctx.range and ctx.value:
+        if ctx.range is not None and ctx.value:
             if self.raw:
                 ctx.range.raw_value = ctx.value
                 return
@@ -175,7 +175,7 @@ class ReadValueFromRangeStage:
         self.options = options
 
     def __call__(self, c):
-        if not c.range:
+        if c.range is None:
             # UDF arguments arrive pre-materialized via conversion.read(None, ...)
             return
         chunksize = _resolve_read_chunksize(self.options, c.range)
@@ -200,7 +200,7 @@ class AsyncReadValueFromRangeStage:
         self.options = options
 
     async def __call__(self, c):
-        if not c.range:
+        if c.range is None:
             return
         import js
 
