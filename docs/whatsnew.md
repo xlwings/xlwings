@@ -10,6 +10,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - Added `Chart.title`, `Chart.legend` (see {class}`ChartLegend <xlwings.main.ChartLegend>`), `Chart.plot_by`, `Chart.style` and a `plot_by` argument for `Chart.set_source_data()`, see {meth}`Charts.add <xlwings.main.Charts.add>`.
 - Large range reads and writes are now chunked automatically, see [](converters.md#chunksize).
 - xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
+- xlwings Reader: added support for `Sheet.used_range`.
 
 ## v0.37.2 (Sep 9, 2026)
 
