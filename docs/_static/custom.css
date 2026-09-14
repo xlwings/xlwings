@@ -30,3 +30,25 @@ dl.field-list > dd.type-hint {
   font-family: var(--font-stack--monospace);
   font-size: var(--font-size--small--2);
 }
+
+/* Comments in code samples stay upright in dark mode: Furo's dark Pygments
+   style italicizes them (the light style doesn't). Both the explicit dark
+   toggle and the system-preference case are covered, matching the selectors
+   pygments.css uses. */
+body[data-theme="dark"] .highlight .c,
+body[data-theme="dark"] .highlight .ch,
+body[data-theme="dark"] .highlight .cm,
+body[data-theme="dark"] .highlight .cpf,
+body[data-theme="dark"] .highlight .c1 {
+  font-style: normal;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) .highlight .c,
+  body:not([data-theme="light"]) .highlight .ch,
+  body:not([data-theme="light"]) .highlight .cm,
+  body:not([data-theme="light"]) .highlight .cpf,
+  body:not([data-theme="light"]) .highlight .c1 {
+    font-style: normal;
+  }
+}

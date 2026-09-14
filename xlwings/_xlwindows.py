@@ -57,14 +57,20 @@ import xlwings
 from . import base_classes, constants, utils
 from .constants import (
     ColorIndex,
+    ConsolidationFunction,
     DeleteShiftDirection,
     FileFormat,
     FixedFormatType,
     HtmlType,
     InsertFormatOrigin,
     InsertShiftDirection,
+    LayoutFormType,
+    LayoutRowType,
     LegendPosition,
     ListObjectSourceType,
+    PivotFieldOrientation,
+    PivotTableSourceType,
+    ReferenceStyle,
     RowCol,
     SourceType,
     UpdateLinks,
@@ -1096,6 +1102,10 @@ class Sheet(base_classes.Sheet):
     @property
     def tables(self):
         return Tables(xl=self.xl.ListObjects)
+
+    @property
+    def pivot_tables(self):
+        return PivotTables(xl=self.xl.PivotTables())
 
     @property
     def pictures(self):
@@ -2497,6 +2507,332 @@ class Charts(Collection, base_classes.Charts):
         return chart
 
 
+class PivotTable(base_classes.PivotTable):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    def _values_pseudo_field_name(self):
+        """The name of the "Values" pseudo field that Excel places in the
+        columns (or rows) area once there are two or more value fields."""
+        try:
+            return self.xl.DataPivotField.Name
+        except pywintypes.com_error:
+            return None
+
+    @property
+    def field_names(self):
+        # PivotFields lists the source fields plus the "Values" pseudo field;
+        # value fields themselves have the data orientation.
+        values_name = self._values_pseudo_field_name()
+        return [
+            field.Name
+            for field in self.xl.PivotFields()
+            if field.Name != values_name
+            and field.Orientation != PivotFieldOrientation.xlDataField
+        ]
+
+    @property
+    def rows(self):
+        return PivotFields(pivot=self, area="rows")
+
+    @property
+    def columns(self):
+        return PivotFields(pivot=self, area="columns")
+
+    @property
+    def filters(self):
+        return PivotFields(pivot=self, area="filters")
+
+    @property
+    def values(self):
+        return PivotValueFields(pivot=self)
+
+    @property
+    def layout(self):
+        # LayoutRowDefault only applies to fields added later, so read the
+        # actual layout off the row fields; None when they disagree.
+        row_fields = list(self.xl.RowFields)
+        if not row_fields:
+            return layout_row_types_i2s.get(self.xl.LayoutRowDefault)
+        layouts = set()
+        for field in row_fields:
+            if field.LayoutCompactRow:
+                layouts.add("compact")
+            elif field.LayoutForm == LayoutFormType.xlTabular:
+                layouts.add("tabular")
+            else:
+                layouts.add("outline")
+        return layouts.pop() if len(layouts) == 1 else None
+
+    @layout.setter
+    def layout(self, value):
+        self.xl.RowAxisLayout(layout_row_types_s2i[value])
+        self.xl.LayoutRowDefault = layout_row_types_s2i[value]
+
+    @property
+    def show_row_grand_totals(self):
+        return bool(self.xl.RowGrand)
+
+    @show_row_grand_totals.setter
+    def show_row_grand_totals(self, value):
+        self.xl.RowGrand = value
+
+    @property
+    def show_column_grand_totals(self):
+        return bool(self.xl.ColumnGrand)
+
+    @show_column_grand_totals.setter
+    def show_column_grand_totals(self, value):
+        self.xl.ColumnGrand = value
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.TableRange1)
+
+    @property
+    def data_body_range(self):
+        if self.xl.DataFields.Count == 0:
+            return None
+        return Range(xl=self.xl.DataBodyRange)
+
+    def refresh(self):
+        self.xl.RefreshTable()
+
+    def delete(self):
+        # There is no PivotTable.Delete; clearing the full report range
+        # (incl. the filters area) removes it.
+        self.xl.TableRange2.Clear()
+
+
+class PivotField(base_classes.PivotField):
+    def __init__(self, xl, pivot):
+        # xl is the source field (PivotFields(name)), so the wrapper follows
+        # the field when it is moved to another area
+        self.xl = xl
+        self._pivot = pivot
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    def remove(self):
+        self.xl.Orientation = PivotFieldOrientation.xlHidden
+
+
+class PivotFields(base_classes.PivotFields):
+    def __init__(self, pivot, area):
+        self._pivot = pivot
+        self._area = area
+
+    @property
+    def xl(self):
+        # RowFields/ColumnFields/PageFields are parameterized properties, which
+        # pywin32's early binding exposes as plain attributes (calling the
+        # returned collection fails). They're snapshots, so fetch them on
+        # every access.
+        return getattr(self._pivot.xl, pivot_area_collections[self._area])
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def area(self):
+        return self._area
+
+    def _fields(self):
+        # Excel's "Values" pseudo field isn't a source field: hide it, like
+        # field_names does and like Office.js
+        values_name = self._pivot._values_pseudo_field_name()
+        return [xl for xl in self.xl if xl.Name != values_name]
+
+    def __call__(self, key):
+        fields = self._fields()
+        if isinstance(key, numbers.Number):
+            if key < 1 or key > len(fields):
+                raise KeyError(key)
+            return PivotField(xl=fields[key - 1], pivot=self._pivot)
+        for xl in fields:
+            if xl.Name == key:
+                return PivotField(xl=xl, pivot=self._pivot)
+        raise KeyError(key)
+
+    def __len__(self):
+        return len(self._fields())
+
+    def __iter__(self):
+        for xl in self._fields():
+            yield PivotField(xl=xl, pivot=self._pivot)
+
+    def __contains__(self, key):
+        if isinstance(key, numbers.Number):
+            return 1 <= key <= len(self)
+        return any(xl.Name == key for xl in self._fields())
+
+    def add(self, name):
+        try:
+            field = self._pivot.xl.PivotFields(name)
+        except pywintypes.com_error:
+            raise KeyError(name)
+        orientation = pivot_area_orientations[self._area]
+        # setting the orientation appends the field to the area; leave a
+        # field that is already here where it is
+        if field.Orientation != orientation:
+            field.Orientation = orientation
+        return PivotField(xl=field, pivot=self._pivot)
+
+
+class PivotValueField(base_classes.PivotValueField):
+    def __init__(self, xl, pivot):
+        self.xl = xl
+        self._pivot = pivot
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def source_field(self):
+        return self.xl.SourceName
+
+    @property
+    def function(self):
+        return pivot_functions_i2s.get(self.xl.Function)
+
+    @function.setter
+    def function(self, value):
+        self.xl.Function = pivot_functions_s2i[value]
+
+    @property
+    def number_format(self):
+        return self.xl.NumberFormat
+
+    @number_format.setter
+    def number_format(self, value):
+        self.xl.NumberFormat = value
+
+    def remove(self):
+        self.xl.Orientation = PivotFieldOrientation.xlHidden
+
+
+class PivotValueFields(base_classes.PivotValueFields):
+    def __init__(self, pivot):
+        self._pivot = pivot
+
+    @property
+    def xl(self):
+        # a parameterized property, see PivotFields.xl
+        return self._pivot.xl.DataFields
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def parent(self):
+        return self._pivot
+
+    def __call__(self, key):
+        try:
+            return PivotValueField(xl=self.xl.Item(key), pivot=self._pivot)
+        except pywintypes.com_error:
+            raise KeyError(key)
+
+    def __len__(self):
+        return self.xl.Count
+
+    def __iter__(self):
+        for xl in self.xl:
+            yield PivotValueField(xl=xl, pivot=self._pivot)
+
+    def __contains__(self, key):
+        try:
+            self.xl.Item(key)
+            return True
+        except pywintypes.com_error:
+            return False
+
+    def add(self, field, function=None, name=None, number_format=None):
+        try:
+            source = self._pivot.xl.PivotFields(field)
+        except pywintypes.com_error:
+            raise KeyError(field)
+        kwargs = {}
+        if name is not None:
+            kwargs["Caption"] = name
+        if function is not None:
+            kwargs["Function"] = pivot_functions_s2i[function]
+        xl = self._pivot.xl.AddDataField(source, **kwargs)
+        if number_format is not None:
+            xl.NumberFormat = number_format
+        return PivotValueField(xl=xl, pivot=self._pivot)
+
+
+class PivotTables(Collection, base_classes.PivotTables):
+    _wrap = PivotTable
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    def add(self, source, destination, name=None):
+        if isinstance(source, Table):
+            source_data = source.xl.Name
+        else:
+            # Microsoft's docs warn that passing a Range object as SourceData
+            # can raise a type mismatch, so pass an external R1C1 address
+            # (GetAddress: pywin32's form of the parameterized Address property)
+            source_data = source.xl.GetAddress(True, True, ReferenceStyle.xlR1C1, True)
+        book = self.xl.Parent.Parent
+        cache = book.PivotCaches().Create(
+            SourceType=PivotTableSourceType.xlDatabase, SourceData=source_data
+        )
+        kwargs = {"TableDestination": destination.xl.Cells(1, 1)}
+        if name:
+            kwargs["TableName"] = name
+        return PivotTable(xl=cache.CreatePivotTable(**kwargs))
+
+
 class Picture(base_classes.Picture):
     def __init__(self, xl):
         self.xl = xl
@@ -2755,6 +3091,40 @@ legend_positions_s2i = {
 legend_positions_i2s = {v: k for k, v in legend_positions_s2i.items()}
 # only ever read back, e.g. after a user dragged the legend
 legend_positions_i2s[LegendPosition.xlLegendPositionCustom] = "custom"
+
+pivot_functions_s2i = {
+    "sum": ConsolidationFunction.xlSum,
+    "count": ConsolidationFunction.xlCount,
+    "average": ConsolidationFunction.xlAverage,
+    "max": ConsolidationFunction.xlMax,
+    "min": ConsolidationFunction.xlMin,
+    "product": ConsolidationFunction.xlProduct,
+    "count_numbers": ConsolidationFunction.xlCountNums,
+    "stdev": ConsolidationFunction.xlStDev,
+    "stdevp": ConsolidationFunction.xlStDevP,
+    "var": ConsolidationFunction.xlVar,
+    "varp": ConsolidationFunction.xlVarP,
+}
+pivot_functions_i2s = {v: k for k, v in pivot_functions_s2i.items()}
+
+layout_row_types_s2i = {
+    "compact": LayoutRowType.xlCompactRow,
+    "outline": LayoutRowType.xlOutlineRow,
+    "tabular": LayoutRowType.xlTabularRow,
+}
+layout_row_types_i2s = {v: k for k, v in layout_row_types_s2i.items()}
+
+# xlwings' field areas -> the PivotTable collection method / the orientation
+pivot_area_collections = {
+    "rows": "RowFields",
+    "columns": "ColumnFields",
+    "filters": "PageFields",
+}
+pivot_area_orientations = {
+    "rows": PivotFieldOrientation.xlRowField,
+    "columns": PivotFieldOrientation.xlColumnField,
+    "filters": PivotFieldOrientation.xlPageField,
+}
 
 
 directions_s2i = {

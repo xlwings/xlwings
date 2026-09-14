@@ -61,6 +61,31 @@ ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
 ChartPlotBy = Literal["rows", "columns"]
 CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
 CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
+
+# The pivot table vocabulary. PivotFunction lists Excel's "Summarize Values By"
+# options, named after the worksheet functions: note that "count" counts
+# non-empty cells (COUNTA), while "count_numbers" is the worksheet COUNT.
+# main.PivotTables/PivotValueFields validate them so engines only ever see the
+# canonical names.
+PivotFunction = Literal[
+    "sum",
+    "count",
+    "average",
+    "max",
+    "min",
+    "product",
+    "count_numbers",
+    "stdev",
+    "stdevp",
+    "var",
+    "varp",
+]
+PivotLayout = Literal["compact", "outline", "tabular"]
+PIVOT_FUNCTIONS: tuple[str, ...] = get_args(PivotFunction)
+PIVOT_LAYOUTS: tuple[str, ...] = get_args(PivotLayout)
+# The three field areas that PivotFields can stand for (the values area is a
+# separate class); engines receive these names.
+PIVOT_AREAS: tuple[str, ...] = ("rows", "columns", "filters")
 # The documented chart type names (see main.Chart.chart_type); the desktop
 # engines map all of them, the remote engine all but "combination".
 CHART_TYPES: tuple[str, ...] = (
@@ -1569,6 +1594,161 @@ class Charts:
         name=None,
         anchor=None,
     ):
+        raise NotImplementedError()
+
+
+class PivotTable:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def field_names(self):
+        raise NotImplementedError()
+
+    @property
+    def rows(self):
+        raise NotImplementedError()
+
+    @property
+    def columns(self):
+        raise NotImplementedError()
+
+    @property
+    def filters(self):
+        raise NotImplementedError()
+
+    @property
+    def values(self):
+        raise NotImplementedError()
+
+    @property
+    def layout(self):
+        raise NotImplementedError()
+
+    @layout.setter
+    def layout(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_row_grand_totals(self):
+        raise NotImplementedError()
+
+    @show_row_grand_totals.setter
+    def show_row_grand_totals(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_column_grand_totals(self):
+        raise NotImplementedError()
+
+    @show_column_grand_totals.setter
+    def show_column_grand_totals(self, value):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError()
+
+    def refresh(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class PivotTables(Collection):
+    def add(self, source, destination, name=None):
+        raise NotImplementedError()
+
+
+class PivotFields(Collection):
+    """One of the rows/columns/filters areas of a pivot table."""
+
+    @property
+    def area(self):
+        raise NotImplementedError()
+
+    def add(self, name):
+        raise NotImplementedError()
+
+
+class PivotField:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    def remove(self):
+        raise NotImplementedError()
+
+
+class PivotValueFields(Collection):
+    def add(self, field, function=None, name=None, number_format=None):
+        raise NotImplementedError()
+
+
+class PivotValueField:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def source_field(self):
+        raise NotImplementedError()
+
+    @property
+    def function(self):
+        raise NotImplementedError()
+
+    @function.setter
+    def function(self, value):
+        raise NotImplementedError()
+
+    @property
+    def number_format(self):
+        raise NotImplementedError()
+
+    @number_format.setter
+    def number_format(self, value):
+        raise NotImplementedError()
+
+    def remove(self):
         raise NotImplementedError()
 
 

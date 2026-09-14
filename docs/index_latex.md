@@ -95,6 +95,12 @@ api/note
 api/page_setup
 api/picture
 api/pictures
+api/pivot_field
+api/pivot_fields
+api/pivot_table
+api/pivot_tables
+api/pivot_value_field
+api/pivot_value_fields
 api/range
 api/range_columns
 api/range_rows
