@@ -4574,10 +4574,12 @@ class Charts(Collection[Chart]):
                 provide a value for `anchor`.
             width: width in points
             height: height in points
-            chart_type: Chart type, see {attr}`Chart.chart_type
-                <xlwings.Chart.chart_type>`. *New in version 0.37.3.*
-            source: Source data range, see {meth}`Chart.set_source_data
-                <xlwings.Chart.set_source_data>`. *New in version 0.37.3.*
+            chart_type: Chart type, see
+                {attr}`Chart.chart_type <xlwings.Chart.chart_type>`.
+                *New in version 0.37.3.*
+            source: Source data range, see
+                {meth}`Chart.set_source_data <xlwings.Chart.set_source_data>`.
+                *New in version 0.37.3.*
             plot_by: `"rows"` or `"columns"`, requires `source`.
                 *New in version 0.37.3.*
             name: Excel chart name. Defaults to Excel standard name if not provided,
