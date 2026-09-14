@@ -1789,7 +1789,7 @@ class Sheet:
 
     @property
     def charts(self) -> Charts:
-        """See `Charts`
+        """See {class}`Charts <xlwings.main.Charts>`
 
         ```{versionadded} 0.9.0
         ```
@@ -1798,7 +1798,7 @@ class Sheet:
 
     @property
     def shapes(self) -> Shapes:
-        """See `Shapes`
+        """See {class}`Shapes <xlwings.main.Shapes>`
 
         ```{versionadded} 0.9.0
         ```
@@ -1807,7 +1807,7 @@ class Sheet:
 
     @property
     def tables(self) -> Tables:
-        """See `Tables`
+        """See {class}`Tables <xlwings.main.Tables>`
 
         ```{versionadded} 0.21.0
         ```
@@ -1816,7 +1816,7 @@ class Sheet:
 
     @property
     def pivot_tables(self) -> PivotTables:
-        """See `PivotTables`
+        """See {class}`PivotTables <xlwings.PivotTables>`
 
         ```{versionadded} 0.37.3
         ```
@@ -1825,7 +1825,7 @@ class Sheet:
 
     @property
     def pictures(self) -> Pictures:
-        """See `Pictures`
+        """See {class}`Pictures <xlwings.main.Pictures>`
 
         ```{versionadded} 0.9.0
         ```
