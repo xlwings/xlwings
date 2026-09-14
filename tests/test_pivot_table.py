@@ -91,9 +91,7 @@ def test_collection(fx):
         pts["nope"]
     assert pts.parent == fx.sheet
     assert len(fx.data.pivot_tables) == 0
-    assert (
-        repr(fx.pt) == "<PivotTable 'PivotTable1' in <Sheet [pivot_table.xlsx]Pivot>>"
-    )
+    assert repr(fx.pt) == "<PivotTable 'PivotTable1' in Pivot>"
     assert fx.pt == pts[0]
 
 
@@ -140,10 +138,7 @@ def test_rows(fx):
     assert rows.parent == fx.pt
     assert rows[0].parent == fx.pt
     assert rows[0].api is not None
-    assert repr(rows[0]) == (
-        "<PivotField 'Region' in <PivotTable 'PivotTable1' in "
-        "<Sheet [pivot_table.xlsx]Pivot>>>"
-    )
+    assert repr(rows[0]) == "<PivotField 'Region' in 'PivotTable1'>"
 
 
 def test_fields_add_move_remove(fx):
@@ -188,10 +183,7 @@ def test_values(fx):
     assert values[0].function == "sum"
     assert values[0].number_format == "General"
     assert values[0].api is not None
-    assert repr(values[0]) == (
-        "<PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in "
-        "<Sheet [pivot_table.xlsx]Pivot>>>"
-    )
+    assert repr(values[0]) == "<PivotValueField 'Sum of Sales' in 'PivotTable1'>"
 
 
 def test_values_add(fx):

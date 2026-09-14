@@ -3314,7 +3314,7 @@ class Shape:
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.shapes[0]  # or sht.shapes['ShapeName']
-    <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>
+    <Shape 'Rectangle 1' in Sheet1>
     ```
 
     ```{versionchanged} 0.9.0
@@ -3531,7 +3531,7 @@ class Shape:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return "<Shape '{0}' in {1}>".format(self.name, self.parent)
+        return "<Shape '{0}' in {1}>".format(self.name, self.parent.name)
 
     async def get_text(self) -> str | None:
         """Fetch the shape's text on demand.
@@ -3549,8 +3549,8 @@ class Shapes(Collection[Shape]):
     ```pycon
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].shapes
-    Shapes([<Shape 'Oval 1' in <Sheet [Book1]Sheet1>>,
-            <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>])
+    Shapes([<Shape 'Oval 1' in Sheet1>,
+            <Shape 'Rectangle 1' in Sheet1>])
     ```
 
     ```{versionadded} 0.9.0
@@ -3666,7 +3666,7 @@ class Table:
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.tables[0]  # or sht.tables['TableName']
-    <Table 'Table 1' in <Sheet [Book1]Sheet1>>
+    <Table 'Table 1' in Sheet1>
     ```
 
     ```{versionadded} 0.21.0
@@ -3955,7 +3955,7 @@ class Table:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return "<Table '{0}' in {1}>".format(self.name, self.parent)
+        return "<Table '{0}' in {1}>".format(self.name, self.parent.name)
 
 
 class Tables(Collection[Table]):
@@ -3964,8 +3964,8 @@ class Tables(Collection[Table]):
     ```pycon
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].tables
-    Tables([<Table 'Table1' in <Sheet [Book11]Sheet1>>,
-            <Table 'Table2' in <Sheet [Book11]Sheet1>>])
+    Tables([<Table 'Table1' in Sheet1>,
+            <Table 'Table2' in Sheet1>])
     ```
 
     ```{versionadded} 0.21.0
@@ -4009,7 +4009,7 @@ class Tables(Collection[Table]):
             >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
             >>> table = sheet.tables.add(source=sheet['A1'].expand(), name='MyTable')
             >>> table
-            <Table 'MyTable' in <Sheet [Book1]Sheet1>>
+            <Table 'MyTable' in Sheet1>
             ```
         """
 
@@ -4071,7 +4071,7 @@ class Chart:
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.charts[0]  # or sht.charts['ChartName']
-    <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>
+    <Chart 'Chart 1' in Sheet1>
     ```
     """
 
@@ -4383,7 +4383,7 @@ class Chart:
         return utils.to_pdf(self, path=path, show=show, quality=quality)
 
     def __repr__(self) -> str:
-        return "<Chart '{0}' in {1}>".format(self.name, self.parent)
+        return "<Chart '{0}' in {1}>".format(self.name, self.parent.name)
 
     async def get_png(self) -> str:
         """Fetch the chart as a base64-encoded PNG, on demand.
@@ -4457,8 +4457,8 @@ class Charts(Collection[Chart]):
     ```pycon
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].charts
-    Charts([<Chart 'Chart 1' in <Sheet [Book1]Sheet1>>,
-            <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>])
+    Charts([<Chart 'Chart 1' in Sheet1>,
+            <Chart 'Chart 1' in Sheet1>])
     ```
 
     ```{versionadded} 0.9.0
@@ -4628,7 +4628,7 @@ class PivotTable:
     >>> import xlwings as xw
     >>> mysheet = xw.books['Book1'].sheets[0]
     >>> mysheet.pivot_tables[0]  # or mysheet.pivot_tables['PivotTable1']
-    <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
+    <PivotTable 'PivotTable1' in Sheet1>
     ```
 
     Fields are placed via the four areas of Excel's field list, see
@@ -4778,7 +4778,7 @@ class PivotTable:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return "<PivotTable '{0}' in {1}>".format(self.name, self.parent)
+        return "<PivotTable '{0}' in {1}>".format(self.name, self.parent.name)
 
 
 class PivotField:
@@ -4792,7 +4792,7 @@ class PivotField:
     >>> field.name
     'Region'
     >>> field.parent
-    <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>
+    <PivotTable 'PivotTable1' in Sheet1>
     >>> field.remove()
     ```
 
@@ -4835,7 +4835,7 @@ class PivotField:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return "<PivotField '{0}' in {1}>".format(self.name, self.parent)
+        return "<PivotField '{0}' in '{1}'>".format(self.name, self.parent.name)
 
 
 class PivotFields(Collection[PivotField]):
@@ -4845,9 +4845,9 @@ class PivotFields(Collection[PivotField]):
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
     >>> pt.rows
-    PivotFields([<PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
+    PivotFields([<PivotField 'Region' in 'PivotTable1'>])
     >>> pt.rows[0]  # or pt.rows['Region']
-    <PivotField 'Region' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    <PivotField 'Region' in 'PivotTable1'>
     ```
 
     ```{versionadded} 0.37.3
@@ -4977,7 +4977,7 @@ class PivotValueField:
             name = self.name
         except NotImplementedError:
             name = "?"
-        return "<PivotValueField '{0}' in {1}>".format(name, self.parent)
+        return "<PivotValueField '{0}' in '{1}'>".format(name, self.parent.name)
 
 
 class PivotValueFields(Collection[PivotValueField]):
@@ -4987,9 +4987,9 @@ class PivotValueFields(Collection[PivotValueField]):
     ```pycon
     >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
     >>> pt.values
-    PivotValueFields([<PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>])
+    PivotValueFields([<PivotValueField 'Sum of Sales' in 'PivotTable1'>])
     >>> pt.values[0]  # or pt.values['Sum of Sales']
-    <PivotValueField 'Sum of Sales' in <PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>>
+    <PivotValueField 'Sum of Sales' in 'PivotTable1'>
     ```
 
     ```{versionadded} 0.37.3
@@ -5044,7 +5044,7 @@ class PivotTables(Collection[PivotTable]):
     ```pycon
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].pivot_tables
-    PivotTables([<PivotTable 'PivotTable1' in <Sheet [Book1]Sheet1>>])
+    PivotTables([<PivotTable 'PivotTable1' in Sheet1>])
     ```
 
     ```{versionadded} 0.37.3
@@ -5180,7 +5180,7 @@ class Picture:
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.pictures[0]  # or sht.charts['PictureName']
-    <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
+    <Picture 'Picture 1' in Sheet1>
     ```
 
     ```{versionchanged} 0.9.0
@@ -5304,7 +5304,7 @@ class Picture:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
-        return "<Picture '{0}' in {1}>".format(self.name, self.parent)
+        return "<Picture '{0}' in {1}>".format(self.name, self.parent.name)
 
     def update(
         self,
@@ -5363,8 +5363,8 @@ class Pictures(Collection[Picture]):
     ```pycon
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].pictures
-    Pictures([<Picture 'Picture 1' in <Sheet [Book1]Sheet1>>,
-              <Picture 'Picture 2' in <Sheet [Book1]Sheet1>>])
+    Pictures([<Picture 'Picture 1' in Sheet1>,
+              <Picture 'Picture 2' in Sheet1>])
     ```
 
     ```{versionadded} 0.9.0
@@ -5432,7 +5432,7 @@ class Pictures(Collection[Picture]):
             >>> import xlwings as xw
             >>> sht = xw.Book().sheets[0]
             >>> sht.pictures.add(r'C:\\path\\to\\file.png')
-            <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
+            <Picture 'Picture 1' in Sheet1>
             ```
 
             2. Matplotlib
@@ -5442,7 +5442,7 @@ class Pictures(Collection[Picture]):
             >>> fig = plt.figure()
             >>> plt.plot([1, 2, 3, 4, 5])
             >>> sht.pictures.add(fig, name='MyPlot', update=True)
-            <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
+            <Picture 'MyPlot' in Sheet1>
             ```
         """
         if anchor:

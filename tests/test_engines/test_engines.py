@@ -3892,7 +3892,7 @@ def test_pivot_tables_collection(pivot_book):
     assert pts[0].parent == sheet
     assert pts[0] == pts["PivotTable1"]
     assert pts[0] != pts[1]
-    assert repr(pts[0]) == "<PivotTable 'PivotTable1' in <Sheet [engines.xlsm]Sheet 1>>"
+    assert repr(pts[0]) == "<PivotTable 'PivotTable1' in Sheet 1>"
     with pytest.raises(KeyError):
         pts["nope"]
     assert len(pivot_book.sheets[1].pivot_tables) == 0
@@ -3910,10 +3910,7 @@ def test_pivot_table_getters(pivot_book):
     assert "Region" in pt.rows
     assert pt.rows["Region"].name == "Region"
     assert pt.rows[0].parent == pt
-    assert repr(pt.rows[0]) == (
-        "<PivotField 'Region' in <PivotTable 'PivotTable1' in "
-        "<Sheet [engines.xlsm]Sheet 1>>>"
-    )
+    assert repr(pt.rows[0]) == "<PivotField 'Region' in 'PivotTable1'>"
     with pytest.raises(KeyError):
         pt.rows["Year"]
     values = pt.values
@@ -4014,10 +4011,7 @@ def test_pivot_value_fields_add(pivot_book):
         count.name
     with pytest.raises(NotImplementedError):
         count.number_format
-    assert repr(count) == (
-        "<PivotValueField '?' in <PivotTable 'PivotTable1' in "
-        "<Sheet [engines.xlsm]Sheet 1>>>"
-    )
+    assert repr(count) == "<PivotValueField '?' in 'PivotTable1'>"
     assert pt.values[2].source_field == "Sales"
     with pytest.raises(KeyError):
         pt.values["Count of Sales"]

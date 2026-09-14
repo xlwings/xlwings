@@ -66,7 +66,7 @@ There are many **convenience features** available, e.g. Range expanding:
 >>> plt.plot([1, 2, 3, 4, 5])
 [<matplotlib.lines.Line2D at 0x1071706a0>]
 >>> sheet.pictures.add(fig, name='MyPlot', update=True)
-<Picture 'MyPlot' in <Sheet [Workbook4]Sheet1>>
+<Picture 'MyPlot' in Sheet1>
 ```
 
 ## 3. Macros: Call Python from Excel
