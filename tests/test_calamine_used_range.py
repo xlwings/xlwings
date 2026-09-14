@@ -21,9 +21,7 @@ def test_used_range_converts_calamine_bounds(monkeypatch, bounds, expected_addre
         calls.append((path, sheet_index))
         return bounds
 
-    monkeypatch.setattr(
-        _xlcalamine.xlwingslib, "get_used_range", fake_get_used_range, raising=False
-    )
+    monkeypatch.setattr(_xlcalamine.xlwingslib, "get_used_range", fake_get_used_range)
     sheet = _xlcalamine.Sheet(book=SimpleNamespace(fullname="book.xlsx"), sheet_index=2)
 
     assert sheet.used_range.address == expected_address
