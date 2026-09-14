@@ -2,18 +2,13 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.3 (Unreleased)
+## v0.37.3 (Sep 14, 2026)
 
-- Large range reads and writes are now chunked automatically: reads above 4,000,000 cells (1,500,000 on macOS) and writes above 100,000 cells are split into row chunks on desktop Excel and the remote engines (xlwings Lite and xlwings Server), so you no longer have to discover `chunksize` by trial and error. An explicit `.options(chunksize=...)` still overrides the row count, and `chunksize=None` disables it. xlwings Reader (`mode="r"`) keeps its unchunked default. See [](converters.md#chunksize).
-- xlwings Lite: `await myrange.get_value()` now raises a clear error when Office.js returns no values for an oversized read (it caps a single read at 5,000,000 cells and may return `null` instead of raising) and suggests a smaller `chunksize`.
-- Fixed writing a scalar with an explicit `chunksize` (it used to fail on numbers and iterate over strings); the scalar now fills each chunk. Chunked reads also keep `err_to_str=True` on every chunk (previously lost on macOS and xlwings Reader).
-- Added `Chart.title`, `Chart.legend` (see {class}`ChartLegend <xlwings.main.ChartLegend>`), `Chart.plot_by`, `Chart.style` and a `plot_by` argument for `Chart.set_source_data()`. `Charts.add()` accepts the new `chart_type`, `source`, `plot_by`, `name` and `anchor` arguments, so a chart can be created in one call, see {meth}`Charts.add <xlwings.main.Charts.add>`.
-- xlwings Lite and xlwings Server: Added support for charts: `Sheet.charts`, `Charts.add()`, `Chart.chart_type`, `Chart.set_source_data()`, position/size, `Chart.to_png()` and, on xlwings Lite, `await mychart.get_png()`.
-- Fixed accessing, renaming (macOS) and deleting (macOS and Windows) chart sheets via the `Chart` object.
+- Added support for PivotTables, see {class}`PivotTable <xlwings.PivotTable>`.
+- Added `Range.horizontal_alignment` and `Range.vertical_alignment` to read and set cell alignment, see {attr}`Range.horizontal_alignment <xlwings.Range.horizontal_alignment>` and {attr}`Range.vertical_alignment <xlwings.Range.vertical_alignment>`.
 - Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
-- Added `Range.horizontal_alignment` and `Range.vertical_alignment` to read and set cell alignment, see {attr}`Range.horizontal_alignment <xlwings.Range.horizontal_alignment>` and {attr}`Range.vertical_alignment <xlwings.Range.vertical_alignment>`. A range whose cells don't all agree reports `None`.
-- xlwings Lite and xlwings Server: Alignment can be set on Office.js clients; read it via `await myrange.get_horizontal_alignment()` / `await myrange.get_vertical_alignment()` on xlwings Lite.
-- Added support for pivot tables ({issue}`191`): `Sheet.pivot_tables`, `PivotTables.add()`, field placement via `PivotTable.rows/columns/filters/values`, summary functions, number formats, layout, grand totals, `refresh()` and `delete()`, see {class}`PivotTable <xlwings.PivotTable>`. On macOS, `PivotTables.add()` can only create the first pivot table on a sheet.
+- Added `Chart.title`, `Chart.legend` (see {class}`ChartLegend <xlwings.main.ChartLegend>`), `Chart.plot_by`, `Chart.style` and a `plot_by` argument for `Chart.set_source_data()`, see {meth}`Charts.add <xlwings.main.Charts.add>`.
+- Large range reads and writes are now chunked automatically, see [](converters.md#chunksize).
 - xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 
 ## v0.37.2 (Sep 9, 2026)

@@ -4704,7 +4704,8 @@ def _pivot_value_specs(values: Any) -> list[tuple[str, PivotFunction | None]]:
 
 
 class PivotTable:
-    """The pivot table object is a member of the `pivot_tables` collection:
+    """The pivot table object is a member of the
+    {attr}`pivot_tables <xlwings.Sheet.pivot_tables>` collection:
 
     ```pycon
     >>> import xlwings as xw
