@@ -215,6 +215,27 @@ _PIVOT_LAYOUT_PY2JS = {"compact": "Compact", "outline": "Outline", "tabular": "T
 _PIVOT_LAYOUT_JS2PY = {v: k for k, v in _PIVOT_LAYOUT_PY2JS.items()}
 _PIVOT_AREAS = ("rows", "columns", "filters")
 
+# Office.js Excel.HorizontalAlignment / Excel.VerticalAlignment member names.
+_HORIZONTAL_ALIGNMENT_PY2JS = {
+    "general": "General",
+    "left": "Left",
+    "center": "Center",
+    "right": "Right",
+    "fill": "Fill",
+    "justify": "Justify",
+    "center_across_selection": "CenterAcrossSelection",
+    "distributed": "Distributed",
+}
+_HORIZONTAL_ALIGNMENT_JS2PY = {v: k for k, v in _HORIZONTAL_ALIGNMENT_PY2JS.items()}
+_VERTICAL_ALIGNMENT_PY2JS = {
+    "top": "Top",
+    "center": "Center",
+    "bottom": "Bottom",
+    "justify": "Justify",
+    "distributed": "Distributed",
+}
+_VERTICAL_ALIGNMENT_JS2PY = {v: k for k, v in _VERTICAL_ALIGNMENT_PY2JS.items()}
+
 
 def _mark_sheet_values_loaded(sheet_api):
     sheet_api[_SHEET_VALUES_LOADED_KEY] = True
@@ -1730,6 +1751,17 @@ class Range(base_classes.Range):
     async def get_wrap_text(self):
         return await self._get_range_data("wrap_text")
 
+    async def get_horizontal_alignment(self):
+        # Office.js reports None for a range whose cells disagree.
+        return _HORIZONTAL_ALIGNMENT_JS2PY.get(
+            await self._get_range_data("horizontal_alignment")
+        )
+
+    async def get_vertical_alignment(self):
+        return _VERTICAL_ALIGNMENT_JS2PY.get(
+            await self._get_range_data("vertical_alignment")
+        )
+
     async def get_column_width(self):
         return await self._get_range_data("column_width")
 
@@ -1837,6 +1869,44 @@ class Range(base_classes.Range):
     @wrap_text.setter
     def wrap_text(self, value):
         self.append_json_action(func="setWrapText", args=bool(value))
+
+    def _require_officejs(self, name):
+        # Only the Office.js client implements the alignment callbacks; the
+        # other clients would fail with an opaque error when dispatching them.
+        if self.sheet.book.api["client"] != "Office.js":
+            raise NotImplementedError(
+                f"Range.{name} is only supported with Office.js clients"
+            )
+
+    @property
+    def horizontal_alignment(self):
+        raise NotImplementedError(
+            "Reading the horizontal alignment synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_horizontal_alignment()' to fetch it on "
+            "demand."
+        )
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value):
+        self._require_officejs("horizontal_alignment")
+        self.append_json_action(
+            func="setHorizontalAlignment", args=_HORIZONTAL_ALIGNMENT_PY2JS[value]
+        )
+
+    @property
+    def vertical_alignment(self):
+        raise NotImplementedError(
+            "Reading the vertical alignment synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_vertical_alignment()' to fetch it on "
+            "demand."
+        )
+
+    @vertical_alignment.setter
+    def vertical_alignment(self, value):
+        self._require_officejs("vertical_alignment")
+        self.append_json_action(
+            func="setVerticalAlignment", args=_VERTICAL_ALIGNMENT_PY2JS[value]
+        )
 
     @property
     def formula_array(self):

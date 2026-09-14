@@ -11,6 +11,8 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - xlwings Lite and xlwings Server: Added support for charts: `Sheet.charts`, `Charts.add()`, `Chart.chart_type`, `Chart.set_source_data()`, position/size, `Chart.to_png()` and, on xlwings Lite, `await mychart.get_png()`.
 - Fixed accessing, renaming (macOS) and deleting (macOS and Windows) chart sheets via the `Chart` object.
 - Added `Sheet.show_gridlines` to read and toggle the display of gridlines on a sheet, see {attr}`Sheet.show_gridlines <xlwings.Sheet.show_gridlines>`.
+- Added `Range.horizontal_alignment` and `Range.vertical_alignment` to read and set cell alignment, see {attr}`Range.horizontal_alignment <xlwings.Range.horizontal_alignment>` and {attr}`Range.vertical_alignment <xlwings.Range.vertical_alignment>`. A range whose cells don't all agree reports `None`.
+- xlwings Lite and xlwings Server: Alignment can be set on Office.js clients; read it via `await myrange.get_horizontal_alignment()` / `await myrange.get_vertical_alignment()` on xlwings Lite.
 - Added support for pivot tables ({issue}`191`): `Sheet.pivot_tables`, `PivotTables.add()`, field placement via `PivotTable.rows/columns/filters/values`, summary functions, number formats, layout, grand totals, `refresh()` and `delete()`, see {class}`PivotTable <xlwings.PivotTable>`. On macOS, `PivotTables.add()` can only create the first pivot table on a sheet.
 - xlwings Lite: xlwings Reader is now available on Pyodide >= 314.0.0 via a `pyemscripten` wheel.
 

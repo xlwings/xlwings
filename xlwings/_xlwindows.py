@@ -61,6 +61,7 @@ from .constants import (
     DeleteShiftDirection,
     FileFormat,
     FixedFormatType,
+    HAlign,
     HtmlType,
     InsertFormatOrigin,
     InsertShiftDirection,
@@ -74,6 +75,7 @@ from .constants import (
     RowCol,
     SourceType,
     UpdateLinks,
+    VAlign,
 )
 from .utils import (
     col_name,
@@ -1595,6 +1597,23 @@ class Range(base_classes.Range):
         self.xl.WrapText = value
 
     @property
+    def horizontal_alignment(self):
+        # COM returns None for a range whose cells disagree.
+        return horizontal_alignments_i2s.get(self.xl.HorizontalAlignment)
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value):
+        self.xl.HorizontalAlignment = horizontal_alignments_s2i[value]
+
+    @property
+    def vertical_alignment(self):
+        return vertical_alignments_i2s.get(self.xl.VerticalAlignment)
+
+    @vertical_alignment.setter
+    def vertical_alignment(self, value):
+        self.xl.VerticalAlignment = vertical_alignments_s2i[value]
+
+    @property
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
@@ -3091,6 +3110,27 @@ legend_positions_s2i = {
 legend_positions_i2s = {v: k for k, v in legend_positions_s2i.items()}
 # only ever read back, e.g. after a user dragged the legend
 legend_positions_i2s[LegendPosition.xlLegendPositionCustom] = "custom"
+
+horizontal_alignments_s2i = {
+    "general": HAlign.xlHAlignGeneral,
+    "left": HAlign.xlHAlignLeft,
+    "center": HAlign.xlHAlignCenter,
+    "right": HAlign.xlHAlignRight,
+    "fill": HAlign.xlHAlignFill,
+    "justify": HAlign.xlHAlignJustify,
+    "center_across_selection": HAlign.xlHAlignCenterAcrossSelection,
+    "distributed": HAlign.xlHAlignDistributed,
+}
+horizontal_alignments_i2s = {v: k for k, v in horizontal_alignments_s2i.items()}
+
+vertical_alignments_s2i = {
+    "top": VAlign.xlVAlignTop,
+    "center": VAlign.xlVAlignCenter,
+    "bottom": VAlign.xlVAlignBottom,
+    "justify": VAlign.xlVAlignJustify,
+    "distributed": VAlign.xlVAlignDistributed,
+}
+vertical_alignments_i2s = {v: k for k, v in vertical_alignments_s2i.items()}
 
 pivot_functions_s2i = {
     "sum": ConsolidationFunction.xlSum,

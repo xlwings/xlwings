@@ -1292,6 +1292,24 @@ class Range(base_classes.Range):
         self.xl.wrap_text.set(value)
 
     @property
+    def horizontal_alignment(self):
+        # A range whose cells disagree returns an AEEnum that isn't one of the
+        # documented keywords, so .get() maps it to None.
+        return horizontal_alignments_k2s.get(self.xl.horizontal_alignment.get())
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value):
+        self.xl.horizontal_alignment.set(horizontal_alignments_s2k[value])
+
+    @property
+    def vertical_alignment(self):
+        return vertical_alignments_k2s.get(self.xl.vertical_alignment.get())
+
+    @vertical_alignment.setter
+    def vertical_alignment(self, value):
+        self.xl.vertical_alignment.set(vertical_alignments_s2k[value])
+
+    @property
     def note(self):
         try:
             # No easy way to check whether there's a comment like on Windows
@@ -3198,6 +3216,28 @@ legend_positions_k2s = {
     kw.legend_position_corner: "corner",
 }
 legend_positions_s2k = {v: k for k, v in legend_positions_k2s.items()}
+
+# Note the differing keyword prefixes: horizontal_align_* vs vertical_alignment_*
+horizontal_alignments_s2k = {
+    "general": kw.horizontal_align_general,
+    "left": kw.horizontal_align_left,
+    "center": kw.horizontal_align_center,
+    "right": kw.horizontal_align_right,
+    "fill": kw.horizontal_align_fill,
+    "justify": kw.horizontal_align_justify,
+    "center_across_selection": kw.horizontal_align_center_across_selection,
+    "distributed": kw.horizontal_align_distributed,
+}
+horizontal_alignments_k2s = {v: k for k, v in horizontal_alignments_s2k.items()}
+
+vertical_alignments_s2k = {
+    "top": kw.vertical_alignment_top,
+    "center": kw.vertical_alignment_center,
+    "bottom": kw.vertical_alignment_bottom,
+    "justify": kw.vertical_alignment_justify,
+    "distributed": kw.vertical_alignment_distributed,
+}
+vertical_alignments_k2s = {v: k for k, v in vertical_alignments_s2k.items()}
 
 # by_rows is defined twice in mac_dict (XlRowCol and XlSearchOrder); appscript
 # packs the first definition, which is the XlRowCol one that plot_by expects
