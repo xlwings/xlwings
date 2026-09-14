@@ -1127,8 +1127,8 @@ class Book:
             import xlwings as xw
 
             def my_macro():
-            sht = xw.Book.caller().sheets[0]
-            sht.range('A1').value = 'Hello xlwings!'
+            sheet = xw.Book.caller().sheets[0]
+            sheet.range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
             xw.Book('file.xlsm').set_mock_caller()
@@ -3312,8 +3312,8 @@ class Shape:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.shapes[0]  # or sht.shapes['ShapeName']
+    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> sheet.shapes[0]  # or sheet.shapes['ShapeName']
     <Shape 'Rectangle 1' in Sheet1>
     ```
 
@@ -3664,8 +3664,8 @@ class Table:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.tables[0]  # or sht.tables['TableName']
+    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> sheet.tables[0]  # or sheet.tables['TableName']
     <Table 'Table 1' in Sheet1>
     ```
 
@@ -4069,8 +4069,8 @@ class Chart:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.charts[0]  # or sht.charts['ChartName']
+    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> sheet.charts[0]  # or sheet.charts['ChartName']
     <Chart 'Chart 1' in Sheet1>
     ```
     """
@@ -4507,12 +4507,12 @@ class Charts(Collection[Chart]):
         Examples:
             ```pycon
             >>> import xlwings as xw
-            >>> sht = xw.Book().sheets[0]
-            >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
-            >>> chart = sht.charts.add(
-            ...     source=sht.range('A1').expand(),
+            >>> sheet = xw.Book().sheets[0]
+            >>> sheet.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
+            >>> chart = sheet.charts.add(
+            ...     source=sheet.range('A1').expand(),
             ...     chart_type='line',
-            ...     anchor=sht.range('D1'),
+            ...     anchor=sheet.range('D1'),
             ... )
             >>> chart.title = 'My chart'
             ```
@@ -4520,8 +4520,8 @@ class Charts(Collection[Chart]):
             The same in steps:
 
             ```pycon
-            >>> chart = sht.charts.add()
-            >>> chart.set_source_data(sht.range('A1').expand())
+            >>> chart = sheet.charts.add()
+            >>> chart.set_source_data(sheet.range('A1').expand())
             >>> chart.chart_type = 'line'
             >>> chart.name
             'Chart 1'
@@ -5178,8 +5178,8 @@ class Picture:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.pictures[0]  # or sht.charts['PictureName']
+    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> sheet.pictures[0]  # or sheet.charts['PictureName']
     <Picture 'Picture 1' in Sheet1>
     ```
 
@@ -5430,8 +5430,8 @@ class Pictures(Collection[Picture]):
 
             ```pycon
             >>> import xlwings as xw
-            >>> sht = xw.Book().sheets[0]
-            >>> sht.pictures.add(r'C:\\path\\to\\file.png')
+            >>> sheet = xw.Book().sheets[0]
+            >>> sheet.pictures.add(r'C:\\path\\to\\file.png')
             <Picture 'Picture 1' in Sheet1>
             ```
 
@@ -5441,7 +5441,7 @@ class Pictures(Collection[Picture]):
             >>> import matplotlib.pyplot as plt
             >>> fig = plt.figure()
             >>> plt.plot([1, 2, 3, 4, 5])
-            >>> sht.pictures.add(fig, name='MyPlot', update=True)
+            >>> sheet.pictures.add(fig, name='MyPlot', update=True)
             <Picture 'MyPlot' in Sheet1>
             ```
         """
@@ -5665,8 +5665,8 @@ class Name:
 
     ```pycon
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.names[0]  # or sht.names['MyName']
+    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> sheet.names[0]  # or sheet.names['MyName']
     <Name 'MyName': =Sheet1!$A$3>
     ```
 
