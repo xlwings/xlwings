@@ -2345,6 +2345,11 @@ class Chart(base_classes.Chart):
         else:
             self.xl.SetSourceData(rng.xl, plot_by_s2i[plot_by])
 
+    def set_x_axis_values(self, rng):
+        series_collection = self.xl.SeriesCollection()
+        for index in range(1, series_collection.Count + 1):
+            series_collection(index).XValues = rng.xl
+
     @property
     def chart_type(self):
         return chart_types_i2s[self.xl.ChartType]
@@ -2512,6 +2517,7 @@ class Charts(Collection, base_classes.Charts):
         plot_by=None,
         name=None,
         anchor=None,
+        style=227,
     ):
         if anchor:
             top, left = anchor.top, anchor.left
@@ -2521,6 +2527,8 @@ class Charts(Collection, base_classes.Charts):
             chart.set_source_data(source, plot_by)
         if chart_type is not None:
             chart.chart_type = chart_type
+        if style is not None:
+            chart.style = style
         if name is not None:
             chart.name = name
         return chart

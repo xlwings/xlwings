@@ -2934,7 +2934,12 @@ class Chart(base_classes.Chart):
 
     @style.setter
     def style(self, value):
-        self._set_format("style", value, "setChartStyle", [value])
+        if self._pending is not None:
+            # The style rides on addChart so creation doesn't need a redundant
+            # formatting action. A later assignment replaces the default.
+            self.api["style"] = value
+        else:
+            self._set_format("style", value, "setChartStyle", [value])
 
     def set_source_data(self, rng, plot_by=None):
         if self._pending is not None:
@@ -2976,6 +2981,7 @@ class Chart(base_classes.Chart):
                     pending["height"],
                     None if plot_by is None else _PLOT_BY_PY2JS[plot_by],
                     anchor,
+                    pending.get("style"),
                 ],
             )
             for func, args in self._pending_actions:
@@ -3000,6 +3006,15 @@ class Chart(base_classes.Chart):
                     rng.address,
                     _PLOT_BY_PY2JS[plot_by],
                 ],
+            )
+
+    def set_x_axis_values(self, rng):
+        args = [rng.sheet.name, rng.address]
+        if self._pending is not None:
+            self._pending_actions.append(("setChartXAxisValues", args))
+        else:
+            self.append_json_action(
+                func="setChartXAxisValues", args=[self.index - 1, *args]
             )
 
     def _set_position(self, attribute, value):
@@ -3142,6 +3157,7 @@ class Charts(Collection, base_classes.Charts):
         plot_by=None,
         name=None,
         anchor=None,
+        style=227,
     ):
         # Office.js' charts.add() needs a type and source data, which xlwings
         # doesn't necessarily have yet at this point -- so hold the geometry and
@@ -3164,6 +3180,8 @@ class Charts(Collection, base_classes.Charts):
             "width": width,
             "height": height,
         }
+        if style is not None:
+            pending["style"] = style
         if anchor is not None:
             pending["anchor"] = anchor.address
         chart = Chart(self.parent, len(self.api) + 1, pending=pending)

@@ -1524,6 +1524,9 @@ class Chart:
     def set_source_data(self, rng, plot_by=None):
         raise NotImplementedError()
 
+    def set_x_axis_values(self, rng):
+        raise NotImplementedError()
+
     @property
     def chart_type(self):
         raise NotImplementedError()
@@ -1642,6 +1645,7 @@ class Charts:
         plot_by=None,
         name=None,
         anchor=None,
+        style=227,
     ):
         raise NotImplementedError()
 
