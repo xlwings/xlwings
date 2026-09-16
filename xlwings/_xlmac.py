@@ -1996,6 +1996,10 @@ class Chart(base_classes.Chart):
         else:
             self.xl.set_source_data(source=rng.xl, plot_by=plot_by_s2k[plot_by])
 
+    def set_x_axis_values(self, rng):
+        for series in _mac_list(self.xl.series_collection):
+            series.xvalues.set(rng.xl)
+
     @property
     def name(self):
         if self.xl_obj is not None:

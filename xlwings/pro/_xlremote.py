@@ -3002,6 +3002,15 @@ class Chart(base_classes.Chart):
                 ],
             )
 
+    def set_x_axis_values(self, rng):
+        args = [rng.sheet.name, rng.address]
+        if self._pending is not None:
+            self._pending_actions.append(("setChartXAxisValues", args))
+        else:
+            self.append_json_action(
+                func="setChartXAxisValues", args=[self.index - 1, *args]
+            )
+
     def _set_position(self, attribute, value):
         self.api[attribute] = value
         if self._pending is None:

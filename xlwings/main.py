@@ -4375,6 +4375,28 @@ class Chart:
             source.impl, None if plot_by is None else _chart_plot_by(plot_by)
         )
 
+    def set_x_axis_values(self, source: Range) -> None:
+        """Sets the x-axis values (category labels) for every series in the chart.
+
+        This is useful when Excel would otherwise interpret a numeric category
+        column as another data series. Create the chart from the value columns,
+        then assign the category column separately:
+
+        ```python
+        chart = sheet.charts.add(
+            source=sheet["B1:B11"],
+            chart_type="line",
+            plot_by="columns",
+        )
+        chart.set_x_axis_values(sheet["A2:A11"])
+        ```
+
+        Args:
+            source: Range containing one x-axis value or category label per data
+                point. Do not include the header cell.
+        """
+        self.impl.set_x_axis_values(source.impl)
+
     @property
     def left(self) -> float:
         """Returns or sets the number of points that represent the horizontal position

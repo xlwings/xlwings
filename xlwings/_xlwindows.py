@@ -2345,6 +2345,11 @@ class Chart(base_classes.Chart):
         else:
             self.xl.SetSourceData(rng.xl, plot_by_s2i[plot_by])
 
+    def set_x_axis_values(self, rng):
+        series_collection = self.xl.SeriesCollection()
+        for index in range(1, series_collection.Count + 1):
+            series_collection(index).XValues = rng.xl
+
     @property
     def chart_type(self):
         return chart_types_i2s[self.xl.ChartType]

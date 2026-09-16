@@ -881,6 +881,24 @@ def test_chart_set_source_data_on_existing_chart():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_set_x_axis_values():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    chart = sheet.charts.add(source=sheet["B1:B2"], chart_type="line")
+    chart.set_x_axis_values(sheet["A2:A2"])
+
+    assert [action["func"] for action in book.json()["actions"][-2:]] == [
+        "addChart",
+        "setChartXAxisValues",
+    ]
+    assert book.json()["actions"][-1]["args"] == [
+        len(sheet.charts) - 1,
+        sheet.name,
+        "$A$2",
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_delete():
     book = xw.Book(json=json.loads(json.dumps(data)))
     sheet = book.sheets[0]
