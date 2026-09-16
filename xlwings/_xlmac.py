@@ -2197,6 +2197,7 @@ class Charts(Collection, base_classes.Charts):
         plot_by=None,
         name=None,
         anchor=None,
+        style=227,
     ):
         if anchor:
             top, left = anchor.top, anchor.left
@@ -2220,6 +2221,8 @@ class Charts(Collection, base_classes.Charts):
             chart.set_source_data(source, plot_by)
         if chart_type is not None:
             chart.chart_type = chart_type
+        if style is not None:
+            chart.style = style
         if name is not None:
             chart.name = name
         return chart

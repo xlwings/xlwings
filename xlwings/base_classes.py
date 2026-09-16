@@ -1645,6 +1645,7 @@ class Charts:
         plot_by=None,
         name=None,
         anchor=None,
+        style=227,
     ):
         raise NotImplementedError()
 

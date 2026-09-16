@@ -4137,13 +4137,13 @@ def _chart_legend_position(value: Any) -> str:
 
 def _chart_style(value: Any) -> int:
     # bool is an Integral subclass, but True/False as a chart style is a bug
-    if (
-        isinstance(value, numbers.Integral)
-        and not isinstance(value, bool)
-        and 1 <= int(value) <= 48
-    ):
-        return int(value)
-    raise ValueError(f"Invalid style {value!r}. Must be an integer between 1 and 48.")
+    if isinstance(value, numbers.Integral) and not isinstance(value, bool):
+        value = int(value)
+        if 1 <= value <= 48 or 201 <= value <= 248:
+            return value
+    raise ValueError(
+        f"Invalid style {value!r}. Must be an integer from 1 to 48 or 201 to 248."
+    )
 
 
 class Chart:
@@ -4346,7 +4346,12 @@ class Chart:
 
     @property
     def style(self) -> int:
-        """Returns or sets the built-in chart style, an integer between 1 and 48.
+        """Returns or sets the built-in chart style.
+
+        Valid values are the legacy styles from 1 to 48 and the modern styles
+        from 201 to 248. The style numbers shown by Excel's chart gallery can
+        differ from the values exposed by the object model; use the value
+        produced by Excel's macro recorder to reproduce a gallery style.
 
         On xlwings Lite and xlwings Server, reading it only works after it has
         been set in the same script.
@@ -4586,6 +4591,7 @@ class Charts(Collection[Chart]):
         plot_by: ChartPlotBy | None = None,
         name: str | None = None,
         anchor: Range | None = None,
+        style: int | None = 227,
     ) -> Chart:
         """Creates a new chart on the specified sheet.
 
@@ -4609,6 +4615,9 @@ class Charts(Collection[Chart]):
             anchor: The xlwings Range object of where you want to insert the chart.
                 If you use `anchor`, you must not provide values for `top`/`left`.
                 *New in version 0.37.3.*
+            style: Built-in chart style. Defaults to the modern Excel style 227.
+                Use `None` to retain the host application's native creation
+                default. See {attr}`Chart.style <xlwings.Chart.style>`.
 
         Examples:
             ```pycon
@@ -4640,6 +4649,8 @@ class Charts(Collection[Chart]):
                 )
         if chart_type is not None:
             chart_type = _chart_type(chart_type)
+        if style is not None:
+            style = _chart_style(style)
         if plot_by is not None:
             if source is None:
                 raise ValueError("'plot_by' requires 'source'.")
@@ -4659,6 +4670,7 @@ class Charts(Collection[Chart]):
             plot_by=plot_by,
             name=name,
             anchor=anchor,
+            style=style,
         )
 
         return Chart(impl=impl)

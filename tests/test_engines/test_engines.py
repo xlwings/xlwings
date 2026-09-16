@@ -847,6 +847,8 @@ def test_charts_add_defers_until_source_data():
     assert action["func"] == "addChart"
     assert action["args"][1] == "ColumnClustered"
     assert action["args"][3] == "$A$1:$B$2"
+    assert action["args"][10] == 227
+    assert chart.style == 227
 
     # ...and the documented follow-up calls work on the created chart
     chart.chart_type = "line"
@@ -1001,7 +1003,9 @@ def test_chart_format_getters_raise_before_write():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-@pytest.mark.parametrize("value", [0, 49, 12.9, 12.0, True, False, "12", None])
+@pytest.mark.parametrize(
+    "value", [0, 49, 200, 249, 12.9, 12.0, True, False, "12", None]
+)
 def test_chart_style_invalid(value):
     book = _fresh_book()
     with pytest.raises(ValueError, match="Invalid style"):
@@ -1015,10 +1019,13 @@ def test_chart_style_bounds_and_normalization():
     chart = book.sheets[0].charts[0]
     chart.style = 1
     chart.style = 48
-    assert _actions(book)[-1]["args"] == [0, 48]
+    chart.style = 201
+    chart.style = 227
+    chart.style = 248
+    assert _actions(book)[-1]["args"] == [0, 248]
     if np is not None:
-        chart.style = np.int64(7)
-        assert _actions(book)[-1]["args"] == [0, 7]
+        chart.style = np.int64(227)
+        assert _actions(book)[-1]["args"] == [0, 227]
         assert isinstance(_actions(book)[-1]["args"][1], int)
 
 
@@ -1117,6 +1124,7 @@ def test_charts_add_with_source_creates_immediately():
     assert args[4:8] == [0, 0, 355, 211]
     assert args[8] == "Rows"
     assert args[9] is None
+    assert args[10] == 227
     assert chart.name == "Mine"
     assert chart.chart_type == "line"
     assert chart.plot_by == "rows"
@@ -1174,7 +1182,7 @@ def test_charts_deferred_creation_rechecks_name_and_can_retry(other_has_source):
     add_action, title_action = _actions(book)[len(actions_before) :]
     assert add_action["func"] == "addChart"
     assert add_action["args"][0] == "Mine2"
-    assert add_action["args"][8:] == ["Rows", "$D$4"]
+    assert add_action["args"][8:] == ["Rows", "$D$4", 227]
     assert title_action["func"] == "setChartTitle"
     assert title_action["args"] == [count_before, "Pending title"]
 
@@ -1191,6 +1199,24 @@ def test_charts_add_invalid_chart_type():
     book = _fresh_book()
     with pytest.raises(ValueError, match="Invalid chart type"):
         book.sheets[0].charts.add(chart_type="nonsense")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_style_override_and_native_default():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+
+    chart = sheet.charts.add(source=sheet["A1:B2"], style=201)
+    assert _actions(book)[-1]["args"][10] == 201
+    assert chart.style == 201
+
+    chart = sheet.charts.add(source=sheet["A1:B2"], style=None)
+    assert _actions(book)[-1]["args"][10] is None
+    with pytest.raises(NotImplementedError, match="isn't supported"):
+        chart.style
+
+    with pytest.raises(ValueError, match="Invalid style"):
+        sheet.charts.add(style=49)
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
@@ -1251,13 +1277,13 @@ def test_chart_pending_formatting_flushes_in_order():
         ("setChartTitle", [ix, None]),
         ("setChartLegend", [ix, "position", "Top"]),
         ("setChartLegend", [ix, "visible", False]),
-        ("setChartStyle", [ix, 3]),
         ("setChartTitle", [ix, "Final"]),
     ]
+    assert _actions(book)[0]["args"][10] == 3
     # the buffer is cleared: nothing is replayed twice
     chart.style = 4
     assert _actions(book)[-1]["args"] == [ix, 4]
-    assert len(_actions(book)) == 8
+    assert len(_actions(book)) == 7
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
