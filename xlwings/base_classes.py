@@ -520,6 +520,9 @@ class Sheet:
     def copy(self, before, after):
         raise NotImplementedError()
 
+    def move(self, before, after):
+        raise NotImplementedError()
+
     @property
     def charts(self):
         raise NotImplementedError()

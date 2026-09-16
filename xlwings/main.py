@@ -1760,6 +1760,40 @@ class Sheet:
             copied_sheet.name = name
         return copied_sheet
 
+    def move(
+        self,
+        before: Sheet | None = None,
+        after: Sheet | None = None,
+    ) -> None:
+        """Move a sheet within its current Book.
+
+        Provide exactly one of ``before`` or ``after``. Both the sheet being moved
+        and the target sheet must belong to the same Book.
+
+        Args:
+            before: The sheet before which you want to place this sheet.
+            after: The sheet after which you want to place this sheet.
+
+        Examples:
+            ```python
+            book.sheets["Sheet3"].move(after=book.sheets["Sheet1"])
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        if (before is None) == (after is None):
+            raise ValueError("Provide exactly one of 'before' or 'after'.")
+        target = before if before is not None else after
+        if target.book != self.book:
+            raise ValueError("Sheets must belong to the same book.")
+        if target == self:
+            raise ValueError("A sheet can't be moved relative to itself.")
+        self.impl.move(
+            before=before.impl if before is not None else None,
+            after=after.impl if after is not None else None,
+        )
+
     def render_template(self, **data: Any) -> None:
         """This method requires xlwings `PRO`.
 

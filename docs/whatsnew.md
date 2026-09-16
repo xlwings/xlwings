@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.5 (TBD)
+
+- Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
+
 ## v0.37.4 (Sep 16, 2026)
 
 - Added `Chart.set_x_axis_values()` and create new charts with Excel's default chart type.

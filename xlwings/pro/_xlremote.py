@@ -1175,6 +1175,49 @@ class Sheet(base_classes.Sheet):
         sheets_api.insert(new_ix, api)
         self.append_json_action(func="copySheet", args=[position, target_ix, name])
 
+    def move(self, before=None, after=None):
+        target = before if before is not None else after
+        if target.book is not self.book:
+            raise ValueError("Sheets must belong to the same book.")
+
+        source_ix = self.index - 1
+        target_ix = target.index - 1
+        if source_ix == target_ix:
+            raise ValueError("A sheet can't be moved relative to itself.")
+        if before is not None:
+            new_ix = target_ix - 1 if source_ix < target_ix else target_ix
+        else:
+            new_ix = target_ix if source_ix < target_ix else target_ix + 1
+
+        # Queue the action against the source's position before changing the local
+        # snapshot. Office.js Worksheet.position is zero-based.
+        self.book.append_json_action(
+            func="setSheetPosition",
+            args=[new_ix],
+            sheet_position=source_ix,
+        )
+
+        sheets_api = self.book.api["sheets"]
+        moved_sheet = sheets_api.pop(source_ix)
+        sheets_api.insert(new_ix, moved_sheet)
+
+        def moved_index(index):
+            if index == source_ix:
+                return new_ix
+            if source_ix < new_ix and source_ix < index <= new_ix:
+                return index - 1
+            if new_ix < source_ix and new_ix <= index < source_ix:
+                return index + 1
+            return index
+
+        book_api = self.book.api["book"]
+        book_api["active_sheet_index"] = moved_index(book_api["active_sheet_index"])
+        for name in self.book.api["names"]:
+            for key in ("sheet_index", "scope_sheet_index"):
+                if name.get(key) is not None:
+                    name[key] = moved_index(name[key])
+        self._index = new_ix + 1
+
     def to_html(self, path):
         raise NotImplementedError(
             "Sheet.to_html() is not supported on this engine, which has no HTML export."
