@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.4 (Sep 16, 2026)
+
+- Added `Chart.set_x_axis_values()` and create new charts with Excel's default chart type.
+
 ## v0.37.3 (Sep 14, 2026)
 
 - Added support for PivotTables, see {class}`PivotTable <xlwings.PivotTable>`.
