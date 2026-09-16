@@ -2708,6 +2708,69 @@ def test_sheet_copy_to_other_book_not_supported():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_move_before_updates_local_snapshot_and_metadata():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    moved = book.sheets[2]
+    name_positions_before = [
+        (name.get("sheet_index"), name.get("scope_sheet_index"))
+        for name in book.impl.api["names"]
+    ]
+
+    moved.move(before=book.sheets[0])
+
+    assert [sheet.name for sheet in book.sheets] == ["Sheet3", "Sheet 1", "Sheet2"]
+    assert moved.index == 1
+    assert book.sheets.active.name == "Sheet 1"
+    remapped = {0: 1, 1: 2, 2: 0}
+    assert [
+        (name.get("sheet_index"), name.get("scope_sheet_index"))
+        for name in book.impl.api["names"]
+    ] == [
+        (
+            remapped.get(sheet_index, sheet_index),
+            remapped.get(scope_sheet_index, scope_sheet_index),
+        )
+        for sheet_index, scope_sheet_index in name_positions_before
+    ]
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setSheetPosition"
+    assert action["sheet_position"] == 2
+    assert action["args"] == [0]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_move_after_uses_final_zero_based_position():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    moved = book.sheets[0]
+
+    moved.move(after=book.sheets[2])
+
+    assert [sheet.name for sheet in book.sheets] == ["Sheet2", "Sheet3", "Sheet 1"]
+    assert moved.index == 3
+    action = book.json()["actions"][-1]
+    assert action["sheet_position"] == 0
+    assert action["args"] == [2]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_move_rejects_invalid_targets():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    other_data = json.loads(json.dumps(data))
+    other_data["book"]["name"] = "other.xlsm"
+    other = xw.Book(json=other_data)
+    sheet = book.sheets[0]
+
+    with pytest.raises(ValueError, match="exactly one"):
+        sheet.move()
+    with pytest.raises(ValueError, match="exactly one"):
+        sheet.move(before=book.sheets[1], after=book.sheets[2])
+    with pytest.raises(ValueError, match="relative to itself"):
+        sheet.move(after=sheet)
+    with pytest.raises(ValueError, match="same book"):
+        sheet.move(after=other.sheets[0])
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_book_save():
     book = xw.Book(json=json.loads(json.dumps(data)))
     book.save()

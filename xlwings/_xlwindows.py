@@ -1093,6 +1093,13 @@ class Sheet(base_classes.Sheet):
             after = after.xl
         self.xl.Copy(Before=before, After=after)
 
+    def move(self, before, after):
+        if before:
+            before = before.xl
+        if after:
+            after = after.xl
+        self.xl.Move(Before=before, After=after)
+
     @property
     def charts(self):
         return Charts(xl=self.xl.ChartObjects())

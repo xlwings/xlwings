@@ -775,6 +775,10 @@ class Sheet(base_classes.Sheet):
             after = after.xl
         self.xl.copy_worksheet(before_=before, after_=after)
 
+    def move(self, before, after):
+        destination = before.xl if before else after.xl.after
+        self.xl.move(to=destination)
+
     @property
     def charts(self):
         return Charts(self)
