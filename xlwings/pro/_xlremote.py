@@ -236,6 +236,14 @@ _VERTICAL_ALIGNMENT_PY2JS = {
 }
 _VERTICAL_ALIGNMENT_JS2PY = {v: k for k, v in _VERTICAL_ALIGNMENT_PY2JS.items()}
 
+_CONDITIONAL_FORMAT_TYPE_JS2PY = {
+    "CellValue": "cell_value",
+    "Custom": "custom",
+    "ColorScale": "color_scale",
+    "DataBar": "data_bar",
+    "IconSet": "icon_set",
+}
+
 
 def _mark_sheet_values_loaded(sheet_api):
     sheet_api[_SHEET_VALUES_LOADED_KEY] = True
@@ -1718,6 +1726,12 @@ class Range(base_classes.Range):
         )
 
     @property
+    def conditional_formats(self):
+        # The collection itself is useful without a read because clear() is a
+        # queued mutation. Dynamic inspection requires the async getter below.
+        return ConditionalFormats(self)
+
+    @property
     def note(self):
         # The payload carries the sheet's notes keyed by address, so this
         # knows whether one exists without a fetch -- as the sync property
@@ -1760,6 +1774,10 @@ class Range(base_classes.Range):
             if table["name"] == name:
                 return Table(self.sheet, ix + 1)
         raise KeyError(name)
+
+    async def get_conditional_formats(self):
+        entries = await self._get_range_data("conditional_formats")
+        return ConditionalFormats(self, entries)
 
     async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
@@ -3672,6 +3690,90 @@ class Characters(base_classes.Characters):
             length = None if item.stop is None else item.stop - start
             return Characters(self.parent, start=start, length=length)
         return Characters(self.parent, start=item, length=1)
+
+
+class ConditionalFormat(base_classes.ConditionalFormat):
+    def __init__(self, parent, entry):
+        self.parent = parent
+        self._entry = entry
+
+    @property
+    def api(self):
+        return self._entry
+
+    @property
+    def type(self):
+        return _CONDITIONAL_FORMAT_TYPE_JS2PY.get(self._entry.get("type"), "unknown")
+
+    @property
+    def stop_if_true(self):
+        if self.type in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return self._entry.get("stop_if_true")
+
+    def delete(self):
+        try:
+            position = self.parent.api.index(self._entry)
+        except (AttributeError, ValueError):
+            raise XlwingsError(
+                "This conditional-format rule is no longer in its collection."
+            ) from None
+        self.parent.range.append_json_action(
+            func="deleteConditionalFormat",
+            args=[
+                position,
+                self._entry.get("type"),
+                self._entry.get("stop_if_true"),
+            ],
+        )
+        # Keep this loaded snapshot aligned with the actions already queued so
+        # deleting several objects from it continues to target the right index.
+        self.parent.api.remove(self._entry)
+
+
+class ConditionalFormats(base_classes.ConditionalFormats):
+    def __init__(self, range, entries=None):
+        self.range = range
+        self._api = entries
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self.range
+
+    def _loaded(self):
+        if self._api is None:
+            raise NotImplementedError(
+                "Inspecting conditional formats synchronously isn't supported on "
+                "this engine. Use 'await myrange.get_conditional_formats()' to "
+                "fetch them on demand."
+            )
+        return self._api
+
+    def __call__(self, key):
+        entries = self._loaded()
+        if not isinstance(key, numbers.Number) or key < 1 or key > len(entries):
+            raise KeyError(key)
+        return ConditionalFormat(self, entries[key - 1])
+
+    def __len__(self):
+        return len(self._loaded())
+
+    def __iter__(self):
+        # Iterate over a copy so deleting the current rule doesn't skip the next.
+        for entry in list(self._loaded()):
+            yield ConditionalFormat(self, entry)
+
+    def __contains__(self, key):
+        return isinstance(key, numbers.Number) and 1 <= key <= len(self._loaded())
+
+    def clear(self):
+        self.range.append_json_action(func="clearConditionalFormats", args=[])
+        if self._api is not None:
+            self._api.clear()
 
 
 class Note(base_classes.Note):

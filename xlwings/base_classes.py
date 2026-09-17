@@ -47,6 +47,19 @@ BorderLineStyle = Literal[
 ]
 BorderWeight = Literal["hairline", "thin", "medium", "thick"]
 
+# Conditional-format types supported by the first public rule model. Other
+# native rule types remain visible as ``unknown`` so callers can inspect and
+# delete them without the engines silently dropping them from the collection.
+ConditionalFormatType = Literal[
+    "cell_value",
+    "custom",
+    "color_scale",
+    "data_bar",
+    "icon_set",
+    "unknown",
+]
+CONDITIONAL_FORMAT_TYPES: tuple[str, ...] = get_args(ConditionalFormatType)
+
 # Border side names in canonical order. main.Borders validates and expands the
 # user-facing selectors into these before calling an engine, so engines only
 # ever see the canonical names. The first six are the grid sides that the
@@ -640,6 +653,11 @@ class Range:
     async def get_color(self):
         raise NotImplementedError("Range.get_color() is only supported in xlwings Lite")
 
+    async def get_conditional_formats(self):
+        raise NotImplementedError(
+            "get_conditional_formats() is only supported in xlwings Lite"
+        )
+
     def adjust_indent(self, amount):
         raise NotImplementedError()
 
@@ -826,6 +844,10 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    @property
+    def conditional_formats(self):
         raise NotImplementedError()
 
     @property
@@ -1377,6 +1399,28 @@ class Note:
         raise NotImplementedError("Note.get_text() is only supported in xlwings Lite")
 
     def delete(self):
+        raise NotImplementedError()
+
+
+class ConditionalFormat:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def type(self):
+        raise NotImplementedError()
+
+    @property
+    def stop_if_true(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class ConditionalFormats(Collection):
+    def clear(self):
         raise NotImplementedError()
 
 

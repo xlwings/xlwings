@@ -869,6 +869,15 @@ class Sheet(base_classes.Sheet):
         return PageSetup(self, self.xl.page_setup_object)
 
 
+_CONDITIONAL_FORMAT_TYPE_FROM_KW = {
+    kw.cell_value: "cell_value",
+    kw.expression: "custom",
+    kw.color_scale: "color_scale",
+    kw.databar: "data_bar",
+    kw.icon_sets: "icon_set",
+}
+
+
 class Range(base_classes.Range):
     def __init__(self, sheet, address):
         self.sheet = sheet
@@ -1324,6 +1333,10 @@ class Range(base_classes.Range):
             )
         except appscript.reference.CommandError:
             return None
+
+    @property
+    def conditional_formats(self):
+        return ConditionalFormats(self)
 
     def copy_picture(self, appearance, format):
         _appearance = {"screen": kw.screen, "printer": kw.printer}
@@ -1802,6 +1815,40 @@ class Collection(base_classes.Collection):
 
     def __contains__(self, key):
         return self.xl[key].exists()
+
+
+class ConditionalFormat(base_classes.ConditionalFormat):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.format_conditions[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def type(self):
+        return _CONDITIONAL_FORMAT_TYPE_FROM_KW.get(
+            self.xl.format_condition_type.get(), "unknown"
+        )
+
+    @property
+    def stop_if_true(self):
+        if self.type in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return self.xl.stop_if_true.get()
+
+    def delete(self):
+        self.xl.delete()
+
+
+class ConditionalFormats(Collection, base_classes.ConditionalFormats):
+    _attr = "format_conditions"
+    _kw = kw.format_condition
+    _wrap = ConditionalFormat
+
+    def clear(self):
+        self.xl.delete()
 
 
 class Table(base_classes.Table):

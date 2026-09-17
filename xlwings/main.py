@@ -43,6 +43,7 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    CONDITIONAL_FORMAT_TYPES,
     HORIZONTAL_ALIGNMENTS,
     PIVOT_FUNCTIONS,
     PIVOT_LAYOUTS,
@@ -53,6 +54,7 @@ from .base_classes import (
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    ConditionalFormatType,
     HorizontalAlignment,
     PivotFunction,
     PivotLayout,
@@ -2259,6 +2261,19 @@ class Range:
         return Borders(impl=self.impl.borders)
 
     @property
+    def conditional_formats(self) -> ConditionalFormats:
+        """Returns the conditional-format rules that overlap this range.
+
+        Reading the collection synchronously requires locally installed Excel.
+        In xlwings Lite, use :meth:`get_conditional_formats` for inspection;
+        ``conditional_formats.clear()`` remains available as a queued mutation.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ConditionalFormats(impl=self.impl.conditional_formats)
+
+    @property
     def characters(self) -> Characters:
         return Characters(impl=self.impl.characters)
 
@@ -2621,6 +2636,17 @@ class Range:
         Requires xlwings Lite.
         """
         return await self._impl.get_color()
+
+    async def get_conditional_formats(self) -> ConditionalFormats:
+        """Fetch the ordered conditional-format rules on demand.
+
+        Rules are returned from highest to lowest evaluation priority. Requires
+        xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ConditionalFormats(impl=await self._impl.get_conditional_formats())
 
     async def get_wrap_text(self) -> bool | None:
         """Fetch the wrap text setting on demand.
@@ -3715,6 +3741,85 @@ class PageSetup:
     @print_area.setter
     def print_area(self, value: str | None) -> None:
         self.impl.print_area = value
+
+
+class ConditionalFormat:
+    """Represents one conditional-format rule in a range collection.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def type(self) -> ConditionalFormatType:
+        """The normalized rule type.
+
+        Rule types outside the initially supported cell-value, custom-formula,
+        color-scale, data-bar and icon-set families are reported as
+        ``"unknown"`` rather than omitted.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        rule_type = self.impl.type
+        if rule_type not in CONDITIONAL_FORMAT_TYPES:
+            return "unknown"
+        return cast(ConditionalFormatType, rule_type)
+
+    @property
+    def stop_if_true(self) -> bool | None:
+        """Whether lower-priority rules stop when this rule matches.
+
+        ``None`` is returned for color scales, data bars and icon sets, which
+        don't have stop-if-true behavior.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return self.impl.stop_if_true
+
+    def delete(self) -> None:
+        """Delete this complete rule from all ranges to which it applies.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        self.impl.delete()
+
+    def __repr__(self) -> str:
+        return f"<ConditionalFormat type={self.type!r}>"
+
+
+class ConditionalFormats(Collection[ConditionalFormat]):
+    """The ordered conditional-format rules overlapping a range.
+
+    In xlwings Lite, fetch a live snapshot before inspecting the collection:
+
+    ```python
+    formats = await sheet["A1:D10"].get_conditional_formats()
+    for rule in formats:
+        print(rule.type, rule.stop_if_true)
+    formats[0].delete()
+    ```
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    _wrap = ConditionalFormat
+
+    def clear(self) -> None:
+        """Clear all conditional formats active on the represented range.
+
+        Rules that also apply outside the range remain active there.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        self.impl.clear()
 
 
 class Note:

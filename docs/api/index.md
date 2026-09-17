@@ -26,6 +26,8 @@ characters
 chart
 chart_legend
 charts
+conditional_format
+conditional_formats
 font
 name
 names

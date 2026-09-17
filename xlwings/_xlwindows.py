@@ -1208,6 +1208,15 @@ class Sheet(base_classes.Sheet):
         )
 
 
+_CONDITIONAL_FORMAT_TYPE_FROM_XL = {
+    constants.FormatConditionType.xlCellValue: "cell_value",
+    constants.FormatConditionType.xlExpression: "custom",
+    constants.FormatConditionType.xlColorScale: "color_scale",
+    constants.FormatConditionType.xlDatabar: "data_bar",
+    constants.FormatConditionType.xlIconSets: "icon_set",
+}
+
+
 class Range(base_classes.Range):
     def __init__(self, xl):
         if isinstance(xl, tuple):
@@ -1623,6 +1632,10 @@ class Range(base_classes.Range):
     @property
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
+
+    @property
+    def conditional_formats(self):
+        return ConditionalFormats(xl=self.xl.FormatConditions)
 
     def copy_picture(self, appearance, format):
         _appearance = {"screen": 1, "printer": 2}
@@ -2165,6 +2178,35 @@ class Note(base_classes.Note):
         self.xl.Text(value)
 
     def delete(self):
+        self.xl.Delete()
+
+
+class ConditionalFormat(base_classes.ConditionalFormat):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def type(self):
+        return _CONDITIONAL_FORMAT_TYPE_FROM_XL.get(self.xl.Type, "unknown")
+
+    @property
+    def stop_if_true(self):
+        if self.type in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return bool(self.xl.StopIfTrue)
+
+    def delete(self):
+        self.xl.Delete()
+
+
+class ConditionalFormats(Collection, base_classes.ConditionalFormats):
+    _wrap = ConditionalFormat
+
+    def clear(self):
         self.xl.Delete()
 
 
