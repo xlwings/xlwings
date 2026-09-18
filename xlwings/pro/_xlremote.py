@@ -3851,20 +3851,42 @@ class ConditionalFormat(base_classes.ConditionalFormat):
             return None
         return tuple(self._entry.get("thresholds", ()))
 
+    def _snapshot(self):
+        keys = (
+            "type",
+            "stop_if_true",
+            "operator",
+            "formula1",
+            "formula2",
+            "formula",
+            "fill_color",
+            "font_color",
+            "font_bold",
+            "font_italic",
+            "colors",
+            "bar_color",
+            "gradient",
+            "show_value",
+            "icon_set",
+            "reverse_order",
+            "threshold_types",
+            "thresholds",
+        )
+        snapshot = {}
+        for key in keys:
+            if key not in self._entry:
+                continue
+            value = self._entry[key]
+            if isinstance(value, (list, tuple)):
+                value = list(value)
+            if key == "thresholds":
+                value = [None if item is None else str(item) for item in value]
+            snapshot[key] = value
+        return snapshot
+
     def set(self, changes):
         position = self.parent.position(self._entry)
-        expected = {
-            key: self._entry.get(key)
-            for key in (
-                "type",
-                "stop_if_true",
-                "operator",
-                "formula1",
-                "formula2",
-                "formula",
-            )
-            if key in self._entry
-        }
+        expected = self._snapshot()
         serialized = dict(changes)
         if "operator" in serialized:
             serialized["operator"] = _CONDITIONAL_FORMAT_OPERATOR_PY2JS[
@@ -3888,11 +3910,7 @@ class ConditionalFormat(base_classes.ConditionalFormat):
             ) from None
         self.parent.range.append_json_action(
             func="deleteConditionalFormat",
-            args=[
-                position,
-                self._entry.get("type"),
-                self._entry.get("stop_if_true"),
-            ],
+            args=[position, self._snapshot()],
         )
         # Keep this loaded snapshot aligned with the actions already queued so
         # deleting several objects from it continues to target the right index.

@@ -136,6 +136,8 @@ def test_multiple_deletes_keep_snapshot_positions_aligned():
         "deleteConditionalFormat",
     ]
     assert [action["args"][0] for action in actions] == [0, 0]
+    assert actions[0]["args"][1] == _entries()[0]
+    assert actions[1]["args"][1] == _entries()[1]
     assert [rule.type for rule in formats] == ["unknown"]
 
 
@@ -150,6 +152,32 @@ def test_deleted_rule_cannot_be_deleted_twice():
     rule.delete()
     with pytest.raises(XlwingsError, match="no longer in its collection"):
         rule.delete()
+
+
+def test_delete_queues_complete_normalized_visual_snapshot():
+    book = _book()
+    rng = book.sheets[0]["A1:A10"]
+    entry = {
+        "type": "DataBar",
+        "stop_if_true": None,
+        "bar_color": "#638ec6",
+        "gradient": True,
+        "show_value": True,
+        "threshold_types": ["Automatic", "Number"],
+        "thresholds": [None, 100],
+    }
+
+    async def fake(self, key, method=None):
+        return [entry]
+
+    with mock.patch.object(R.Range, "_get_range_data", fake):
+        formats = asyncio.run(rng.get_conditional_formats())
+    formats[0].delete()
+
+    assert book.impl.json()["actions"][-1]["args"] == [
+        0,
+        {**entry, "thresholds": [None, "100"]},
+    ]
 
 
 def test_clear_updates_a_loaded_snapshot():
@@ -251,6 +279,10 @@ def test_set_preserves_unspecified_cell_value_attributes():
         "operator": "LessThan",
         "formula1": "60",
         "formula2": None,
+        "fill_color": "#ffff00",
+        "font_color": None,
+        "font_bold": None,
+        "font_italic": True,
     }
     assert action["args"][2] == {"formula1": "70"}
     assert rule.operator == "less_than"
