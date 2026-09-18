@@ -3926,7 +3926,7 @@ class ConditionalFormat:
 
         Rule types outside the initially supported cell-value, custom-formula,
         color-scale, data-bar and icon-set families are reported as
-        ``"unknown"`` rather than omitted.
+        `"unknown"` rather than omitted.
         """
         rule_type = self.impl.type
         if rule_type not in CONDITIONAL_FORMAT_TYPES:
@@ -3937,54 +3937,54 @@ class ConditionalFormat:
     def stop_if_true(self) -> bool | None:
         """Whether lower-priority rules stop when this rule matches.
 
-        ``None`` is returned for color scales, data bars and icon sets, which
+        `None` is returned for color scales, data bars and icon sets, which
         don't have stop-if-true behavior.
         """
         return self.impl.stop_if_true
 
     @property
     def operator(self) -> ConditionalFormatOperator | None:
-        """The comparison operator for a cell-value rule, otherwise ``None``."""
+        """The comparison operator for a cell-value rule, otherwise `None`."""
         return self.impl.operator
 
     @property
     def formula1(self) -> str | None:
-        """The first operand for a cell-value rule, otherwise ``None``."""
+        """The first operand for a cell-value rule, otherwise `None`."""
         return self.impl.formula1
 
     @property
     def formula2(self) -> str | None:
-        """The second operand for a between/not-between rule, otherwise ``None``."""
+        """The second operand for a between/not-between rule, otherwise `None`."""
         return self.impl.formula2
 
     @property
     def formula(self) -> str | None:
-        """The formula for a custom-formula rule, otherwise ``None``."""
+        """The formula for a custom-formula rule, otherwise `None`."""
         return self.impl.formula
 
     @property
     def fill_color(self) -> tuple[int, int, int] | None:
-        """The rule's fill color as an RGB tuple, or ``None`` if unset."""
+        """The rule's fill color as an RGB tuple, or `None` if unset."""
         return self.impl.fill_color
 
     @property
     def font_color(self) -> tuple[int, int, int] | None:
-        """The rule's font color as an RGB tuple, or ``None`` if unset."""
+        """The rule's font color as an RGB tuple, or `None` if unset."""
         return self.impl.font_color
 
     @property
     def font_bold(self) -> bool | None:
-        """The rule's bold setting, or ``None`` if it doesn't set bold."""
+        """The rule's bold setting, or `None` if it doesn't set bold."""
         return self.impl.font_bold
 
     @property
     def font_italic(self) -> bool | None:
-        """The rule's italic setting, or ``None`` if it doesn't set italic."""
+        """The rule's italic setting, or `None` if it doesn't set italic."""
         return self.impl.font_italic
 
     @property
     def colors(self) -> tuple[tuple[int, int, int], ...] | None:
-        """The ordered colors of a color-scale rule, otherwise ``None``.
+        """The ordered colors of a color-scale rule, otherwise `None`.
 
         Colors run from the minimum criterion to the maximum criterion.
         """
@@ -3992,12 +3992,12 @@ class ConditionalFormat:
 
     @property
     def bar_color(self) -> tuple[int, int, int] | None:
-        """The positive fill color of a data-bar rule, otherwise ``None``."""
+        """The positive fill color of a data-bar rule, otherwise `None`."""
         return self.impl.bar_color
 
     @property
     def gradient(self) -> bool | None:
-        """Whether a data bar uses a gradient fill, otherwise ``None``."""
+        """Whether a data bar uses a gradient fill, otherwise `None`."""
         return self.impl.gradient
 
     @property
@@ -4007,17 +4007,17 @@ class ConditionalFormat:
 
     @property
     def icon_set(self) -> ConditionalFormatIconSet | None:
-        """The built-in style of an icon-set rule, otherwise ``None``."""
+        """The built-in style of an icon-set rule, otherwise `None`."""
         return self.impl.icon_set
 
     @property
     def reverse_order(self) -> bool | None:
-        """Whether an icon set's icon order is reversed, otherwise ``None``."""
+        """Whether an icon set's icon order is reversed, otherwise `None`."""
         return self.impl.reverse_order
 
     @property
     def threshold_types(self) -> tuple[ConditionalFormatCriterionType, ...] | None:
-        """The ordered criterion types for a visual rule, otherwise ``None``.
+        """The ordered criterion types for a visual rule, otherwise `None`.
 
         Color scales include all criteria, data bars include the lower and
         upper bounds, and icon sets include only the effective thresholds
@@ -4030,8 +4030,8 @@ class ConditionalFormat:
         """The values corresponding to
         {attr}`threshold_types <xlwings.ConditionalFormat.threshold_types>`.
 
-        Criteria such as ``"automatic"``, ``"lowest_value"`` and
-        ``"highest_value"`` have a value of ``None``.
+        Criteria such as `"automatic"`, `"lowest_value"` and
+        `"highest_value"` have a value of `None`.
         """
         return self.impl.thresholds
 
@@ -4051,8 +4051,8 @@ class ConditionalFormat:
         """Change selected attributes of this rule in place.
 
         Omitted attributes remain unchanged. Cell-value rules accept
-        ``operator``, ``formula1`` and ``formula2``; custom-formula rules accept
-        ``formula``. Formatting and ``stop_if_true`` apply to either family.
+        `operator`, `formula1` and `formula2`; custom-formula rules accept
+        `formula`. Formatting and `stop_if_true` apply to either family.
         Other rule types can't be edited by this initial API.
 
         Examples:
@@ -4153,7 +4153,7 @@ class ConditionalFormats(Collection[ConditionalFormat]):
     ) -> ConditionalFormat:
         """Add a cell-value rule.
 
-        ``formula2`` is required for ``"between"`` and ``"not_between"`` and
+        `formula2` is required for `"between"` and `"not_between"` and
         rejected for the other operators. Colors accept the same RGB tuple,
         hex string, or Excel color integer forms as other xlwings color APIs.
 
@@ -4228,12 +4228,12 @@ class ConditionalFormats(Collection[ConditionalFormat]):
     ) -> ConditionalFormat:
         """Add a two- or three-color scale.
 
-        ``colors`` contains two or three colors ordered from the minimum to
-        the maximum. Without ``thresholds``, a two-color scale uses the lowest
+        `colors` contains two or three colors ordered from the minimum to
+        the maximum. Without `thresholds`, a two-color scale uses the lowest
         and highest values, while a three-color scale adds the 50th percentile
         as its midpoint. Custom thresholds must match the number of colors and
-        be strictly increasing. ``threshold_type`` can be ``"number"``,
-        ``"percent"`` or ``"percentile"``.
+        be strictly increasing. `threshold_type` can be `"number"`,
+        `"percent"` or `"percentile"`.
 
         Examples:
             ```python
@@ -4279,8 +4279,8 @@ class ConditionalFormats(Collection[ConditionalFormat]):
     ) -> ConditionalFormat:
         """Add a data bar.
 
-        Omitted bounds are automatic. Supplied bounds use ``threshold_type``,
-        which can be ``"number"``, ``"percent"`` or ``"percentile"``.
+        Omitted bounds are automatic. Supplied bounds use `threshold_type`,
+        which can be `"number"`, `"percent"` or `"percentile"`.
         """
         threshold_type = _conditional_format_threshold_type(threshold_type)
         minimum = (
@@ -4322,13 +4322,13 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         must be strictly increasing. Without them, the icons use equal percent
         bands (for example, 33 and 67 for a three-icon set).
 
-        Valid styles are ``"3_arrows"``, ``"3_arrows_gray"``, ``"3_flags"``,
-        ``"3_traffic_lights_1"``, ``"3_traffic_lights_2"``, ``"3_signs"``,
-        ``"3_symbols"``, ``"3_symbols_2"``, ``"4_arrows"``,
-        ``"4_arrows_gray"``, ``"4_red_to_black"``, ``"4_rating"``,
-        ``"4_traffic_lights"``, ``"5_arrows"``, ``"5_arrows_gray"``,
-        ``"5_rating"``, ``"5_quarters"``, ``"3_stars"``,
-        ``"3_triangles"`` and ``"5_boxes"``.
+        Valid styles are `"3_arrows"`, `"3_arrows_gray"`, `"3_flags"`,
+        `"3_traffic_lights_1"`, `"3_traffic_lights_2"`, `"3_signs"`,
+        `"3_symbols"`, `"3_symbols_2"`, `"4_arrows"`,
+        `"4_arrows_gray"`, `"4_red_to_black"`, `"4_rating"`,
+        `"4_traffic_lights"`, `"5_arrows"`, `"5_arrows_gray"`,
+        `"5_rating"`, `"5_quarters"`, `"3_stars"`,
+        `"3_triangles"` and `"5_boxes"`.
 
         Examples:
             ```python

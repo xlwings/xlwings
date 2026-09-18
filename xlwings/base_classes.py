@@ -48,7 +48,7 @@ BorderLineStyle = Literal[
 BorderWeight = Literal["hairline", "thin", "medium", "thick"]
 
 # Conditional-format types supported by the first public rule model. Other
-# native rule types remain visible as ``unknown`` so callers can inspect and
+# native rule types remain visible as `unknown` so callers can inspect and
 # delete them without the engines silently dropping them from the collection.
 ConditionalFormatType = Literal[
     "cell_value",

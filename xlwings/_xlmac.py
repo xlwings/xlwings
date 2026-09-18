@@ -8,6 +8,7 @@ import struct
 import subprocess
 from collections import Counter
 from contextlib import contextmanager
+from functools import cache
 from pathlib import Path
 from uuid import uuid4
 from weakref import WeakValueDictionary
@@ -934,6 +935,7 @@ _CONDITIONAL_FORMAT_ICON_SET_FROM_KW = {
 }
 
 
+@cache
 def _conditional_format_icon_set_indexes():
     """Derive workbook IconSets indexes from Excel's generated enum values."""
     terminology = dict(mac_dict.enums)
@@ -952,7 +954,10 @@ def _conditional_format_icon_set_indexes():
     return indexes
 
 
-_CONDITIONAL_FORMAT_ICON_SET_INDEX = _conditional_format_icon_set_indexes()
+_CONDITIONAL_FORMAT_ICON_SET_INDEX = {
+    name: index
+    for index, name in enumerate(_CONDITIONAL_FORMAT_ICON_SET_TO_KW, start=1)
+}
 
 
 class Range(base_classes.Range):
@@ -2279,7 +2284,7 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
         icon_set = Reference(
             workbook.AS_appdata,
             workbook.AS_aemreference.elements(b"X319").byindex(
-                _CONDITIONAL_FORMAT_ICON_SET_INDEX[spec["icon_set"]]
+                _conditional_format_icon_set_indexes()[spec["icon_set"]]
             ),
         )
         rule.format_condition_icon_set.set(icon_set)
