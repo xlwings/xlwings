@@ -292,3 +292,173 @@ def test_unknown_rule_cannot_be_edited():
         rule = asyncio.run(rng.get_conditional_formats())[0]
     with pytest.raises(NotImplementedError, match="unknown"):
         rule.set(stop_if_true=True)
+
+
+def test_add_color_scale_with_custom_number_thresholds():
+    book = _book()
+    formats = book.sheets[0]["B2:B20"].conditional_formats
+
+    rule = formats.add_color_scale(
+        ["#f8696b", "#ffeb84", "#63be7b"],
+        thresholds=[0, 50, 100],
+        threshold_type="number",
+    )
+
+    action = book.impl.json()["actions"][-1]
+    assert action["func"] == "addConditionalFormat"
+    assert action["args"] == [
+        {
+            "type": "ColorScale",
+            "stop_if_true": None,
+            "fill_color": None,
+            "font_color": None,
+            "font_bold": None,
+            "font_italic": None,
+            "colors": ["#f8696b", "#ffeb84", "#63be7b"],
+            "threshold_types": ["Number", "Number", "Number"],
+            "thresholds": [0, 50, 100],
+        }
+    ]
+    assert rule.colors == ((248, 105, 107), (255, 235, 132), (99, 190, 123))
+    assert rule.threshold_types == ("number", "number", "number")
+    assert rule.thresholds == (0, 50, 100)
+
+
+def test_add_color_scale_uses_distribution_defaults():
+    rule = (
+        _book()
+        .sheets[0]["A1:A10"]
+        .conditional_formats.add_color_scale(["#ff0000", "#ffff00", "#00ff00"])
+    )
+
+    assert rule.threshold_types == (
+        "lowest_value",
+        "percentile",
+        "highest_value",
+    )
+    assert rule.thresholds == (None, 50, None)
+
+
+def test_add_data_bar_with_one_automatic_bound():
+    book = _book()
+    rule = book.sheets[0]["A1:A10"].conditional_formats.add_data_bar(
+        "#638ec6",
+        maximum=100,
+        gradient=False,
+        show_value=False,
+    )
+
+    action = book.impl.json()["actions"][-1]
+    assert action["args"][0]["type"] == "DataBar"
+    assert action["args"][0]["bar_color"] == "#638ec6"
+    assert action["args"][0]["threshold_types"] == ["Automatic", "Number"]
+    assert action["args"][0]["thresholds"] == [None, 100]
+    assert rule.bar_color == (99, 142, 198)
+    assert rule.gradient is False
+    assert rule.show_value is False
+
+
+def test_add_icon_set_with_custom_thresholds():
+    book = _book()
+    rule = book.sheets[0]["A1:A10"].conditional_formats.add_icon_set(
+        "3_traffic_lights_1",
+        thresholds=[60, 80],
+        show_value=False,
+        reverse_order=True,
+    )
+
+    entry = book.impl.json()["actions"][-1]["args"][0]
+    assert entry["type"] == "IconSet"
+    assert entry["icon_set"] == "ThreeTrafficLights1"
+    assert entry["threshold_types"] == ["Number", "Number"]
+    assert entry["thresholds"] == [60, 80]
+    assert rule.icon_set == "3_traffic_lights_1"
+    assert rule.show_value is False
+    assert rule.reverse_order is True
+
+
+def test_add_icon_set_uses_equal_percent_bands():
+    rule = _book().sheets[0]["A1:A10"].conditional_formats.add_icon_set("5_quarters")
+
+    assert rule.threshold_types == ("percent",) * 4
+    assert rule.thresholds == (20, 40, 60, 80)
+
+
+@pytest.mark.parametrize(
+    ("call", "message"),
+    [
+        (lambda formats: formats.add_color_scale(["#ff0000"]), "two or three"),
+        (
+            lambda formats: formats.add_color_scale(
+                ["#ff0000", "#00ff00"], thresholds=[0]
+            ),
+            "exactly 2",
+        ),
+        (
+            lambda formats: formats.add_icon_set("3_arrows", thresholds=[80, 60]),
+            "strictly increasing",
+        ),
+        (
+            lambda formats: formats.add_icon_set("rainbows"),
+            "Invalid conditional-format icon set",
+        ),
+        (
+            lambda formats: formats.add_data_bar("blue", minimum=100, maximum=0),
+            "minimum must be less",
+        ),
+        (
+            lambda formats: formats.add_color_scale(
+                ["#ff0000", "#00ff00"],
+                thresholds=[0, 101],
+                threshold_type="percent",
+            ),
+            "between 0 and 100",
+        ),
+    ],
+)
+def test_visual_rule_validation(call, message):
+    with pytest.raises((TypeError, ValueError), match=message):
+        call(_book().sheets[0]["A1"].conditional_formats)
+
+
+def test_async_getter_exposes_visual_rule_details():
+    rng = _book().sheets[0]["A1:A10"]
+    entries = [
+        {
+            "type": "ColorScale",
+            "stop_if_true": None,
+            "colors": ["#f8696b", "#ffeb84", "#63be7b"],
+            "threshold_types": ["LowestValue", "Percentile", "HighestValue"],
+            "thresholds": [None, 50, None],
+        },
+        {
+            "type": "DataBar",
+            "stop_if_true": None,
+            "bar_color": "#638ec6",
+            "gradient": True,
+            "show_value": True,
+            "threshold_types": ["Automatic", "Number"],
+            "thresholds": [None, 100],
+        },
+        {
+            "type": "IconSet",
+            "stop_if_true": None,
+            "icon_set": "ThreeTrafficLights1",
+            "show_value": False,
+            "reverse_order": True,
+            "threshold_types": ["Number", "Number"],
+            "thresholds": [60, 80],
+        },
+    ]
+
+    async def fake(self, key, method=None):
+        return entries
+
+    with mock.patch.object(R.Range, "_get_range_data", fake):
+        formats = asyncio.run(rng.get_conditional_formats())
+
+    assert formats[0].colors[1] == (255, 235, 132)
+    assert formats[1].bar_color == (99, 142, 198)
+    assert formats[1].threshold_types == ("automatic", "number")
+    assert formats[2].icon_set == "3_traffic_lights_1"
+    assert formats[2].thresholds == (60, 80)

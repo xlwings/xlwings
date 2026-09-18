@@ -256,6 +256,43 @@ _CONDITIONAL_FORMAT_OPERATOR_PY2JS = {
 _CONDITIONAL_FORMAT_OPERATOR_JS2PY = {
     value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_PY2JS.items()
 }
+_CONDITIONAL_FORMAT_THRESHOLD_PY2JS = {
+    "automatic": "Automatic",
+    "lowest_value": "LowestValue",
+    "highest_value": "HighestValue",
+    "number": "Number",
+    "percent": "Percent",
+    "percentile": "Percentile",
+    "formula": "Formula",
+}
+_CONDITIONAL_FORMAT_THRESHOLD_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_THRESHOLD_PY2JS.items()
+}
+_CONDITIONAL_FORMAT_ICON_SET_PY2JS = {
+    "3_arrows": "ThreeArrows",
+    "3_arrows_gray": "ThreeArrowsGray",
+    "3_flags": "ThreeFlags",
+    "3_traffic_lights_1": "ThreeTrafficLights1",
+    "3_traffic_lights_2": "ThreeTrafficLights2",
+    "3_signs": "ThreeSigns",
+    "3_symbols": "ThreeSymbols",
+    "3_symbols_2": "ThreeSymbols2",
+    "4_arrows": "FourArrows",
+    "4_arrows_gray": "FourArrowsGray",
+    "4_red_to_black": "FourRedToBlack",
+    "4_rating": "FourRating",
+    "4_traffic_lights": "FourTrafficLights",
+    "5_arrows": "FiveArrows",
+    "5_arrows_gray": "FiveArrowsGray",
+    "5_rating": "FiveRating",
+    "5_quarters": "FiveQuarters",
+    "3_stars": "ThreeStars",
+    "3_triangles": "ThreeTriangles",
+    "5_boxes": "FiveBoxes",
+}
+_CONDITIONAL_FORMAT_ICON_SET_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_PY2JS.items()
+}
 
 
 def _mark_sheet_values_loaded(sheet_api):
@@ -3762,6 +3799,53 @@ class ConditionalFormat(base_classes.ConditionalFormat):
     def font_italic(self):
         return self._entry.get("font_italic")
 
+    @property
+    def colors(self):
+        if self.type != "color_scale":
+            return None
+        return tuple(self._rgb(value) for value in self._entry.get("colors", ()))
+
+    @property
+    def bar_color(self):
+        return (
+            self._rgb(self._entry.get("bar_color")) if self.type == "data_bar" else None
+        )
+
+    @property
+    def gradient(self):
+        return self._entry.get("gradient") if self.type == "data_bar" else None
+
+    @property
+    def show_value(self):
+        if self.type not in {"data_bar", "icon_set"}:
+            return None
+        return self._entry.get("show_value")
+
+    @property
+    def icon_set(self):
+        if self.type != "icon_set":
+            return None
+        return _CONDITIONAL_FORMAT_ICON_SET_JS2PY.get(self._entry.get("icon_set"))
+
+    @property
+    def reverse_order(self):
+        return self._entry.get("reverse_order") if self.type == "icon_set" else None
+
+    @property
+    def threshold_types(self):
+        if self.type not in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return tuple(
+            _CONDITIONAL_FORMAT_THRESHOLD_JS2PY.get(value, "unknown")
+            for value in self._entry.get("threshold_types", ())
+        )
+
+    @property
+    def thresholds(self):
+        if self.type not in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return tuple(self._entry.get("thresholds", ()))
+
     def set(self, changes):
         position = self.parent.position(self._entry)
         expected = {
@@ -3862,7 +3946,7 @@ class ConditionalFormats(base_classes.ConditionalFormats):
     def _entry(rule_type, spec):
         entry = {
             "type": rule_type,
-            "stop_if_true": spec["stop_if_true"],
+            "stop_if_true": spec.get("stop_if_true"),
             "fill_color": None,
             "font_color": None,
             "font_bold": None,
@@ -3874,6 +3958,19 @@ class ConditionalFormats(base_classes.ConditionalFormats):
         for key in ("fill_color", "font_color"):
             if entry.get(key) is not None:
                 entry[key] = _color_to_hex(entry[key])
+        if "colors" in entry:
+            entry["colors"] = [_color_to_hex(value) for value in entry["colors"]]
+        if entry.get("bar_color") is not None:
+            entry["bar_color"] = _color_to_hex(entry["bar_color"])
+        if "threshold_types" in entry:
+            entry["threshold_types"] = [
+                _CONDITIONAL_FORMAT_THRESHOLD_PY2JS[value]
+                for value in entry["threshold_types"]
+            ]
+        if "thresholds" in entry:
+            entry["thresholds"] = list(entry["thresholds"])
+        if "icon_set" in entry:
+            entry["icon_set"] = _CONDITIONAL_FORMAT_ICON_SET_PY2JS[entry["icon_set"]]
         return entry
 
     def _add(self, rule_type, spec):
@@ -3888,6 +3985,15 @@ class ConditionalFormats(base_classes.ConditionalFormats):
 
     def add_custom(self, spec):
         return self._add("Custom", spec)
+
+    def add_color_scale(self, spec):
+        return self._add("ColorScale", spec)
+
+    def add_data_bar(self, spec):
+        return self._add("DataBar", spec)
+
+    def add_icon_set(self, spec):
+        return self._add("IconSet", spec)
 
     def clear(self):
         self.range.append_json_action(func="clearConditionalFormats", args=[])

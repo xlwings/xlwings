@@ -28,6 +28,7 @@ from typing import (
     Generic,
     Iterator,
     Mapping,
+    Sequence,
     TypeVar,
     cast,
     get_args,
@@ -44,7 +45,9 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    CONDITIONAL_FORMAT_ICON_SETS,
     CONDITIONAL_FORMAT_OPERATORS,
+    CONDITIONAL_FORMAT_THRESHOLD_TYPES,
     CONDITIONAL_FORMAT_TYPES,
     HORIZONTAL_ALIGNMENTS,
     PIVOT_FUNCTIONS,
@@ -56,7 +59,10 @@ from .base_classes import (
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    ConditionalFormatCriterionType,
+    ConditionalFormatIconSet,
     ConditionalFormatOperator,
+    ConditionalFormatThresholdType,
     ConditionalFormatType,
     HorizontalAlignment,
     PivotFunction,
@@ -3780,6 +3786,76 @@ def _conditional_format_bool(value: Any, name: str) -> bool:
     raise TypeError(f"{name} must be a boolean.")
 
 
+def _conditional_format_threshold_type(value: Any) -> ConditionalFormatThresholdType:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_THRESHOLD_TYPES:
+        return cast(ConditionalFormatThresholdType, value)
+    raise ValueError(
+        f"Invalid conditional-format threshold type {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_THRESHOLD_TYPES)}."
+    )
+
+
+def _conditional_format_threshold(
+    value: Any, threshold_type: str, name: str
+) -> int | float:
+    if (
+        not isinstance(value, numbers.Real)
+        or isinstance(value, bool)
+        or not math.isfinite(value)
+    ):
+        raise ValueError(f"{name} must be a finite number.")
+    if threshold_type in {"percent", "percentile"} and not 0 <= value <= 100:
+        raise ValueError(f"{name} must be between 0 and 100 for {threshold_type!r}.")
+    return value
+
+
+def _conditional_format_thresholds(
+    values: Any,
+    *,
+    count: int,
+    threshold_type: ConditionalFormatThresholdType,
+    name: str = "thresholds",
+) -> tuple[int | float, ...]:
+    if isinstance(values, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of numbers.")
+    try:
+        result = tuple(values)
+    except TypeError:
+        raise TypeError(f"{name} must be a sequence of numbers.") from None
+    if len(result) != count:
+        raise ValueError(f"{name} must contain exactly {count} values.")
+    result = tuple(
+        _conditional_format_threshold(value, threshold_type, f"{name}[{index}]")
+        for index, value in enumerate(result)
+    )
+    if any(left >= right for left, right in zip(result, result[1:])):
+        raise ValueError(f"{name} must be strictly increasing.")
+    return result
+
+
+def _conditional_format_colors(values: Any) -> tuple[tuple[int, int, int], ...]:
+    if isinstance(values, (str, bytes)):
+        raise TypeError("colors must be a sequence containing two or three colors.")
+    try:
+        values = tuple(values)
+    except TypeError:
+        raise TypeError(
+            "colors must be a sequence containing two or three colors."
+        ) from None
+    if len(values) not in {2, 3}:
+        raise ValueError("colors must contain exactly two or three colors.")
+    return tuple(_border_color(value) for value in values)
+
+
+def _conditional_format_icon_set(value: Any) -> ConditionalFormatIconSet:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_ICON_SETS:
+        return cast(ConditionalFormatIconSet, value)
+    raise ValueError(
+        f"Invalid conditional-format icon set {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_ICON_SETS)}."
+    )
+
+
 def _validate_cell_value_rule(operator: Any, formula1: Any, formula2: Any) -> None:
     if operator is None or formula1 is None:
         raise ValueError("Cell-value rules require operator and formula1.")
@@ -3911,6 +3987,58 @@ class ConditionalFormat:
     def font_italic(self) -> bool | None:
         """The rule's italic setting, or ``None`` if it doesn't set italic."""
         return self.impl.font_italic
+
+    @property
+    def colors(self) -> tuple[tuple[int, int, int], ...] | None:
+        """The ordered colors of a color-scale rule, otherwise ``None``.
+
+        Colors run from the minimum criterion to the maximum criterion.
+        """
+        return self.impl.colors
+
+    @property
+    def bar_color(self) -> tuple[int, int, int] | None:
+        """The positive fill color of a data-bar rule, otherwise ``None``."""
+        return self.impl.bar_color
+
+    @property
+    def gradient(self) -> bool | None:
+        """Whether a data bar uses a gradient fill, otherwise ``None``."""
+        return self.impl.gradient
+
+    @property
+    def show_value(self) -> bool | None:
+        """Whether cell values remain visible for a data bar or icon set."""
+        return self.impl.show_value
+
+    @property
+    def icon_set(self) -> ConditionalFormatIconSet | None:
+        """The built-in style of an icon-set rule, otherwise ``None``."""
+        return self.impl.icon_set
+
+    @property
+    def reverse_order(self) -> bool | None:
+        """Whether an icon set's icon order is reversed, otherwise ``None``."""
+        return self.impl.reverse_order
+
+    @property
+    def threshold_types(self) -> tuple[ConditionalFormatCriterionType, ...] | None:
+        """The ordered criterion types for a visual rule, otherwise ``None``.
+
+        Color scales include all criteria, data bars include the lower and
+        upper bounds, and icon sets include only the effective thresholds
+        between icons.
+        """
+        return self.impl.threshold_types
+
+    @property
+    def thresholds(self) -> tuple[int | float | str | None, ...] | None:
+        """The values corresponding to :attr:`threshold_types`.
+
+        Criteria such as ``"automatic"``, ``"lowest_value"`` and
+        ``"highest_value"`` have a value of ``None``.
+        """
+        return self.impl.thresholds
 
     def set(
         self,
@@ -4109,6 +4237,157 @@ class ConditionalFormats(Collection[ConditionalFormat]):
             font_italic=font_italic,
         )
         return ConditionalFormat(impl=self.impl.add_custom(spec))
+
+    def add_color_scale(
+        self,
+        colors: Sequence[tuple[int, int, int] | str | int],
+        *,
+        thresholds: Sequence[int | float] | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+    ) -> ConditionalFormat:
+        """Add a highest-priority two- or three-color scale.
+
+        ``colors`` contains two or three colors ordered from the minimum to
+        the maximum. Without ``thresholds``, a two-color scale uses the lowest
+        and highest values, while a three-color scale adds the 50th percentile
+        as its midpoint. Custom thresholds must match the number of colors and
+        be strictly increasing. ``threshold_type`` can be ``"number"``,
+        ``"percent"`` or ``"percentile"``.
+
+        Examples:
+            ```python
+            sheet["B2:B20"].conditional_formats.add_color_scale(
+                ["#f8696b", "#ffeb84", "#63be7b"],
+                thresholds=[0, 50, 100],
+                threshold_type="number",
+            )
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        colors = _conditional_format_colors(colors)
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        if thresholds is None:
+            if len(colors) == 2:
+                threshold_types = ("lowest_value", "highest_value")
+                threshold_values = (None, None)
+            else:
+                threshold_types = ("lowest_value", "percentile", "highest_value")
+                threshold_values = (None, 50, None)
+        else:
+            threshold_values = _conditional_format_thresholds(
+                thresholds,
+                count=len(colors),
+                threshold_type=threshold_type,
+            )
+            threshold_types = (threshold_type,) * len(colors)
+        spec = {
+            "colors": colors,
+            "threshold_types": threshold_types,
+            "thresholds": threshold_values,
+        }
+        return ConditionalFormat(impl=self.impl.add_color_scale(spec))
+
+    def add_data_bar(
+        self,
+        color: tuple[int, int, int] | str | int,
+        *,
+        minimum: int | float | None = None,
+        maximum: int | float | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+        gradient: bool = True,
+        show_value: bool = True,
+    ) -> ConditionalFormat:
+        """Add a highest-priority data bar.
+
+        Omitted bounds are automatic. Supplied bounds use ``threshold_type``,
+        which can be ``"number"``, ``"percent"`` or ``"percentile"``.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        minimum = (
+            None
+            if minimum is None
+            else _conditional_format_threshold(minimum, threshold_type, "minimum")
+        )
+        maximum = (
+            None
+            if maximum is None
+            else _conditional_format_threshold(maximum, threshold_type, "maximum")
+        )
+        if minimum is not None and maximum is not None and minimum >= maximum:
+            raise ValueError("minimum must be less than maximum.")
+        spec = {
+            "bar_color": _border_color(color),
+            "gradient": _conditional_format_bool(gradient, "gradient"),
+            "show_value": _conditional_format_bool(show_value, "show_value"),
+            "threshold_types": (
+                threshold_type if minimum is not None else "automatic",
+                threshold_type if maximum is not None else "automatic",
+            ),
+            "thresholds": (minimum, maximum),
+        }
+        return ConditionalFormat(impl=self.impl.add_data_bar(spec))
+
+    def add_icon_set(
+        self,
+        icon_set: ConditionalFormatIconSet,
+        *,
+        thresholds: Sequence[int | float] | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+        show_value: bool = True,
+        reverse_order: bool = False,
+    ) -> ConditionalFormat:
+        """Add a highest-priority built-in icon set.
+
+        Custom thresholds contain one fewer value than the number of icons and
+        must be strictly increasing. Without them, the icons use equal percent
+        bands (for example, 33 and 67 for a three-icon set).
+
+        Valid styles are ``"3_arrows"``, ``"3_arrows_gray"``, ``"3_flags"``,
+        ``"3_traffic_lights_1"``, ``"3_traffic_lights_2"``, ``"3_signs"``,
+        ``"3_symbols"``, ``"3_symbols_2"``, ``"4_arrows"``,
+        ``"4_arrows_gray"``, ``"4_red_to_black"``, ``"4_rating"``,
+        ``"4_traffic_lights"``, ``"5_arrows"``, ``"5_arrows_gray"``,
+        ``"5_rating"``, ``"5_quarters"``, ``"3_stars"``,
+        ``"3_triangles"`` and ``"5_boxes"``.
+
+        Examples:
+            ```python
+            sheet["C2:C20"].conditional_formats.add_icon_set(
+                "3_traffic_lights_1", thresholds=[60, 80]
+            )
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        icon_set = _conditional_format_icon_set(icon_set)
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        count = int(icon_set[0])
+        if thresholds is None:
+            threshold_values = tuple(
+                round(index * 100 / count) for index in range(1, count)
+            )
+            threshold_types = ("percent",) * (count - 1)
+        else:
+            threshold_values = _conditional_format_thresholds(
+                thresholds,
+                count=count - 1,
+                threshold_type=threshold_type,
+            )
+            threshold_types = (threshold_type,) * (count - 1)
+        spec = {
+            "icon_set": icon_set,
+            "show_value": _conditional_format_bool(show_value, "show_value"),
+            "reverse_order": _conditional_format_bool(reverse_order, "reverse_order"),
+            "threshold_types": threshold_types,
+            "thresholds": threshold_values,
+        }
+        return ConditionalFormat(impl=self.impl.add_icon_set(spec))
 
     def clear(self) -> None:
         """Clear all conditional formats active on the represented range.

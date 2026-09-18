@@ -889,6 +889,48 @@ _CONDITIONAL_FORMAT_OPERATOR_TO_KW = {
 _CONDITIONAL_FORMAT_OPERATOR_FROM_KW = {
     value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_TO_KW.items()
 }
+_CONDITIONAL_FORMAT_THRESHOLD_TO_KW = {
+    "lowest_value": kw.condition_value_lowest_value,
+    "highest_value": kw.condition_value_highest_value,
+    "number": kw.condition_value_number,
+    "percent": kw.condition_value_percent,
+    "percentile": kw.condition_value_percentile,
+    "formula": kw.condition_value_formula,
+}
+_CONDITIONAL_FORMAT_THRESHOLD_FROM_KW = {
+    **{value: key for key, value in _CONDITIONAL_FORMAT_THRESHOLD_TO_KW.items()},
+    kw.condition_value_automatic_minimum: "automatic",
+    kw.condition_value_automatic_maximum: "automatic",
+}
+_CONDITIONAL_FORMAT_ICON_SET_TO_KW = {
+    "3_arrows": kw.icon_set_3_arrows,
+    "3_arrows_gray": kw.icon_set_3_arrows_gray,
+    "3_flags": kw.icon_set_3_flags,
+    "3_traffic_lights_1": kw.icon_set_3_traffic_lights_1,
+    "3_traffic_lights_2": kw.icon_set_3_traffic_lights_2,
+    "3_signs": kw.icon_set_3_signs,
+    "3_symbols": kw.icon_set_3_symbols,
+    "3_symbols_2": kw.icon_set_3_symbols_2,
+    "4_arrows": kw.icon_set_4_arrows,
+    "4_arrows_gray": kw.icon_set_4_arrows_gray,
+    "4_red_to_black": kw.icon_set_4_red_to_black,
+    "4_rating": kw.icon_set_4_CRV,
+    "4_traffic_lights": kw.icon_set_4_traffic_lights,
+    "5_arrows": kw.icon_set_5_arrows,
+    "5_arrows_gray": kw.icon_set_5_arrows_gray,
+    "5_rating": kw.icon_set_5_CRV,
+    "5_quarters": kw.icon_set_5_quarters,
+    "3_stars": kw.icon_set_3_stars,
+    "3_triangles": kw.icon_set_3_triangles,
+    "5_boxes": kw.icon_set_5_boxes,
+}
+_CONDITIONAL_FORMAT_ICON_SET_FROM_KW = {
+    value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
+}
+_CONDITIONAL_FORMAT_ICON_SET_INDEX = {
+    name: index
+    for index, name in enumerate(_CONDITIONAL_FORMAT_ICON_SET_TO_KW, start=1)
+}
 
 
 class Range(base_classes.Range):
@@ -1915,6 +1957,113 @@ class ConditionalFormat(base_classes.ConditionalFormat):
         value = self.xl.font_object.italic.get()
         return None if value is None or value == kw.missing_value else value
 
+    @staticmethod
+    def _threshold(criterion, type_property, value_property):
+        criterion_type = _CONDITIONAL_FORMAT_THRESHOLD_FROM_KW.get(
+            type_property.get(), "unknown"
+        )
+        if criterion_type in {
+            "automatic",
+            "lowest_value",
+            "highest_value",
+            "unknown",
+        }:
+            value = None
+        else:
+            value = value_property.get()
+            if value == kw.missing_value:
+                value = None
+        return criterion_type, value
+
+    @property
+    def colors(self):
+        if self.type != "color_scale":
+            return None
+        criteria = self.xl.color_scale_criteria
+        count = criteria.count(each=kw.color_scale_criterion)
+        return tuple(
+            self._color(criteria[index].format_color) for index in range(1, count + 1)
+        )
+
+    @property
+    def bar_color(self):
+        if self.type != "data_bar":
+            return None
+        return self._color(self.xl.databar_bar_color)
+
+    @property
+    def gradient(self):
+        if self.type != "data_bar":
+            return None
+        return self.xl.databar_fill_type.get() == kw.databar_fill_gradient
+
+    @property
+    def show_value(self):
+        if self.type == "data_bar":
+            return self.xl.format_condition_show_value.get()
+        if self.type == "icon_set":
+            return not self.xl.show_icon_only.get()
+        return None
+
+    @property
+    def icon_set(self):
+        if self.type != "icon_set":
+            return None
+        return _CONDITIONAL_FORMAT_ICON_SET_FROM_KW.get(
+            self.xl.format_condition_icon_set.icon_set_id.get()
+        )
+
+    @property
+    def reverse_order(self):
+        return self.xl.reverse_icon_set_order.get() if self.type == "icon_set" else None
+
+    def _threshold_pairs(self):
+        if self.type == "color_scale":
+            criteria = self.xl.color_scale_criteria
+            count = criteria.count(each=kw.color_scale_criterion)
+            return tuple(
+                self._threshold(
+                    criteria[index],
+                    criteria[index].color_scale_criterion_type,
+                    criteria[index].color_scale_criterion_value,
+                )
+                for index in range(1, count + 1)
+            )
+        if self.type == "data_bar":
+            return tuple(
+                self._threshold(
+                    criterion,
+                    criterion.condition_value_type,
+                    criterion.condition_value_value,
+                )
+                for criterion in (
+                    self.xl.min_point_condition_value,
+                    self.xl.max_point_condition_value,
+                )
+            )
+        if self.type == "icon_set":
+            criteria = self.xl.icon_criteria
+            count = criteria.count(each=kw.icon_criterion)
+            return tuple(
+                self._threshold(
+                    criteria[index],
+                    criteria[index].icon_criterion_type,
+                    criteria[index].icon_criterion_value,
+                )
+                for index in range(2, count + 1)
+            )
+        return None
+
+    @property
+    def threshold_types(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[0] for pair in pairs)
+
+    @property
+    def thresholds(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[1] for pair in pairs)
+
     def set(self, changes):
         criteria = {"operator", "formula1", "formula2", "formula"} & changes.keys()
         if criteria:
@@ -1999,6 +2148,108 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
             },
         )
         return self._finish_add(rule, spec)
+
+    @staticmethod
+    def _set_threshold(
+        criterion,
+        type_property,
+        value_property,
+        criterion_type,
+        value,
+        *,
+        automatic_type=None,
+        modify=False,
+    ):
+        native_type = (
+            automatic_type
+            if criterion_type == "automatic"
+            else _CONDITIONAL_FORMAT_THRESHOLD_TO_KW[criterion_type]
+        )
+        if modify:
+            kwargs = {"type": native_type}
+            if value is not None:
+                kwargs["condition_value"] = value
+            criterion.modify_condition_value(**kwargs)
+        else:
+            type_property.set(native_type)
+            if value is not None:
+                value_property.set(value)
+
+    def _finish_visual_add(self, rule):
+        rule.set_first_priority()
+        return ConditionalFormat(self.parent, 1)
+
+    def add_color_scale(self, spec):
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.color_scale_format_condition,
+            with_properties={kw.color_scale_type: len(spec["colors"])},
+        )
+        criteria = rule.color_scale_criteria
+        for index, (color, criterion_type, value) in enumerate(
+            zip(spec["colors"], spec["threshold_types"], spec["thresholds"]),
+            start=1,
+        ):
+            criterion = criteria[index]
+            self._set_threshold(
+                criterion,
+                criterion.color_scale_criterion_type,
+                criterion.color_scale_criterion_value,
+                criterion_type,
+                value,
+            )
+            criterion.format_color.color.set(color)
+        return self._finish_visual_add(rule)
+
+    def add_data_bar(self, spec):
+        rule = self.parent.xl.make(at=self.parent.xl, new=kw.databar_format_condition)
+        rule.databar_bar_color.color.set(spec["bar_color"])
+        rule.databar_fill_type.set(
+            kw.databar_fill_gradient if spec["gradient"] else kw.databar_fill_solid
+        )
+        rule.format_condition_show_value.set(spec["show_value"])
+        for criterion, criterion_type, value, automatic_type in zip(
+            (rule.min_point_condition_value, rule.max_point_condition_value),
+            spec["threshold_types"],
+            spec["thresholds"],
+            (
+                kw.condition_value_automatic_minimum,
+                kw.condition_value_automatic_maximum,
+            ),
+        ):
+            self._set_threshold(
+                criterion,
+                criterion.condition_value_type,
+                criterion.condition_value_value,
+                criterion_type,
+                value,
+                automatic_type=automatic_type,
+                modify=True,
+            )
+        return self._finish_visual_add(rule)
+
+    def add_icon_set(self, spec):
+        rule = self.parent.xl.make(at=self.parent.xl, new=kw.icon_set_format_condition)
+        icon_sets = self.parent.sheet.book.xl.format_condition_icon_sets
+        rule.format_condition_icon_set.set(
+            icon_sets[_CONDITIONAL_FORMAT_ICON_SET_INDEX[spec["icon_set"]]]
+        )
+        rule.show_icon_only.set(not spec["show_value"])
+        rule.reverse_icon_set_order.set(spec["reverse_order"])
+        criteria = rule.icon_criteria
+        for index, (criterion_type, value) in enumerate(
+            zip(spec["threshold_types"], spec["thresholds"]), start=2
+        ):
+            criterion = criteria[index]
+            self._set_threshold(
+                criterion,
+                criterion.icon_criterion_type,
+                criterion.icon_criterion_value,
+                criterion_type,
+                value,
+            )
+            criterion.condition_operator.set(kw.operator_greater_equal)
+        return self._finish_visual_add(rule)
 
     def clear(self):
         self.xl.delete()

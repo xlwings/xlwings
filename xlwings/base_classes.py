@@ -70,6 +70,43 @@ ConditionalFormatOperator = Literal[
     "less_than_or_equal",
 ]
 CONDITIONAL_FORMAT_OPERATORS: tuple[str, ...] = get_args(ConditionalFormatOperator)
+ConditionalFormatThresholdType = Literal["number", "percent", "percentile"]
+CONDITIONAL_FORMAT_THRESHOLD_TYPES: tuple[str, ...] = get_args(
+    ConditionalFormatThresholdType
+)
+ConditionalFormatCriterionType = Literal[
+    "automatic",
+    "lowest_value",
+    "highest_value",
+    "number",
+    "percent",
+    "percentile",
+    "formula",
+    "unknown",
+]
+ConditionalFormatIconSet = Literal[
+    "3_arrows",
+    "3_arrows_gray",
+    "3_flags",
+    "3_traffic_lights_1",
+    "3_traffic_lights_2",
+    "3_signs",
+    "3_symbols",
+    "3_symbols_2",
+    "4_arrows",
+    "4_arrows_gray",
+    "4_red_to_black",
+    "4_rating",
+    "4_traffic_lights",
+    "5_arrows",
+    "5_arrows_gray",
+    "5_rating",
+    "5_quarters",
+    "3_stars",
+    "3_triangles",
+    "5_boxes",
+]
+CONDITIONAL_FORMAT_ICON_SETS: tuple[str, ...] = get_args(ConditionalFormatIconSet)
 
 # Border side names in canonical order. main.Borders validates and expands the
 # user-facing selectors into these before calling an engine, so engines only
@@ -1458,6 +1495,38 @@ class ConditionalFormat:
     def font_italic(self):
         raise NotImplementedError()
 
+    @property
+    def colors(self):
+        raise NotImplementedError()
+
+    @property
+    def bar_color(self):
+        raise NotImplementedError()
+
+    @property
+    def gradient(self):
+        raise NotImplementedError()
+
+    @property
+    def show_value(self):
+        raise NotImplementedError()
+
+    @property
+    def icon_set(self):
+        raise NotImplementedError()
+
+    @property
+    def reverse_order(self):
+        raise NotImplementedError()
+
+    @property
+    def threshold_types(self):
+        raise NotImplementedError()
+
+    @property
+    def thresholds(self):
+        raise NotImplementedError()
+
     def set(self, changes):
         raise NotImplementedError()
 
@@ -1470,6 +1539,15 @@ class ConditionalFormats(Collection):
         raise NotImplementedError()
 
     def add_custom(self, spec):
+        raise NotImplementedError()
+
+    def add_color_scale(self, spec):
+        raise NotImplementedError()
+
+    def add_data_bar(self, spec):
+        raise NotImplementedError()
+
+    def add_icon_set(self, spec):
         raise NotImplementedError()
 
     def clear(self):

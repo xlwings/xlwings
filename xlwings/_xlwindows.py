@@ -1228,6 +1228,44 @@ _CONDITIONAL_FORMAT_OPERATOR_TO_XL = {
 _CONDITIONAL_FORMAT_OPERATOR_FROM_XL = {
     value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_TO_XL.items()
 }
+_CONDITIONAL_FORMAT_THRESHOLD_TO_XL = {
+    "lowest_value": constants.ConditionValueTypes.xlConditionValueLowestValue,
+    "highest_value": constants.ConditionValueTypes.xlConditionValueHighestValue,
+    "number": constants.ConditionValueTypes.xlConditionValueNumber,
+    "percent": constants.ConditionValueTypes.xlConditionValuePercent,
+    "percentile": constants.ConditionValueTypes.xlConditionValuePercentile,
+    "formula": constants.ConditionValueTypes.xlConditionValueFormula,
+}
+_CONDITIONAL_FORMAT_THRESHOLD_FROM_XL = {
+    **{value: key for key, value in _CONDITIONAL_FORMAT_THRESHOLD_TO_XL.items()},
+    constants.ConditionValueTypes.xlConditionValueAutomaticMin: "automatic",
+    constants.ConditionValueTypes.xlConditionValueAutomaticMax: "automatic",
+}
+_CONDITIONAL_FORMAT_ICON_SET_TO_XL = {
+    "3_arrows": constants.IconSet.xl3Arrows,
+    "3_arrows_gray": constants.IconSet.xl3ArrowsGray,
+    "3_flags": constants.IconSet.xl3Flags,
+    "3_traffic_lights_1": constants.IconSet.xl3TrafficLights1,
+    "3_traffic_lights_2": constants.IconSet.xl3TrafficLights2,
+    "3_signs": constants.IconSet.xl3Signs,
+    "3_symbols": constants.IconSet.xl3Symbols,
+    "3_symbols_2": constants.IconSet.xl3Symbols2,
+    "4_arrows": constants.IconSet.xl4Arrows,
+    "4_arrows_gray": constants.IconSet.xl4ArrowsGray,
+    "4_red_to_black": constants.IconSet.xl4RedToBlack,
+    "4_rating": constants.IconSet.xl4CRV,
+    "4_traffic_lights": constants.IconSet.xl4TrafficLights,
+    "5_arrows": constants.IconSet.xl5Arrows,
+    "5_arrows_gray": constants.IconSet.xl5ArrowsGray,
+    "5_rating": constants.IconSet.xl5CRV,
+    "5_quarters": constants.IconSet.xl5Quarters,
+    "3_stars": constants.IconSet.xl3Stars,
+    "3_triangles": constants.IconSet.xl3Triangles,
+    "5_boxes": constants.IconSet.xl5Boxes,
+}
+_CONDITIONAL_FORMAT_ICON_SET_FROM_XL = {
+    value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_TO_XL.items()
+}
 
 
 class Range(base_classes.Range):
@@ -2270,6 +2308,87 @@ class ConditionalFormat(base_classes.ConditionalFormat):
             return None
         return self.xl.Font.Italic
 
+    @staticmethod
+    def _threshold(criterion):
+        criterion_type = _CONDITIONAL_FORMAT_THRESHOLD_FROM_XL.get(
+            criterion.Type, "unknown"
+        )
+        value = (
+            None
+            if criterion_type
+            in {"automatic", "lowest_value", "highest_value", "unknown"}
+            else criterion.Value
+        )
+        return criterion_type, value
+
+    @property
+    def colors(self):
+        if self.type != "color_scale":
+            return None
+        criteria = self.xl.ColorScaleCriteria
+        return tuple(
+            self._color(criteria(index).FormatColor)
+            for index in range(1, criteria.Count + 1)
+        )
+
+    @property
+    def bar_color(self):
+        return self._color(self.xl.BarColor) if self.type == "data_bar" else None
+
+    @property
+    def gradient(self):
+        if self.type != "data_bar":
+            return None
+        return self.xl.BarFillType == constants.DataBarFillType.xlDataBarFillGradient
+
+    @property
+    def show_value(self):
+        if self.type == "data_bar":
+            return bool(self.xl.ShowValue)
+        if self.type == "icon_set":
+            return not bool(self.xl.ShowIconOnly)
+        return None
+
+    @property
+    def icon_set(self):
+        if self.type != "icon_set":
+            return None
+        return _CONDITIONAL_FORMAT_ICON_SET_FROM_XL.get(self.xl.IconSet.ID)
+
+    @property
+    def reverse_order(self):
+        return bool(self.xl.ReverseOrder) if self.type == "icon_set" else None
+
+    def _threshold_pairs(self):
+        if self.type == "color_scale":
+            criteria = self.xl.ColorScaleCriteria
+            return tuple(
+                self._threshold(criteria(index))
+                for index in range(1, criteria.Count + 1)
+            )
+        if self.type == "data_bar":
+            return (
+                self._threshold(self.xl.MinPoint),
+                self._threshold(self.xl.MaxPoint),
+            )
+        if self.type == "icon_set":
+            criteria = self.xl.IconCriteria
+            return tuple(
+                self._threshold(criteria(index))
+                for index in range(2, criteria.Count + 1)
+            )
+        return None
+
+    @property
+    def threshold_types(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[0] for pair in pairs)
+
+    @property
+    def thresholds(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[1] for pair in pairs)
+
     def set(self, changes):
         criteria = {"operator", "formula1", "formula2", "formula"} & changes.keys()
         if criteria:
@@ -2345,6 +2464,77 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
             ),
             spec,
         )
+
+    @staticmethod
+    def _set_threshold(criterion, criterion_type, value, *, automatic_type=None):
+        xl_type = (
+            automatic_type
+            if criterion_type == "automatic"
+            else _CONDITIONAL_FORMAT_THRESHOLD_TO_XL[criterion_type]
+        )
+        if hasattr(criterion, "Modify"):
+            if value is None:
+                criterion.Modify(xl_type)
+            else:
+                criterion.Modify(xl_type, value)
+        else:
+            criterion.Type = xl_type
+            if value is not None:
+                criterion.Value = value
+
+    def _finish_visual_add(self, rule):
+        rule.SetFirstPriority()
+        return ConditionalFormat(self.xl(1))
+
+    def add_color_scale(self, spec):
+        rule = self.xl.AddColorScale(ColorScaleType=len(spec["colors"]))
+        for index, (color, criterion_type, value) in enumerate(
+            zip(spec["colors"], spec["threshold_types"], spec["thresholds"]),
+            start=1,
+        ):
+            criterion = rule.ColorScaleCriteria(index)
+            self._set_threshold(criterion, criterion_type, value)
+            criterion.FormatColor.Color = rgb_to_int(color)
+        return self._finish_visual_add(rule)
+
+    def add_data_bar(self, spec):
+        rule = self.xl.AddDatabar()
+        rule.BarColor.Color = rgb_to_int(spec["bar_color"])
+        rule.BarFillType = (
+            constants.DataBarFillType.xlDataBarFillGradient
+            if spec["gradient"]
+            else constants.DataBarFillType.xlDataBarFillSolid
+        )
+        rule.ShowValue = spec["show_value"]
+        self._set_threshold(
+            rule.MinPoint,
+            spec["threshold_types"][0],
+            spec["thresholds"][0],
+            automatic_type=constants.ConditionValueTypes.xlConditionValueAutomaticMin,
+        )
+        self._set_threshold(
+            rule.MaxPoint,
+            spec["threshold_types"][1],
+            spec["thresholds"][1],
+            automatic_type=constants.ConditionValueTypes.xlConditionValueAutomaticMax,
+        )
+        return self._finish_visual_add(rule)
+
+    def add_icon_set(self, spec):
+        rule = self.xl.AddIconSetCondition()
+        workbook = rule.AppliesTo.Parent.Parent
+        rule.IconSet = workbook.IconSets(
+            _CONDITIONAL_FORMAT_ICON_SET_TO_XL[spec["icon_set"]]
+        )
+        rule.ShowIconOnly = not spec["show_value"]
+        rule.ReverseOrder = spec["reverse_order"]
+        for index, (criterion_type, value) in enumerate(
+            zip(spec["threshold_types"], spec["thresholds"]), start=2
+        ):
+            criterion = rule.IconCriteria(index)
+            self._set_threshold(criterion, criterion_type, value)
+            criterion.Operator = constants.FormatConditionOperator.xlGreaterEqual
+        return self._finish_visual_add(rule)
 
     def clear(self):
         self.xl.Delete()
