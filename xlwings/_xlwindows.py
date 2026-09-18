@@ -1886,9 +1886,9 @@ class DataValidation(base_classes.DataValidation):
         elif isinstance(source, base_classes.Name):
             formula = f"={source.name}"
         else:
-            separator = self.parent.xl.Application.International(
+            separator = self.parent.xl.Application.International[
                 constants.ApplicationInternational.xlListSeparator
-            )
+            ]
             formula = separator.join(source)
         if len(formula) > 255:
             raise ValueError(
