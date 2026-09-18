@@ -8,6 +8,9 @@ these properties back isn't supported (the values aren't part of the payload
 sent to Python), so the getters still raise NotImplementedError.
 """
 
+import sys
+from types import ModuleType, SimpleNamespace
+
 import pytest
 
 import xlwings as xw
@@ -232,6 +235,46 @@ def test_data_validation_rejects_non_boolean_dropdown_flag(book):
             ["Open", "Closed"], in_cell_dropdown=1
         )
     assert actions(book) == []
+
+
+@pytest.mark.anyio
+async def test_flush_does_not_replay_actions_after_partial_failure(book, monkeypatch):
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    dispatched = []
+
+    async def run_actions(payload):
+        dispatched.append(payload)
+        if len(dispatched) == 1:
+            raise RuntimeError("partial dispatch")
+
+    js = ModuleType("js")
+    js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
+    js.xlwings = SimpleNamespace(runActions=run_actions)
+    monkeypatch.setitem(sys.modules, "js", js)
+
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+    ffi.to_js = lambda value, **kwargs: value
+    pyodide.ffi = ffi
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
+
+    target = book.sheets[0]["A1:A3"]
+    target.data_validation.set_list(["Open", "Closed"])
+    with pytest.raises(RuntimeError, match="partial dispatch"):
+        await book.flush()
+    assert actions(book) == []
+
+    target.data_validation.delete()
+    await book.flush()
+    assert [action["func"] for action in dispatched[1]["actions"]] == [
+        "deleteDataValidation"
+    ]
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
 
 def test_row_height(book):

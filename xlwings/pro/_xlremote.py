@@ -803,8 +803,11 @@ class Book(base_classes.Book):
             actions_js = to_js(
                 {"actions": actions}, dict_converter=js.Object.fromEntries
             )
-            await js.xlwings.runActions(actions_js)
+            # runActions may fail after applying only part of the batch. Never retain
+            # that indeterminate batch: replaying it can duplicate non-idempotent
+            # actions such as adding a defined name.
             self._json["actions"] = []
+            await js.xlwings.runActions(actions_js)
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
