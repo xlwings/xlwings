@@ -2271,11 +2271,11 @@ class Range:
 
     @property
     def conditional_formats(self) -> ConditionalFormats:
-        """Returns the conditional-format rules that overlap this range.
+        """Returns the conditional-format rules for this range.
 
-        Reading the collection synchronously requires locally installed Excel.
-        In xlwings Lite, use :meth:`get_conditional_formats` for inspection;
-        ``conditional_formats.clear()`` remains available as a queued mutation.
+        In xlwings Lite, use
+        `await sheet["A1:D10"].get_conditional_formats()` for inspection;
+        `sheet["A1:D10"].conditional_formats.clear()` remains available.
 
         ```{versionadded} 0.37.5
         ```
