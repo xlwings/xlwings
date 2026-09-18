@@ -3773,7 +3773,12 @@ class ConditionalFormat(base_classes.ConditionalFormat):
 
     @property
     def formula2(self):
-        return self._entry.get("formula2") if self.type == "cell_value" else None
+        if self.type != "cell_value" or self.operator not in {
+            "between",
+            "not_between",
+        }:
+            return None
+        return self._entry.get("formula2")
 
     @property
     def formula(self):

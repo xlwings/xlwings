@@ -96,6 +96,26 @@ def test_async_getter_preserves_order_and_unknown_rules():
     assert formats[0].font_italic is True
 
 
+def test_async_getter_ignores_inactive_formula2():
+    rng = _book().sheets[0]["A1"]
+    entry = {**_entries()[0], "formula2": "999"}
+
+    async def fake(self, key, method=None):
+        return [entry]
+
+    with mock.patch.object(R.Range, "_get_range_data", fake):
+        rule = asyncio.run(rng.get_conditional_formats())[0]
+
+    assert rule.operator == "less_than"
+    assert rule.formula2 is None
+
+    entry["operator"] = "Between"
+    with mock.patch.object(R.Range, "_get_range_data", fake):
+        rule = asyncio.run(rng.get_conditional_formats())[0]
+    assert rule.operator == "between"
+    assert rule.formula2 == "999"
+
+
 def test_multiple_deletes_keep_snapshot_positions_aligned():
     book = _book()
     rng = book.sheets[0]["A1:B2"]
