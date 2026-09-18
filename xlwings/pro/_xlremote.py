@@ -236,6 +236,64 @@ _VERTICAL_ALIGNMENT_PY2JS = {
 }
 _VERTICAL_ALIGNMENT_JS2PY = {v: k for k, v in _VERTICAL_ALIGNMENT_PY2JS.items()}
 
+_CONDITIONAL_FORMAT_TYPE_JS2PY = {
+    "CellValue": "cell_value",
+    "Custom": "custom",
+    "ColorScale": "color_scale",
+    "DataBar": "data_bar",
+    "IconSet": "icon_set",
+}
+_CONDITIONAL_FORMAT_OPERATOR_PY2JS = {
+    "between": "Between",
+    "not_between": "NotBetween",
+    "equal_to": "EqualTo",
+    "not_equal_to": "NotEqualTo",
+    "greater_than": "GreaterThan",
+    "less_than": "LessThan",
+    "greater_than_or_equal": "GreaterThanOrEqual",
+    "less_than_or_equal": "LessThanOrEqual",
+}
+_CONDITIONAL_FORMAT_OPERATOR_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_PY2JS.items()
+}
+_CONDITIONAL_FORMAT_THRESHOLD_PY2JS = {
+    "automatic": "Automatic",
+    "lowest_value": "LowestValue",
+    "highest_value": "HighestValue",
+    "number": "Number",
+    "percent": "Percent",
+    "percentile": "Percentile",
+    "formula": "Formula",
+}
+_CONDITIONAL_FORMAT_THRESHOLD_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_THRESHOLD_PY2JS.items()
+}
+_CONDITIONAL_FORMAT_ICON_SET_PY2JS = {
+    "3_arrows": "ThreeArrows",
+    "3_arrows_gray": "ThreeArrowsGray",
+    "3_flags": "ThreeFlags",
+    "3_traffic_lights_1": "ThreeTrafficLights1",
+    "3_traffic_lights_2": "ThreeTrafficLights2",
+    "3_signs": "ThreeSigns",
+    "3_symbols": "ThreeSymbols",
+    "3_symbols_2": "ThreeSymbols2",
+    "4_arrows": "FourArrows",
+    "4_arrows_gray": "FourArrowsGray",
+    "4_red_to_black": "FourRedToBlack",
+    "4_rating": "FourRating",
+    "4_traffic_lights": "FourTrafficLights",
+    "5_arrows": "FiveArrows",
+    "5_arrows_gray": "FiveArrowsGray",
+    "5_rating": "FiveRating",
+    "5_quarters": "FiveQuarters",
+    "3_stars": "ThreeStars",
+    "3_triangles": "ThreeTriangles",
+    "5_boxes": "FiveBoxes",
+}
+_CONDITIONAL_FORMAT_ICON_SET_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_PY2JS.items()
+}
+
 
 def _mark_sheet_values_loaded(sheet_api):
     sheet_api[_SHEET_VALUES_LOADED_KEY] = True
@@ -1718,6 +1776,12 @@ class Range(base_classes.Range):
         )
 
     @property
+    def conditional_formats(self):
+        # The collection itself is useful without a read because clear() is a
+        # queued mutation. Dynamic inspection requires the async getter below.
+        return ConditionalFormats(self)
+
+    @property
     def note(self):
         # The payload carries the sheet's notes keyed by address, so this
         # knows whether one exists without a fetch -- as the sync property
@@ -1760,6 +1824,10 @@ class Range(base_classes.Range):
             if table["name"] == name:
                 return Table(self.sheet, ix + 1)
         raise KeyError(name)
+
+    async def get_conditional_formats(self):
+        entries = await self._get_range_data("conditional_formats")
+        return ConditionalFormats(self, entries)
 
     async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
@@ -3672,6 +3740,271 @@ class Characters(base_classes.Characters):
             length = None if item.stop is None else item.stop - start
             return Characters(self.parent, start=start, length=length)
         return Characters(self.parent, start=item, length=1)
+
+
+class ConditionalFormat(base_classes.ConditionalFormat):
+    def __init__(self, parent, entry):
+        self.parent = parent
+        self._entry = entry
+
+    @property
+    def api(self):
+        return self._entry
+
+    @property
+    def type(self):
+        return _CONDITIONAL_FORMAT_TYPE_JS2PY.get(self._entry.get("type"), "unknown")
+
+    @property
+    def stop_if_true(self):
+        if self.type in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return self._entry.get("stop_if_true")
+
+    @property
+    def operator(self):
+        if self.type != "cell_value":
+            return None
+        return _CONDITIONAL_FORMAT_OPERATOR_JS2PY.get(self._entry.get("operator"))
+
+    @property
+    def formula1(self):
+        return self._entry.get("formula1") if self.type == "cell_value" else None
+
+    @property
+    def formula2(self):
+        if self.type != "cell_value" or self.operator not in {
+            "between",
+            "not_between",
+        }:
+            return None
+        return self._entry.get("formula2")
+
+    @property
+    def formula(self):
+        return self._entry.get("formula") if self.type == "custom" else None
+
+    @staticmethod
+    def _rgb(value):
+        return utils.hex_to_rgb(value) if value else None
+
+    @property
+    def fill_color(self):
+        return self._rgb(self._entry.get("fill_color"))
+
+    @property
+    def font_color(self):
+        return self._rgb(self._entry.get("font_color"))
+
+    @property
+    def font_bold(self):
+        return self._entry.get("font_bold")
+
+    @property
+    def font_italic(self):
+        return self._entry.get("font_italic")
+
+    @property
+    def colors(self):
+        if self.type != "color_scale":
+            return None
+        return tuple(self._rgb(value) for value in self._entry.get("colors", ()))
+
+    @property
+    def bar_color(self):
+        return (
+            self._rgb(self._entry.get("bar_color")) if self.type == "data_bar" else None
+        )
+
+    @property
+    def gradient(self):
+        return self._entry.get("gradient") if self.type == "data_bar" else None
+
+    @property
+    def show_value(self):
+        if self.type not in {"data_bar", "icon_set"}:
+            return None
+        return self._entry.get("show_value")
+
+    @property
+    def icon_set(self):
+        if self.type != "icon_set":
+            return None
+        return _CONDITIONAL_FORMAT_ICON_SET_JS2PY.get(self._entry.get("icon_set"))
+
+    @property
+    def reverse_order(self):
+        return self._entry.get("reverse_order") if self.type == "icon_set" else None
+
+    @property
+    def threshold_types(self):
+        if self.type not in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return tuple(
+            _CONDITIONAL_FORMAT_THRESHOLD_JS2PY.get(value, "unknown")
+            for value in self._entry.get("threshold_types", ())
+        )
+
+    @property
+    def thresholds(self):
+        if self.type not in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return tuple(self._entry.get("thresholds", ()))
+
+    def set(self, changes):
+        position = self.parent.position(self._entry)
+        expected = {
+            key: self._entry.get(key)
+            for key in (
+                "type",
+                "stop_if_true",
+                "operator",
+                "formula1",
+                "formula2",
+                "formula",
+            )
+            if key in self._entry
+        }
+        serialized = dict(changes)
+        if "operator" in serialized:
+            serialized["operator"] = _CONDITIONAL_FORMAT_OPERATOR_PY2JS[
+                serialized["operator"]
+            ]
+        for key in ("fill_color", "font_color"):
+            if key in serialized:
+                serialized[key] = _color_to_hex(serialized[key])
+        self.parent.range.append_json_action(
+            func="setConditionalFormat",
+            args=[position, expected, serialized],
+        )
+        self._entry.update(serialized)
+
+    def delete(self):
+        try:
+            position = self.parent.position(self._entry)
+        except ValueError:
+            raise XlwingsError(
+                "This conditional-format rule is no longer in its collection."
+            ) from None
+        self.parent.range.append_json_action(
+            func="deleteConditionalFormat",
+            args=[
+                position,
+                self._entry.get("type"),
+                self._entry.get("stop_if_true"),
+            ],
+        )
+        # Keep this loaded snapshot aligned with the actions already queued so
+        # deleting several objects from it continues to target the right index.
+        self.parent.remove(self._entry)
+
+
+class ConditionalFormats(base_classes.ConditionalFormats):
+    def __init__(self, range, entries=None):
+        self.range = range
+        self._api = entries
+        self._pending = []
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self.range
+
+    def _loaded(self):
+        if self._api is None:
+            raise NotImplementedError(
+                "Inspecting conditional formats synchronously isn't supported on "
+                "this engine. Use 'await myrange.get_conditional_formats()' to "
+                "fetch them on demand."
+            )
+        return self._api
+
+    def __call__(self, key):
+        entries = self._loaded()
+        if not isinstance(key, numbers.Number) or key < 1 or key > len(entries):
+            raise KeyError(key)
+        return ConditionalFormat(self, entries[key - 1])
+
+    def __len__(self):
+        return len(self._loaded())
+
+    def __iter__(self):
+        # Iterate over a copy so deleting the current rule doesn't skip the next.
+        for entry in list(self._loaded()):
+            yield ConditionalFormat(self, entry)
+
+    def __contains__(self, key):
+        return isinstance(key, numbers.Number) and 1 <= key <= len(self._loaded())
+
+    def position(self, entry):
+        entries = self._api if self._api is not None else self._pending
+        return entries.index(entry)
+
+    def remove(self, entry):
+        entries = self._api if self._api is not None else self._pending
+        entries.remove(entry)
+
+    @staticmethod
+    def _entry(rule_type, spec):
+        entry = {
+            "type": rule_type,
+            "stop_if_true": spec.get("stop_if_true"),
+            "fill_color": None,
+            "font_color": None,
+            "font_bold": None,
+            "font_italic": None,
+        }
+        entry.update(spec)
+        if "operator" in entry:
+            entry["operator"] = _CONDITIONAL_FORMAT_OPERATOR_PY2JS[entry["operator"]]
+        for key in ("fill_color", "font_color"):
+            if entry.get(key) is not None:
+                entry[key] = _color_to_hex(entry[key])
+        if "colors" in entry:
+            entry["colors"] = [_color_to_hex(value) for value in entry["colors"]]
+        if entry.get("bar_color") is not None:
+            entry["bar_color"] = _color_to_hex(entry["bar_color"])
+        if "threshold_types" in entry:
+            entry["threshold_types"] = [
+                _CONDITIONAL_FORMAT_THRESHOLD_PY2JS[value]
+                for value in entry["threshold_types"]
+            ]
+        if "thresholds" in entry:
+            entry["thresholds"] = list(entry["thresholds"])
+        if "icon_set" in entry:
+            entry["icon_set"] = _CONDITIONAL_FORMAT_ICON_SET_PY2JS[entry["icon_set"]]
+        return entry
+
+    def _add(self, rule_type, spec):
+        entry = self._entry(rule_type, spec)
+        self.range.append_json_action(func="addConditionalFormat", args=[entry])
+        entries = self._api if self._api is not None else self._pending
+        entries.insert(0, entry)
+        return ConditionalFormat(self, entry)
+
+    def add_cell_value(self, spec):
+        return self._add("CellValue", spec)
+
+    def add_custom(self, spec):
+        return self._add("Custom", spec)
+
+    def add_color_scale(self, spec):
+        return self._add("ColorScale", spec)
+
+    def add_data_bar(self, spec):
+        return self._add("DataBar", spec)
+
+    def add_icon_set(self, spec):
+        return self._add("IconSet", spec)
+
+    def clear(self):
+        self.range.append_json_action(func="clearConditionalFormats", args=[])
+        if self._api is not None:
+            self._api.clear()
+        self._pending.clear()
 
 
 class Note(base_classes.Note):

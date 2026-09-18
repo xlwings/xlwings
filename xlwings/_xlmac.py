@@ -8,6 +8,7 @@ import struct
 import subprocess
 from collections import Counter
 from contextlib import contextmanager
+from functools import cache
 from pathlib import Path
 from uuid import uuid4
 from weakref import WeakValueDictionary
@@ -17,7 +18,7 @@ import appscript
 import osax
 import psutil
 from appscript import its, k as kw, mactypes
-from appscript.reference import CommandError
+from appscript.reference import CommandError, Reference
 
 import xlwings
 
@@ -869,6 +870,96 @@ class Sheet(base_classes.Sheet):
         return PageSetup(self, self.xl.page_setup_object)
 
 
+_CONDITIONAL_FORMAT_TYPE_FROM_KW = {
+    kw.cell_value: "cell_value",
+    kw.expression: "custom",
+    kw.color_scale: "color_scale",
+    kw.databar: "data_bar",
+    kw.icon_sets: "icon_set",
+}
+_CONDITIONAL_FORMAT_SPECIALIZED_COLLECTION_FROM_KW = {
+    kw.color_scale: "color_scale_format_condition",
+    kw.databar: "databar_format_condition",
+    kw.icon_sets: "icon_set_format_condition",
+}
+_CONDITIONAL_FORMAT_OPERATOR_TO_KW = {
+    "between": kw.operator_between,
+    "not_between": kw.operator_not_between,
+    "equal_to": kw.operator_equal,
+    "not_equal_to": kw.operator_not_equal,
+    "greater_than": kw.operator_greater,
+    "less_than": kw.operator_less,
+    "greater_than_or_equal": kw.operator_greater_equal,
+    "less_than_or_equal": kw.operator_less_equal,
+}
+_CONDITIONAL_FORMAT_OPERATOR_FROM_KW = {
+    value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_TO_KW.items()
+}
+_CONDITIONAL_FORMAT_THRESHOLD_TO_KW = {
+    "lowest_value": kw.condition_value_lowest_value,
+    "highest_value": kw.condition_value_highest_value,
+    "number": kw.condition_value_number,
+    "percent": kw.condition_value_percent,
+    "percentile": kw.condition_value_percentile,
+    "formula": kw.condition_value_formula,
+}
+_CONDITIONAL_FORMAT_THRESHOLD_FROM_KW = {
+    **{value: key for key, value in _CONDITIONAL_FORMAT_THRESHOLD_TO_KW.items()},
+    kw.condition_value_automatic_minimum: "automatic",
+    kw.condition_value_automatic_maximum: "automatic",
+}
+_CONDITIONAL_FORMAT_ICON_SET_TO_KW = {
+    "3_arrows": kw.icon_set_3_arrows,
+    "3_arrows_gray": kw.icon_set_3_arrows_gray,
+    "3_flags": kw.icon_set_3_flags,
+    "3_traffic_lights_1": kw.icon_set_3_traffic_lights_1,
+    "3_traffic_lights_2": kw.icon_set_3_traffic_lights_2,
+    "3_signs": kw.icon_set_3_signs,
+    "3_symbols": kw.icon_set_3_symbols,
+    "3_symbols_2": kw.icon_set_3_symbols_2,
+    "4_arrows": kw.icon_set_4_arrows,
+    "4_arrows_gray": kw.icon_set_4_arrows_gray,
+    "4_red_to_black": kw.icon_set_4_red_to_black,
+    "4_rating": kw.icon_set_4_CRV,
+    "4_traffic_lights": kw.icon_set_4_traffic_lights,
+    "5_arrows": kw.icon_set_5_arrows,
+    "5_arrows_gray": kw.icon_set_5_arrows_gray,
+    "5_rating": kw.icon_set_5_CRV,
+    "5_quarters": kw.icon_set_5_quarters,
+    "3_stars": kw.icon_set_3_stars,
+    "3_triangles": kw.icon_set_3_triangles,
+    "5_boxes": kw.icon_set_5_boxes,
+}
+_CONDITIONAL_FORMAT_ICON_SET_FROM_KW = {
+    value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
+}
+
+
+@cache
+def _conditional_format_icon_set_indexes():
+    """Derive workbook IconSets indexes from Excel's generated enum values."""
+    terminology = dict(mac_dict.enums)
+    codes = {
+        name: terminology[keyword.AS_name]
+        for name, keyword in _CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
+    }
+    prefixes = {code[:2] for code in codes.values() if len(code) == 4}
+    indexes = {name: int.from_bytes(code[2:], "big") for name, code in codes.items()}
+    expected = set(range(1, len(codes) + 1))
+    if len(prefixes) != 1 or set(indexes.values()) != expected:
+        raise RuntimeError(
+            "Excel's generated icon-set enumeration no longer matches its "
+            "workbook IconSets collection."
+        )
+    return indexes
+
+
+_CONDITIONAL_FORMAT_ICON_SET_INDEX = {
+    name: index
+    for index, name in enumerate(_CONDITIONAL_FORMAT_ICON_SET_TO_KW, start=1)
+}
+
+
 class Range(base_classes.Range):
     def __init__(self, sheet, address):
         self.sheet = sheet
@@ -1324,6 +1415,10 @@ class Range(base_classes.Range):
             )
         except appscript.reference.CommandError:
             return None
+
+    @property
+    def conditional_formats(self):
+        return ConditionalFormats(self)
 
     def copy_picture(self, appearance, format):
         _appearance = {"screen": kw.screen, "printer": kw.printer}
@@ -1802,6 +1897,420 @@ class Collection(base_classes.Collection):
 
     def __contains__(self, key):
         return self.xl[key].exists()
+
+
+class ConditionalFormat(base_classes.ConditionalFormat):
+    def __init__(self, parent, key):
+        self.parent = parent
+        generic = parent.xl.format_conditions[key]
+        native_type = generic.format_condition_type.get()
+        specialized = _CONDITIONAL_FORMAT_SPECIALIZED_COLLECTION_FROM_KW.get(
+            native_type
+        )
+        if specialized is None:
+            self.xl = generic
+            return
+        # Excel exposes family-specific properties only through a `range` element
+        # reference, not through the `cells` reference Range normally uses. The
+        # specialized collections retain the global format-condition index.
+        sheet = parent.sheet.xl
+        range_ref = Reference(
+            sheet.AS_appdata,
+            sheet.AS_aemreference.elements(b"X117").byname(
+                parent.address.replace("$", "")
+            ),
+        )
+        self.xl = getattr(range_ref, specialized)[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def type(self):
+        return _CONDITIONAL_FORMAT_TYPE_FROM_KW.get(
+            self.xl.format_condition_type.get(), "unknown"
+        )
+
+    @property
+    def stop_if_true(self):
+        if self.type in {"color_scale", "data_bar", "icon_set"}:
+            return None
+        return self.xl.stop_if_true.get()
+
+    @property
+    def operator(self):
+        if self.type != "cell_value":
+            return None
+        return _CONDITIONAL_FORMAT_OPERATOR_FROM_KW.get(
+            self.xl.condition_operator.get()
+        )
+
+    @property
+    def formula1(self):
+        return self.xl.formula_1.get() if self.type == "cell_value" else None
+
+    @property
+    def formula2(self):
+        if self.type != "cell_value" or self.operator not in {
+            "between",
+            "not_between",
+        }:
+            return None
+        value = self.xl.formula_2.get()
+        return None if value == kw.missing_value else value
+
+    @property
+    def formula(self):
+        return self.xl.formula_1.get() if self.type == "custom" else None
+
+    @staticmethod
+    def _color(obj, color_index=None):
+        color_index = (obj.color_index if color_index is None else color_index).get()
+        if color_index in {
+            kw.color_index_none,
+            kw.color_index_automatic,
+            kw.missing_value,
+        }:
+            return None
+        value = obj.color.get()
+        return None if value is None or value == kw.missing_value else tuple(value)
+
+    @property
+    def fill_color(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        return self._color(self.xl.interior_object)
+
+    @property
+    def font_color(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        return self._color(self.xl.font_object, self.xl.font_object.font_color_index)
+
+    @property
+    def font_bold(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        value = self.xl.font_object.bold.get()
+        return None if value is None or value == kw.missing_value else value
+
+    @property
+    def font_italic(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        value = self.xl.font_object.italic.get()
+        return None if value is None or value == kw.missing_value else value
+
+    @staticmethod
+    def _threshold(criterion, type_property, value_property):
+        criterion_type = _CONDITIONAL_FORMAT_THRESHOLD_FROM_KW.get(
+            type_property.get(), "unknown"
+        )
+        if criterion_type in {
+            "automatic",
+            "lowest_value",
+            "highest_value",
+            "unknown",
+        }:
+            value = None
+        else:
+            value = value_property.get()
+            if value == kw.missing_value:
+                value = None
+        return criterion_type, value
+
+    @property
+    def colors(self):
+        if self.type != "color_scale":
+            return None
+        count = self.xl.count(each=kw.color_scale_criterion)
+        # Criteria are direct children of the rule. Addressing them through the
+        # color_scale_criteria property can terminate Excel's Apple-event process.
+        criteria = self.xl.color_scale_criterion
+        return tuple(
+            self._color(criteria[index].format_color) for index in range(1, count + 1)
+        )
+
+    @property
+    def bar_color(self):
+        if self.type != "data_bar":
+            return None
+        return self._color(self.xl.databar_bar_color)
+
+    @property
+    def gradient(self):
+        if self.type != "data_bar":
+            return None
+        return self.xl.databar_fill_type.get() == kw.databar_fill_gradient
+
+    @property
+    def show_value(self):
+        if self.type == "data_bar":
+            return self.xl.format_condition_show_value.get()
+        if self.type == "icon_set":
+            return not self.xl.show_icon_only.get()
+        return None
+
+    @property
+    def icon_set(self):
+        if self.type != "icon_set":
+            return None
+        return _CONDITIONAL_FORMAT_ICON_SET_FROM_KW.get(
+            self.xl.format_condition_icon_set.icon_set_id.get()
+        )
+
+    @property
+    def reverse_order(self):
+        return self.xl.reverse_icon_set_order.get() if self.type == "icon_set" else None
+
+    def _threshold_pairs(self):
+        if self.type == "color_scale":
+            count = self.xl.count(each=kw.color_scale_criterion)
+            criteria = self.xl.color_scale_criterion
+            return tuple(
+                self._threshold(
+                    criteria[index],
+                    criteria[index].color_scale_criterion_type,
+                    criteria[index].color_scale_criterion_value,
+                )
+                for index in range(1, count + 1)
+            )
+        if self.type == "data_bar":
+            return tuple(
+                self._threshold(
+                    criterion,
+                    criterion.condition_value_type,
+                    criterion.condition_value_value,
+                )
+                for criterion in (
+                    self.xl.min_point_condition_value,
+                    self.xl.max_point_condition_value,
+                )
+            )
+        if self.type == "icon_set":
+            count = self.xl.count(each=kw.icon_criterion)
+            criteria = self.xl.icon_criterion
+            return tuple(
+                self._threshold(
+                    criteria[index],
+                    criteria[index].icon_criterion_type,
+                    criteria[index].icon_criterion_value,
+                )
+                for index in range(2, count + 1)
+            )
+        return None
+
+    @property
+    def threshold_types(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[0] for pair in pairs)
+
+    @property
+    def thresholds(self):
+        pairs = self._threshold_pairs()
+        return None if pairs is None else tuple(pair[1] for pair in pairs)
+
+    def set(self, changes):
+        criteria = {"operator", "formula1", "formula2", "formula"} & changes.keys()
+        if criteria:
+            if self.type == "cell_value":
+                kwargs = {
+                    "type": kw.cell_value,
+                    "operator": _CONDITIONAL_FORMAT_OPERATOR_TO_KW[
+                        changes.get("operator", self.operator)
+                    ],
+                    "formula1": changes.get("formula1", self.formula1),
+                }
+                formula2 = changes.get("formula2", self.formula2)
+                if formula2 is not None:
+                    kwargs["formula2"] = formula2
+                self.xl.modify_condition(**kwargs)
+            else:
+                self.xl.modify_condition(
+                    type=kw.expression,
+                    formula1=changes.get("formula", self.formula),
+                )
+        if "fill_color" in changes:
+            self.xl.interior_object.color.set(changes["fill_color"])
+        if "font_color" in changes:
+            self.xl.font_object.color.set(changes["font_color"])
+        if "font_bold" in changes:
+            self.xl.font_object.bold.set(changes["font_bold"])
+        if "font_italic" in changes:
+            self.xl.font_object.italic.set(changes["font_italic"])
+        if "stop_if_true" in changes:
+            self.xl.stop_if_true.set(changes["stop_if_true"])
+
+    def delete(self):
+        self.xl.delete()
+
+
+class ConditionalFormats(Collection, base_classes.ConditionalFormats):
+    _attr = "format_conditions"
+    _kw = kw.format_condition
+    _wrap = ConditionalFormat
+
+    def _finish_add(self, rule, spec):
+        rule.set_first_priority()
+        wrapped = ConditionalFormat(self.parent, 1)
+        wrapped.set(
+            {
+                key: value
+                for key, value in spec.items()
+                if key
+                in {
+                    "fill_color",
+                    "font_color",
+                    "font_bold",
+                    "font_italic",
+                    "stop_if_true",
+                }
+            }
+        )
+        return wrapped
+
+    def add_cell_value(self, spec):
+        properties = {
+            kw.format_condition_type: kw.cell_value,
+            kw.condition_operator: _CONDITIONAL_FORMAT_OPERATOR_TO_KW[spec["operator"]],
+            kw.formula_1: spec["formula1"],
+        }
+        if spec["formula2"] is not None:
+            properties[kw.formula_2] = spec["formula2"]
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.format_condition,
+            with_properties=properties,
+        )
+        return self._finish_add(rule, spec)
+
+    def add_custom(self, spec):
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.format_condition,
+            with_properties={
+                kw.format_condition_type: kw.expression,
+                kw.formula_1: spec["formula"],
+            },
+        )
+        return self._finish_add(rule, spec)
+
+    @staticmethod
+    def _set_threshold(
+        criterion,
+        type_property,
+        value_property,
+        criterion_type,
+        value,
+        *,
+        automatic_type=None,
+        modify=False,
+    ):
+        native_type = (
+            automatic_type
+            if criterion_type == "automatic"
+            else _CONDITIONAL_FORMAT_THRESHOLD_TO_KW[criterion_type]
+        )
+        if modify:
+            kwargs = {"type": native_type}
+            if value is not None:
+                kwargs["condition_value"] = value
+            criterion.modify_condition_value(**kwargs)
+        else:
+            type_property.set(native_type)
+            if value is not None:
+                value_property.set(value)
+
+    def _finish_visual_add(self, rule):
+        rule.set_first_priority()
+        return ConditionalFormat(self.parent, 1)
+
+    def add_color_scale(self, spec):
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.color_scale_format_condition,
+            with_properties={kw.color_scale_type: len(spec["colors"])},
+        )
+        criteria = rule.color_scale_criterion
+        for index, (color, criterion_type, value) in enumerate(
+            zip(spec["colors"], spec["threshold_types"], spec["thresholds"]),
+            start=1,
+        ):
+            criterion = criteria[index]
+            self._set_threshold(
+                criterion,
+                criterion.color_scale_criterion_type,
+                criterion.color_scale_criterion_value,
+                criterion_type,
+                value,
+            )
+            criterion.format_color.color.set(color)
+        return self._finish_visual_add(rule)
+
+    def add_data_bar(self, spec):
+        rule = self.parent.xl.make(at=self.parent.xl, new=kw.databar_format_condition)
+        rule.databar_bar_color.color.set(spec["bar_color"])
+        rule.databar_fill_type.set(
+            kw.databar_fill_gradient if spec["gradient"] else kw.databar_fill_solid
+        )
+        rule.format_condition_show_value.set(spec["show_value"])
+        for criterion, criterion_type, value, automatic_type in zip(
+            (rule.min_point_condition_value, rule.max_point_condition_value),
+            spec["threshold_types"],
+            spec["thresholds"],
+            (
+                kw.condition_value_automatic_minimum,
+                kw.condition_value_automatic_maximum,
+            ),
+        ):
+            self._set_threshold(
+                criterion,
+                criterion.condition_value_type,
+                criterion.condition_value_value,
+                criterion_type,
+                value,
+                automatic_type=automatic_type,
+                modify=True,
+            )
+        return self._finish_visual_add(rule)
+
+    def add_icon_set(self, spec):
+        rule = self.parent.xl.make(at=self.parent.xl, new=kw.icon_set_format_condition)
+        # `format condition icon sets` is declared as a property in Excel's
+        # AppleScript dictionary, so appscript can't index it as a collection.
+        # The singular elements do exist directly below the workbook, however.
+        workbook = self.parent.sheet.book.xl
+        icon_set = Reference(
+            workbook.AS_appdata,
+            workbook.AS_aemreference.elements(b"X319").byindex(
+                _conditional_format_icon_set_indexes()[spec["icon_set"]]
+            ),
+        )
+        rule.format_condition_icon_set.set(icon_set)
+        rule.show_icon_only.set(not spec["show_value"])
+        rule.reverse_icon_set_order.set(spec["reverse_order"])
+        criteria = rule.icon_criterion
+        for index, (criterion_type, value) in enumerate(
+            zip(spec["threshold_types"], spec["thresholds"]), start=2
+        ):
+            criterion = criteria[index]
+            self._set_threshold(
+                criterion,
+                criterion.icon_criterion_type,
+                criterion.icon_criterion_value,
+                criterion_type,
+                value,
+            )
+            criterion.condition_operator.set(kw.operator_greater_equal)
+        return self._finish_visual_add(rule)
+
+    def clear(self):
+        # Deleting the collection through the `cells` reference can terminate
+        # Excel, and generic format-condition references don't delete visual
+        # rules. Resolve each current first-priority rule to its native family.
+        for _ in range(len(self)):
+            ConditionalFormat(self.parent, 1).delete()
 
 
 class Table(base_classes.Table):
