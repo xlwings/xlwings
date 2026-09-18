@@ -11,12 +11,14 @@ License: BSD 3-clause (see LICENSE.txt for details)
 
 from __future__ import annotations
 
+import math
 import numbers
 import os
 import re
 import sys
 import time
 import warnings
+from collections.abc import Sequence
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
@@ -2257,6 +2259,26 @@ class Range:
         ```
         """
         return Borders(impl=self.impl.borders)
+
+    @property
+    def data_validation(self) -> DataValidation:
+        """Returns the data validation object for the range.
+
+        Use :meth:`DataValidation.set_list` to create or update a list validation and
+        :meth:`DataValidation.delete` to remove validation from the range.
+
+        Examples:
+            ```python
+            sheet["A1:A10"].data_validation.set_list(["Open", "Closed"])
+            sheet["B1:B10"].data_validation.set_list(sheet["D1:D3"])
+            sheet["C1:C10"].data_validation.set_list(book.names["Statuses"])
+            sheet["A1:A10"].data_validation.delete()
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return DataValidation(impl=self.impl.data_validation, parent=self)
 
     @property
     def characters(self) -> Characters:
@@ -5896,6 +5918,106 @@ class Name:
             and other.name == self.name
             and other.refers_to == self.refers_to
         )
+
+
+class DataValidation:
+    """Data validation for a range.
+
+    Do not construct this class directly; access it through
+    :attr:`Range.data_validation`.
+
+    On remote engines, mutations require an Office.js client that supports
+    ExcelApi 1.8.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any, parent: Range) -> None:
+        self.impl = impl
+        self.parent = parent
+
+    @property
+    def api(self) -> Any:
+        """Returns the native data validation object of the engine being used."""
+        return self.impl.api
+
+    @staticmethod
+    def _literal_source(
+        source: Sequence[str | int | float | bool],
+    ) -> list[str]:
+        if isinstance(source, (str, bytes, bytearray)) or not isinstance(
+            source, Sequence
+        ):
+            raise TypeError("source must be a non-empty sequence, Range, or Name")
+        if not source:
+            raise ValueError("source must not be empty")
+
+        values = []
+        for value in source:
+            if isinstance(value, bool):
+                text = "TRUE" if value else "FALSE"
+            elif isinstance(value, str):
+                text = value
+            elif isinstance(value, int):
+                text = str(value)
+            elif isinstance(value, float) and math.isfinite(value):
+                text = str(value)
+            else:
+                raise TypeError(
+                    "literal list values must be strings, numbers, or booleans"
+                )
+            if "," in text or ";" in text:
+                raise ValueError(
+                    "literal list values cannot contain ',' or ';'; use a Range "
+                    "or Name source for values containing separators"
+                )
+            values.append(text)
+
+        if len(",".join(values)) > 255:
+            raise ValueError(
+                "a literal list source cannot exceed 255 characters; use a Range "
+                "or Name source instead"
+            )
+        return values
+
+    def _range_source(self, source: Range) -> Any:
+        if source.sheet.book != self.parent.sheet.book:
+            raise ValueError("source must belong to the same workbook as the target")
+        if source.shape[0] != 1 and source.shape[1] != 1:
+            raise ValueError("a list validation source Range must be one-dimensional")
+        return source.impl
+
+    def set_list(
+        self,
+        source: Sequence[str | int | float | bool] | Range | Name,
+        *,
+        in_cell_dropdown: bool = True,
+    ) -> None:
+        """Creates or updates a list validation on the range.
+
+        Existing input prompts and error alerts are preserved. The source can be a
+        non-empty sequence of strings, numbers, or booleans, a one-dimensional Range,
+        or a Name that refers to a one-dimensional range in the same workbook.
+
+        Args:
+            source: Allowed list values, a worksheet range, or a named range.
+            in_cell_dropdown: Whether Excel shows the list's in-cell dropdown.
+        """
+        if not isinstance(in_cell_dropdown, bool):
+            raise TypeError("in_cell_dropdown must be a bool")
+        if isinstance(source, Range):
+            normalized_source = self._range_source(source)
+        elif isinstance(source, Name):
+            self._range_source(source.refers_to_range)
+            normalized_source = source.impl
+        else:
+            normalized_source = self._literal_source(source)
+        self.impl.set_list(normalized_source, in_cell_dropdown)
+
+    def delete(self) -> None:
+        """Removes data validation from the range."""
+        self.impl.delete()
 
 
 def view(

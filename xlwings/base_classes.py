@@ -739,6 +739,10 @@ class Range:
         raise NotImplementedError()
 
     @property
+    def data_validation(self):
+        raise NotImplementedError()
+
+    @property
     def column_width(self):
         raise NotImplementedError()
 
@@ -910,6 +914,18 @@ class Range:
         raise NotImplementedError()
 
     def autofill(self, destination, type_):
+        raise NotImplementedError()
+
+
+class DataValidation:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    def set_list(self, source, in_cell_dropdown):
+        raise NotImplementedError()
+
+    def delete(self):
         raise NotImplementedError()
 
 

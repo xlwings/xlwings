@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.5 (TBD)
 
 - Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
+- Added `Range.data_validation` with list validation from literal values, worksheet ranges, and named ranges.
 
 ## v0.37.4 (Sep 16, 2026)
 

@@ -152,6 +152,88 @@ def test_column_width_rejects_invalid_values(book, value):
         book.sheets[0]["A1"].column_width = value
 
 
+def test_data_validation_literal_list(book):
+    book.sheets[0]["A1:A3"].data_validation.set_list(
+        ["Open", 2, 3.5, True], in_cell_dropdown=False
+    )
+    action = last_action(book)
+    assert action["func"] == "setDataValidationList"
+    assert action["args"] == [
+        {"type": "literal", "values": ["Open", "2", "3.5", "TRUE"]},
+        False,
+    ]
+    assert (action["start_row"], action["start_column"]) == (0, 0)
+    assert (action["row_count"], action["column_count"]) == (3, 1)
+
+
+def test_data_validation_range_source(book):
+    book.sheets[0]["A1:A3"].data_validation.set_list(book.sheets[1]["C2:C4"])
+    assert last_action(book)["args"] == [
+        {
+            "type": "range",
+            "sheet_position": 1,
+            "start_row": 1,
+            "start_column": 2,
+            "row_count": 3,
+            "column_count": 1,
+        },
+        True,
+    ]
+
+
+def test_data_validation_named_range_source(book):
+    name = book.names.add("Statuses", "=S2!$C$2:$C$4")
+    book.sheets[0]["A1:A3"].data_validation.set_list(name)
+    assert last_action(book)["args"] == [
+        {"type": "name", "name": "Statuses"},
+        True,
+    ]
+
+
+def test_data_validation_delete(book):
+    book.sheets[0]["A1:A3"].data_validation.delete()
+    assert last_action(book)["func"] == "deleteDataValidation"
+
+
+@pytest.mark.parametrize(
+    "source,error",
+    [
+        ([], "must not be empty"),
+        (["a,b"], "cannot contain"),
+        ([None], "strings, numbers, or booleans"),
+        ([float("inf")], "strings, numbers, or booleans"),
+        (["x" * 256], "255 characters"),
+        ("Open,Closed", "non-empty sequence"),
+    ],
+)
+def test_data_validation_rejects_invalid_literal_sources(book, source, error):
+    with pytest.raises((TypeError, ValueError), match=error):
+        book.sheets[0]["A1"].data_validation.set_list(source)
+    assert actions(book) == []
+
+
+def test_data_validation_rejects_two_dimensional_range(book):
+    with pytest.raises(ValueError, match="one-dimensional"):
+        book.sheets[0]["A1"].data_validation.set_list(book.sheets[0]["C1:D2"])
+    assert actions(book) == []
+
+
+def test_data_validation_rejects_range_from_another_book(book):
+    other_impl = R.App(R.Apps(), add_book=False).books.open(_book_json())
+    other_book = xw.Book(impl=other_impl)
+    with pytest.raises(ValueError, match="same workbook"):
+        book.sheets[0]["A1"].data_validation.set_list(other_book.sheets[0]["A1:A2"])
+    assert actions(book) == []
+
+
+def test_data_validation_rejects_non_boolean_dropdown_flag(book):
+    with pytest.raises(TypeError, match="must be a bool"):
+        book.sheets[0]["A1"].data_validation.set_list(
+            ["Open", "Closed"], in_cell_dropdown=1
+        )
+    assert actions(book) == []
+
+
 def test_row_height(book):
     book.sheets[0]["A1"].row_height = 30
     action = last_action(book)

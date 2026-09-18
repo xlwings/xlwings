@@ -2123,6 +2123,10 @@ class Range(base_classes.Range):
     def borders(self):
         return Borders(self, self.sheet.book.api)
 
+    @property
+    def data_validation(self):
+        return DataValidation(self)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -2137,6 +2141,39 @@ class Range(base_classes.Range):
                 sheet=self.sheet,
                 arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
+
+
+class DataValidation(base_classes.DataValidation):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        return None
+
+    def set_list(self, source, in_cell_dropdown):
+        self.parent._require_officejs("data_validation")
+        if isinstance(source, base_classes.Range):
+            source_payload = {
+                "type": "range",
+                "sheet_position": source.sheet.index - 1,
+                "start_row": source.row - 1,
+                "start_column": source.column - 1,
+                "row_count": source.shape[0],
+                "column_count": source.shape[1],
+            }
+        elif isinstance(source, base_classes.Name):
+            source_payload = {"type": "name", "name": source.name}
+        else:
+            source_payload = {"type": "literal", "values": source}
+        self.parent.append_json_action(
+            func="setDataValidationList",
+            args=[source_payload, in_cell_dropdown],
+        )
+
+    def delete(self):
+        self.parent._require_officejs("data_validation")
+        self.parent.append_json_action(func="deleteDataValidation")
 
 
 class Collection(base_classes.Collection):

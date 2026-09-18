@@ -26,6 +26,7 @@ characters
 chart
 chart_legend
 charts
+data_validation
 font
 name
 names

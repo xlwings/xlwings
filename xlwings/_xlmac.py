@@ -1024,6 +1024,10 @@ class Range(base_classes.Range):
         return Borders(self, self.xl)
 
     @property
+    def data_validation(self):
+        return DataValidation(self)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             rv = self.xl.column_width.get()
@@ -1541,6 +1545,72 @@ class Border(base_classes.Border):
                 self.xl.color.set(int_to_rgb(color_or_rgb))
             else:
                 self.xl.color.set(color_or_rgb)
+
+
+class DataValidation(base_classes.DataValidation):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        return self.parent.xl.validation
+
+    def _formula(self, source):
+        if isinstance(source, base_classes.Range):
+            formula = f"={source.get_address(True, True, True)}"
+        elif isinstance(source, base_classes.Name):
+            formula = f"={source.name}"
+        else:
+            formula = ",".join(source)
+        if len(formula) > 255:
+            raise ValueError(
+                "the Excel data validation source cannot exceed 255 characters"
+            )
+        return formula
+
+    def set_list(self, source, in_cell_dropdown):
+        formula = self._formula(source)
+        validation = self.parent.xl.validation
+        try:
+            validation_type = validation.validation_type.get()
+        except CommandError:
+            validation_type = None
+            has_validation = False
+        else:
+            if validation_type == kw.missing_value:
+                try:
+                    validation_cells = self.parent.xl.special_cells(
+                        type=kw.cell_type_all_validation
+                    )
+                except CommandError:
+                    has_validation = False
+                else:
+                    try:
+                        self.parent.sheet.book.app.xl.intersect(
+                            range1=self.parent.xl,
+                            range2=validation_cells,
+                        )
+                    except CommandError:
+                        has_validation = False
+                    else:
+                        raise xlwings.XlwingsError(
+                            "Cannot update data validation because the target cells "
+                            "have different validation rules."
+                        )
+            else:
+                has_validation = True
+
+        if has_validation:
+            validation.modify(type=kw.validate_list, formula1=formula)
+        else:
+            validation.add_data_validation(
+                type=kw.validate_list,
+                formula1=formula,
+            )
+        validation.in_cell_dropdown.set(in_cell_dropdown)
+
+    def delete(self):
+        self.parent.xl.validation.delete()
 
 
 class Borders(base_classes.Borders):
