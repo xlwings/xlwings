@@ -17,7 +17,7 @@ import appscript
 import osax
 import psutil
 from appscript import its, k as kw, mactypes
-from appscript.reference import CommandError
+from appscript.reference import CommandError, Reference
 
 import xlwings
 
@@ -875,6 +875,11 @@ _CONDITIONAL_FORMAT_TYPE_FROM_KW = {
     kw.color_scale: "color_scale",
     kw.databar: "data_bar",
     kw.icon_sets: "icon_set",
+}
+_CONDITIONAL_FORMAT_SPECIALIZED_COLLECTION_FROM_KW = {
+    kw.color_scale: "color_scale_format_condition",
+    kw.databar: "databar_format_condition",
+    kw.icon_sets: "icon_set_format_condition",
 }
 _CONDITIONAL_FORMAT_OPERATOR_TO_KW = {
     "between": kw.operator_between,
@@ -1875,7 +1880,25 @@ class Collection(base_classes.Collection):
 class ConditionalFormat(base_classes.ConditionalFormat):
     def __init__(self, parent, key):
         self.parent = parent
-        self.xl = parent.xl.format_conditions[key]
+        generic = parent.xl.format_conditions[key]
+        native_type = generic.format_condition_type.get()
+        specialized = _CONDITIONAL_FORMAT_SPECIALIZED_COLLECTION_FROM_KW.get(
+            native_type
+        )
+        if specialized is None:
+            self.xl = generic
+            return
+        # Excel exposes family-specific properties only through a `range` element
+        # reference, not through the `cells` reference Range normally uses. The
+        # specialized collections retain the global format-condition index.
+        sheet = parent.sheet.xl
+        range_ref = Reference(
+            sheet.AS_appdata,
+            sheet.AS_aemreference.elements(b"X117").byname(
+                parent.address.replace("$", "")
+            ),
+        )
+        self.xl = getattr(range_ref, specialized)[key]
 
     @property
     def api(self):
@@ -1920,8 +1943,8 @@ class ConditionalFormat(base_classes.ConditionalFormat):
         return self.xl.formula_1.get() if self.type == "custom" else None
 
     @staticmethod
-    def _color(obj):
-        color_index = obj.color_index.get()
+    def _color(obj, color_index=None):
+        color_index = (obj.color_index if color_index is None else color_index).get()
         if color_index in {
             kw.color_index_none,
             kw.color_index_automatic,
@@ -1941,7 +1964,7 @@ class ConditionalFormat(base_classes.ConditionalFormat):
     def font_color(self):
         if self.type not in {"cell_value", "custom"}:
             return None
-        return self._color(self.xl.font_object)
+        return self._color(self.xl.font_object, self.xl.font_object.font_color_index)
 
     @property
     def font_bold(self):
@@ -1979,8 +2002,10 @@ class ConditionalFormat(base_classes.ConditionalFormat):
     def colors(self):
         if self.type != "color_scale":
             return None
-        criteria = self.xl.color_scale_criteria
-        count = criteria.count(each=kw.color_scale_criterion)
+        count = self.xl.count(each=kw.color_scale_criterion)
+        # Criteria are direct children of the rule. Addressing them through the
+        # color_scale_criteria property can terminate Excel's Apple-event process.
+        criteria = self.xl.color_scale_criterion
         return tuple(
             self._color(criteria[index].format_color) for index in range(1, count + 1)
         )
@@ -2019,8 +2044,8 @@ class ConditionalFormat(base_classes.ConditionalFormat):
 
     def _threshold_pairs(self):
         if self.type == "color_scale":
-            criteria = self.xl.color_scale_criteria
-            count = criteria.count(each=kw.color_scale_criterion)
+            count = self.xl.count(each=kw.color_scale_criterion)
+            criteria = self.xl.color_scale_criterion
             return tuple(
                 self._threshold(
                     criteria[index],
@@ -2042,8 +2067,8 @@ class ConditionalFormat(base_classes.ConditionalFormat):
                 )
             )
         if self.type == "icon_set":
-            criteria = self.xl.icon_criteria
-            count = criteria.count(each=kw.icon_criterion)
+            count = self.xl.count(each=kw.icon_criterion)
+            criteria = self.xl.icon_criterion
             return tuple(
                 self._threshold(
                     criteria[index],
@@ -2185,7 +2210,7 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
             new=kw.color_scale_format_condition,
             with_properties={kw.color_scale_type: len(spec["colors"])},
         )
-        criteria = rule.color_scale_criteria
+        criteria = rule.color_scale_criterion
         for index, (color, criterion_type, value) in enumerate(
             zip(spec["colors"], spec["threshold_types"], spec["thresholds"]),
             start=1,
@@ -2230,13 +2255,20 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
 
     def add_icon_set(self, spec):
         rule = self.parent.xl.make(at=self.parent.xl, new=kw.icon_set_format_condition)
-        icon_sets = self.parent.sheet.book.xl.format_condition_icon_sets
-        rule.format_condition_icon_set.set(
-            icon_sets[_CONDITIONAL_FORMAT_ICON_SET_INDEX[spec["icon_set"]]]
+        # `format condition icon sets` is declared as a property in Excel's
+        # AppleScript dictionary, so appscript can't index it as a collection.
+        # The singular elements do exist directly below the workbook, however.
+        workbook = self.parent.sheet.book.xl
+        icon_set = Reference(
+            workbook.AS_appdata,
+            workbook.AS_aemreference.elements(b"X319").byindex(
+                _CONDITIONAL_FORMAT_ICON_SET_INDEX[spec["icon_set"]]
+            ),
         )
+        rule.format_condition_icon_set.set(icon_set)
         rule.show_icon_only.set(not spec["show_value"])
         rule.reverse_icon_set_order.set(spec["reverse_order"])
-        criteria = rule.icon_criteria
+        criteria = rule.icon_criterion
         for index, (criterion_type, value) in enumerate(
             zip(spec["threshold_types"], spec["thresholds"]), start=2
         ):
@@ -2252,7 +2284,11 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
         return self._finish_visual_add(rule)
 
     def clear(self):
-        self.xl.delete()
+        # Deleting the collection through the `cells` reference can terminate
+        # Excel, and generic format-condition references don't delete visual
+        # rules. Resolve each current first-priority rule to its native family.
+        for _ in range(len(self)):
+            ConditionalFormat(self.parent, 1).delete()
 
 
 class Table(base_classes.Table):
