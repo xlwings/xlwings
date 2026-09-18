@@ -932,10 +932,27 @@ _CONDITIONAL_FORMAT_ICON_SET_TO_KW = {
 _CONDITIONAL_FORMAT_ICON_SET_FROM_KW = {
     value: key for key, value in _CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
 }
-_CONDITIONAL_FORMAT_ICON_SET_INDEX = {
-    name: index
-    for index, name in enumerate(_CONDITIONAL_FORMAT_ICON_SET_TO_KW, start=1)
-}
+
+
+def _conditional_format_icon_set_indexes():
+    """Derive workbook IconSets indexes from Excel's generated enum values."""
+    terminology = dict(mac_dict.enums)
+    codes = {
+        name: terminology[keyword.AS_name]
+        for name, keyword in _CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
+    }
+    prefixes = {code[:2] for code in codes.values() if len(code) == 4}
+    indexes = {name: int.from_bytes(code[2:], "big") for name, code in codes.items()}
+    expected = set(range(1, len(codes) + 1))
+    if len(prefixes) != 1 or set(indexes.values()) != expected:
+        raise RuntimeError(
+            "Excel's generated icon-set enumeration no longer matches its "
+            "workbook IconSets collection."
+        )
+    return indexes
+
+
+_CONDITIONAL_FORMAT_ICON_SET_INDEX = _conditional_format_icon_set_indexes()
 
 
 class Range(base_classes.Range):

@@ -5,6 +5,8 @@ remote-engine tests only verify serialized actions and therefore cannot catch
 differences in the COM and AppleScript object models.
 """
 
+import sys
+
 import pytest
 
 import xlwings as xw
@@ -166,6 +168,28 @@ def test_icon_set_uses_equal_percent_bands_by_default(rng):
     assert rule.icon_set == "5_quarters"
     assert rule.threshold_types == ("percent",) * 4
     assert rule.thresholds == (20, 40, 60, 80)
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="Requires the appscript engine")
+def test_mac_icon_set_indexes_match_generated_terminology():
+    from xlwings import _xlmac
+
+    terminology = dict(_xlmac.mac_dict.enums)
+    assert {
+        name: int.from_bytes(terminology[keyword.AS_name][2:], "big")
+        for name, keyword in _xlmac._CONDITIONAL_FORMAT_ICON_SET_TO_KW.items()
+    } == _xlmac._CONDITIONAL_FORMAT_ICON_SET_INDEX
+
+
+def test_clear_preserves_rule_outside_target_range(rng):
+    rng.conditional_formats.add_cell_value("less_than", 10)
+    cleared = rng.sheet["B2:B10"]
+    remaining = rng.sheet["B11:B20"]
+
+    cleared.conditional_formats.clear()
+
+    assert len(cleared.conditional_formats) == 0
+    assert [rule.type for rule in remaining.conditional_formats] == ["cell_value"]
 
 
 def test_mixed_collection_order_delete_and_clear(rng):

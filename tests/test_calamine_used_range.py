@@ -26,3 +26,11 @@ def test_used_range_converts_calamine_bounds(monkeypatch, bounds, expected_addre
 
     assert sheet.used_range.address == expected_address
     assert calls == [("book.xlsx", 1)]
+
+
+def test_conditional_formats_reports_calamine_engine_restriction():
+    book = SimpleNamespace(fullname="book.xlsx", api={"sheet_names": ["Sheet1"]})
+    sheet = _xlcalamine.Sheet(book=book, sheet_index=1)
+
+    with pytest.raises(NotImplementedError, match="calamine engine"):
+        _ = sheet.range("A1").conditional_formats
