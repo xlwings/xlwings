@@ -59,6 +59,17 @@ ConditionalFormatType = Literal[
     "unknown",
 ]
 CONDITIONAL_FORMAT_TYPES: tuple[str, ...] = get_args(ConditionalFormatType)
+ConditionalFormatOperator = Literal[
+    "between",
+    "not_between",
+    "equal_to",
+    "not_equal_to",
+    "greater_than",
+    "less_than",
+    "greater_than_or_equal",
+    "less_than_or_equal",
+]
+CONDITIONAL_FORMAT_OPERATORS: tuple[str, ...] = get_args(ConditionalFormatOperator)
 
 # Border side names in canonical order. main.Borders validates and expands the
 # user-facing selectors into these before calling an engine, so engines only
@@ -1415,11 +1426,52 @@ class ConditionalFormat:
     def stop_if_true(self):
         raise NotImplementedError()
 
+    @property
+    def operator(self):
+        raise NotImplementedError()
+
+    @property
+    def formula1(self):
+        raise NotImplementedError()
+
+    @property
+    def formula2(self):
+        raise NotImplementedError()
+
+    @property
+    def formula(self):
+        raise NotImplementedError()
+
+    @property
+    def fill_color(self):
+        raise NotImplementedError()
+
+    @property
+    def font_color(self):
+        raise NotImplementedError()
+
+    @property
+    def font_bold(self):
+        raise NotImplementedError()
+
+    @property
+    def font_italic(self):
+        raise NotImplementedError()
+
+    def set(self, changes):
+        raise NotImplementedError()
+
     def delete(self):
         raise NotImplementedError()
 
 
 class ConditionalFormats(Collection):
+    def add_cell_value(self, spec):
+        raise NotImplementedError()
+
+    def add_custom(self, spec):
+        raise NotImplementedError()
+
     def clear(self):
         raise NotImplementedError()
 

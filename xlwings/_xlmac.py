@@ -876,6 +876,19 @@ _CONDITIONAL_FORMAT_TYPE_FROM_KW = {
     kw.databar: "data_bar",
     kw.icon_sets: "icon_set",
 }
+_CONDITIONAL_FORMAT_OPERATOR_TO_KW = {
+    "between": kw.operator_between,
+    "not_between": kw.operator_not_between,
+    "equal_to": kw.operator_equal,
+    "not_equal_to": kw.operator_not_equal,
+    "greater_than": kw.operator_greater,
+    "less_than": kw.operator_less,
+    "greater_than_or_equal": kw.operator_greater_equal,
+    "less_than_or_equal": kw.operator_less_equal,
+}
+_CONDITIONAL_FORMAT_OPERATOR_FROM_KW = {
+    value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_TO_KW.items()
+}
 
 
 class Range(base_classes.Range):
@@ -1838,6 +1851,101 @@ class ConditionalFormat(base_classes.ConditionalFormat):
             return None
         return self.xl.stop_if_true.get()
 
+    @property
+    def operator(self):
+        if self.type != "cell_value":
+            return None
+        return _CONDITIONAL_FORMAT_OPERATOR_FROM_KW.get(
+            self.xl.condition_operator.get()
+        )
+
+    @property
+    def formula1(self):
+        return self.xl.formula_1.get() if self.type == "cell_value" else None
+
+    @property
+    def formula2(self):
+        if self.type != "cell_value" or self.operator not in {
+            "between",
+            "not_between",
+        }:
+            return None
+        value = self.xl.formula_2.get()
+        return None if value == kw.missing_value else value
+
+    @property
+    def formula(self):
+        return self.xl.formula_1.get() if self.type == "custom" else None
+
+    @staticmethod
+    def _color(obj):
+        color_index = obj.color_index.get()
+        if color_index in {
+            kw.color_index_none,
+            kw.color_index_automatic,
+            kw.missing_value,
+        }:
+            return None
+        value = obj.color.get()
+        return None if value is None or value == kw.missing_value else tuple(value)
+
+    @property
+    def fill_color(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        return self._color(self.xl.interior_object)
+
+    @property
+    def font_color(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        return self._color(self.xl.font_object)
+
+    @property
+    def font_bold(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        value = self.xl.font_object.bold.get()
+        return None if value is None or value == kw.missing_value else value
+
+    @property
+    def font_italic(self):
+        if self.type not in {"cell_value", "custom"}:
+            return None
+        value = self.xl.font_object.italic.get()
+        return None if value is None or value == kw.missing_value else value
+
+    def set(self, changes):
+        criteria = {"operator", "formula1", "formula2", "formula"} & changes.keys()
+        if criteria:
+            if self.type == "cell_value":
+                kwargs = {
+                    "type": kw.cell_value,
+                    "operator": _CONDITIONAL_FORMAT_OPERATOR_TO_KW[
+                        changes.get("operator", self.operator)
+                    ],
+                    "formula1": changes.get("formula1", self.formula1),
+                }
+                formula2 = changes.get("formula2", self.formula2)
+                if formula2 is not None:
+                    kwargs["formula2"] = formula2
+                self.xl.modify_condition(**kwargs)
+            else:
+                self.xl.modify_condition(
+                    type=kw.expression,
+                    formula1=changes.get("formula", self.formula),
+                )
+        if "fill_color" in changes:
+            self.xl.interior_object.color.set(changes["fill_color"])
+        if "font_color" in changes:
+            self.xl.font_object.color.set(changes["font_color"])
+        if "font_bold" in changes:
+            self.xl.font_object.bold.set(changes["font_bold"])
+        if "font_italic" in changes:
+            self.xl.font_object.italic.set(changes["font_italic"])
+        if "stop_if_true" in changes:
+            self.xl.stop_if_true.set(changes["stop_if_true"])
+
     def delete(self):
         self.xl.delete()
 
@@ -1846,6 +1954,51 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
     _attr = "format_conditions"
     _kw = kw.format_condition
     _wrap = ConditionalFormat
+
+    def _finish_add(self, rule, spec):
+        rule.set_first_priority()
+        wrapped = ConditionalFormat(self.parent, 1)
+        wrapped.set(
+            {
+                key: value
+                for key, value in spec.items()
+                if key
+                in {
+                    "fill_color",
+                    "font_color",
+                    "font_bold",
+                    "font_italic",
+                    "stop_if_true",
+                }
+            }
+        )
+        return wrapped
+
+    def add_cell_value(self, spec):
+        properties = {
+            kw.format_condition_type: kw.cell_value,
+            kw.condition_operator: _CONDITIONAL_FORMAT_OPERATOR_TO_KW[spec["operator"]],
+            kw.formula_1: spec["formula1"],
+        }
+        if spec["formula2"] is not None:
+            properties[kw.formula_2] = spec["formula2"]
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.format_condition,
+            with_properties=properties,
+        )
+        return self._finish_add(rule, spec)
+
+    def add_custom(self, spec):
+        rule = self.parent.xl.make(
+            at=self.parent.xl,
+            new=kw.format_condition,
+            with_properties={
+                kw.format_condition_type: kw.expression,
+                kw.formula_1: spec["formula"],
+            },
+        )
+        return self._finish_add(rule, spec)
 
     def clear(self):
         self.xl.delete()

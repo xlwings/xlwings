@@ -11,6 +11,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 
 from __future__ import annotations
 
+import math
 import numbers
 import os
 import re
@@ -43,6 +44,7 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    CONDITIONAL_FORMAT_OPERATORS,
     CONDITIONAL_FORMAT_TYPES,
     HORIZONTAL_ALIGNMENTS,
     PIVOT_FUNCTIONS,
@@ -54,6 +56,7 @@ from .base_classes import (
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    ConditionalFormatOperator,
     ConditionalFormatType,
     HorizontalAlignment,
     PivotFunction,
@@ -3743,6 +3746,94 @@ class PageSetup:
         self.impl.print_area = value
 
 
+def _conditional_format_operator(value: Any) -> ConditionalFormatOperator:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_OPERATORS:
+        return cast(ConditionalFormatOperator, value)
+    raise ValueError(
+        f"Invalid conditional-format operator {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_OPERATORS)}."
+    )
+
+
+def _conditional_format_value(value: Any, name: str) -> str:
+    if isinstance(value, str):
+        if value:
+            return value
+    elif (
+        isinstance(value, numbers.Real)
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+    ):
+        return str(value)
+    raise ValueError(f"{name} must be a non-empty string or a finite number.")
+
+
+def _conditional_format_formula(value: Any) -> str:
+    if isinstance(value, str) and value.startswith("=") and len(value) > 1:
+        return value
+    raise ValueError("formula must be a non-empty A1 formula starting with '='.")
+
+
+def _conditional_format_bool(value: Any, name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    raise TypeError(f"{name} must be a boolean.")
+
+
+def _validate_cell_value_rule(operator: Any, formula1: Any, formula2: Any) -> None:
+    if operator is None or formula1 is None:
+        raise ValueError("Cell-value rules require operator and formula1.")
+    wants_formula2 = operator in {"between", "not_between"}
+    if wants_formula2 and formula2 is None:
+        raise ValueError(f"formula2 is required for operator {operator!r}.")
+    if not wants_formula2 and formula2 is not None:
+        raise ValueError("formula2 is only valid for between/not_between rules.")
+
+
+def _add_conditional_format_changes(
+    changes: dict[str, Any],
+    *,
+    fill_color: Any,
+    font_color: Any,
+    font_bold: Any,
+    font_italic: Any,
+    stop_if_true: Any,
+) -> None:
+    if fill_color is not _UNSET:
+        changes["fill_color"] = _border_color(fill_color)
+    if font_color is not _UNSET:
+        changes["font_color"] = _border_color(font_color)
+    if font_bold is not _UNSET:
+        changes["font_bold"] = _conditional_format_bool(font_bold, "font_bold")
+    if font_italic is not _UNSET:
+        changes["font_italic"] = _conditional_format_bool(font_italic, "font_italic")
+    if stop_if_true is not _UNSET:
+        changes["stop_if_true"] = _conditional_format_bool(stop_if_true, "stop_if_true")
+
+
+def _add_conditional_format_creation_style(
+    spec: dict[str, Any],
+    *,
+    fill_color: Any,
+    font_color: Any,
+    font_bold: Any,
+    font_italic: Any,
+) -> None:
+    values = {
+        "fill_color": fill_color,
+        "font_color": font_color,
+        "font_bold": font_bold,
+        "font_italic": font_italic,
+    }
+    for name, value in values.items():
+        if value is None:
+            continue
+        if name.endswith("_color"):
+            spec[name] = _border_color(value)
+        else:
+            spec[name] = _conditional_format_bool(value, name)
+
+
 class ConditionalFormat:
     """Represents one conditional-format rule in a range collection.
 
@@ -3781,6 +3872,128 @@ class ConditionalFormat:
         """
         return self.impl.stop_if_true
 
+    @property
+    def operator(self) -> ConditionalFormatOperator | None:
+        """The comparison operator for a cell-value rule, otherwise ``None``."""
+        return self.impl.operator
+
+    @property
+    def formula1(self) -> str | None:
+        """The first operand for a cell-value rule, otherwise ``None``."""
+        return self.impl.formula1
+
+    @property
+    def formula2(self) -> str | None:
+        """The second operand for a between/not-between rule, otherwise ``None``."""
+        return self.impl.formula2
+
+    @property
+    def formula(self) -> str | None:
+        """The formula for a custom-formula rule, otherwise ``None``."""
+        return self.impl.formula
+
+    @property
+    def fill_color(self) -> tuple[int, int, int] | None:
+        """The rule's fill color as an RGB tuple, or ``None`` if unset."""
+        return self.impl.fill_color
+
+    @property
+    def font_color(self) -> tuple[int, int, int] | None:
+        """The rule's font color as an RGB tuple, or ``None`` if unset."""
+        return self.impl.font_color
+
+    @property
+    def font_bold(self) -> bool | None:
+        """The rule's bold setting, or ``None`` if it doesn't set bold."""
+        return self.impl.font_bold
+
+    @property
+    def font_italic(self) -> bool | None:
+        """The rule's italic setting, or ``None`` if it doesn't set italic."""
+        return self.impl.font_italic
+
+    def set(
+        self,
+        *,
+        operator: ConditionalFormatOperator = _UNSET,
+        formula1: str | int | float = _UNSET,
+        formula2: str | int | float | None = _UNSET,
+        formula: str = _UNSET,
+        fill_color: tuple[int, int, int] | str | int = _UNSET,
+        font_color: tuple[int, int, int] | str | int = _UNSET,
+        font_bold: bool = _UNSET,
+        font_italic: bool = _UNSET,
+        stop_if_true: bool = _UNSET,
+    ) -> None:
+        """Change selected attributes of this rule in place.
+
+        Omitted attributes remain unchanged. Cell-value rules accept
+        ``operator``, ``formula1`` and ``formula2``; custom-formula rules accept
+        ``formula``. Formatting and ``stop_if_true`` apply to either family.
+        Other rule types can't be edited by this initial API.
+
+        Examples:
+            ```python
+            formats = await sheet["B2:B12"].get_conditional_formats()
+            formats[0].set(formula1=70, stop_if_true=True)
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        changes: dict[str, Any] = {}
+        rule_type = self.type
+        if rule_type not in {"cell_value", "custom"}:
+            raise NotImplementedError(
+                f"Editing {rule_type!r} conditional-format rules isn't supported."
+            )
+        if rule_type == "cell_value":
+            if formula is not _UNSET:
+                raise ValueError("formula is only valid for custom-formula rules.")
+            if operator is not _UNSET:
+                changes["operator"] = _conditional_format_operator(operator)
+            if formula1 is not _UNSET:
+                changes["formula1"] = _conditional_format_value(formula1, "formula1")
+            if formula2 is not _UNSET:
+                changes["formula2"] = (
+                    None
+                    if formula2 is None
+                    else _conditional_format_value(formula2, "formula2")
+                )
+            effective_operator = changes.get("operator", self.operator)
+            effective_formula1 = changes.get("formula1", self.formula1)
+            effective_formula2 = changes.get("formula2", self.formula2)
+            if (
+                operator is not _UNSET
+                and formula2 is _UNSET
+                and effective_operator not in {"between", "not_between"}
+            ):
+                effective_formula2 = None
+            _validate_cell_value_rule(
+                effective_operator, effective_formula1, effective_formula2
+            )
+            if effective_operator not in {"between", "not_between"} and (
+                operator is not _UNSET or formula2 is not _UNSET
+            ):
+                changes["formula2"] = None
+        else:
+            if any(value is not _UNSET for value in (operator, formula1, formula2)):
+                raise ValueError(
+                    "operator, formula1 and formula2 are only valid for cell-value rules."
+                )
+            if formula is not _UNSET:
+                changes["formula"] = _conditional_format_formula(formula)
+        _add_conditional_format_changes(
+            changes,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+            stop_if_true=stop_if_true,
+        )
+        if changes:
+            self.impl.set(changes)
+
     def delete(self) -> None:
         """Delete this complete rule from all ranges to which it applies.
 
@@ -3810,6 +4023,92 @@ class ConditionalFormats(Collection[ConditionalFormat]):
     """
 
     _wrap = ConditionalFormat
+
+    def add_cell_value(
+        self,
+        operator: ConditionalFormatOperator,
+        formula1: str | int | float,
+        formula2: str | int | float | None = None,
+        *,
+        fill_color: tuple[int, int, int] | str | int | None = None,
+        font_color: tuple[int, int, int] | str | int | None = None,
+        font_bold: bool | None = None,
+        font_italic: bool | None = None,
+        stop_if_true: bool = False,
+    ) -> ConditionalFormat:
+        """Add a highest-priority cell-value rule.
+
+        ``formula2`` is required for ``"between"`` and ``"not_between"`` and
+        rejected for the other operators. Colors accept the same RGB tuple,
+        hex string, or Excel color integer forms as other xlwings color APIs.
+
+        Examples:
+            ```python
+            sheet["B2:B12"].conditional_formats.add_cell_value(
+                "less_than", 60, fill_color="#ffff00", font_italic=True
+            )
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        operator = _conditional_format_operator(operator)
+        formula1 = _conditional_format_value(formula1, "formula1")
+        formula2 = (
+            None
+            if formula2 is None
+            else _conditional_format_value(formula2, "formula2")
+        )
+        _validate_cell_value_rule(operator, formula1, formula2)
+        spec: dict[str, Any] = {
+            "operator": operator,
+            "formula1": formula1,
+            "formula2": formula2,
+            "stop_if_true": _conditional_format_bool(stop_if_true, "stop_if_true"),
+        }
+        _add_conditional_format_creation_style(
+            spec,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+        )
+        return ConditionalFormat(impl=self.impl.add_cell_value(spec))
+
+    def add_custom(
+        self,
+        formula: str,
+        *,
+        fill_color: tuple[int, int, int] | str | int | None = None,
+        font_color: tuple[int, int, int] | str | int | None = None,
+        font_bold: bool | None = None,
+        font_italic: bool | None = None,
+        stop_if_true: bool = False,
+    ) -> ConditionalFormat:
+        """Add a highest-priority custom-formula rule.
+
+        Examples:
+            ```python
+            sheet["A2:D20"].conditional_formats.add_custom(
+                '=$D2="Late"', fill_color="#ffc7ce"
+            )
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        spec: dict[str, Any] = {
+            "formula": _conditional_format_formula(formula),
+            "stop_if_true": _conditional_format_bool(stop_if_true, "stop_if_true"),
+        }
+        _add_conditional_format_creation_style(
+            spec,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+        )
+        return ConditionalFormat(impl=self.impl.add_custom(spec))
 
     def clear(self) -> None:
         """Clear all conditional formats active on the represented range.

@@ -243,6 +243,19 @@ _CONDITIONAL_FORMAT_TYPE_JS2PY = {
     "DataBar": "data_bar",
     "IconSet": "icon_set",
 }
+_CONDITIONAL_FORMAT_OPERATOR_PY2JS = {
+    "between": "Between",
+    "not_between": "NotBetween",
+    "equal_to": "EqualTo",
+    "not_equal_to": "NotEqualTo",
+    "greater_than": "GreaterThan",
+    "less_than": "LessThan",
+    "greater_than_or_equal": "GreaterThanOrEqual",
+    "less_than_or_equal": "LessThanOrEqual",
+}
+_CONDITIONAL_FORMAT_OPERATOR_JS2PY = {
+    value: key for key, value in _CONDITIONAL_FORMAT_OPERATOR_PY2JS.items()
+}
 
 
 def _mark_sheet_values_loaded(sheet_api):
@@ -3711,10 +3724,76 @@ class ConditionalFormat(base_classes.ConditionalFormat):
             return None
         return self._entry.get("stop_if_true")
 
+    @property
+    def operator(self):
+        if self.type != "cell_value":
+            return None
+        return _CONDITIONAL_FORMAT_OPERATOR_JS2PY.get(self._entry.get("operator"))
+
+    @property
+    def formula1(self):
+        return self._entry.get("formula1") if self.type == "cell_value" else None
+
+    @property
+    def formula2(self):
+        return self._entry.get("formula2") if self.type == "cell_value" else None
+
+    @property
+    def formula(self):
+        return self._entry.get("formula") if self.type == "custom" else None
+
+    @staticmethod
+    def _rgb(value):
+        return utils.hex_to_rgb(value) if value else None
+
+    @property
+    def fill_color(self):
+        return self._rgb(self._entry.get("fill_color"))
+
+    @property
+    def font_color(self):
+        return self._rgb(self._entry.get("font_color"))
+
+    @property
+    def font_bold(self):
+        return self._entry.get("font_bold")
+
+    @property
+    def font_italic(self):
+        return self._entry.get("font_italic")
+
+    def set(self, changes):
+        position = self.parent.position(self._entry)
+        expected = {
+            key: self._entry.get(key)
+            for key in (
+                "type",
+                "stop_if_true",
+                "operator",
+                "formula1",
+                "formula2",
+                "formula",
+            )
+            if key in self._entry
+        }
+        serialized = dict(changes)
+        if "operator" in serialized:
+            serialized["operator"] = _CONDITIONAL_FORMAT_OPERATOR_PY2JS[
+                serialized["operator"]
+            ]
+        for key in ("fill_color", "font_color"):
+            if key in serialized:
+                serialized[key] = _color_to_hex(serialized[key])
+        self.parent.range.append_json_action(
+            func="setConditionalFormat",
+            args=[position, expected, serialized],
+        )
+        self._entry.update(serialized)
+
     def delete(self):
         try:
-            position = self.parent.api.index(self._entry)
-        except (AttributeError, ValueError):
+            position = self.parent.position(self._entry)
+        except ValueError:
             raise XlwingsError(
                 "This conditional-format rule is no longer in its collection."
             ) from None
@@ -3728,13 +3807,14 @@ class ConditionalFormat(base_classes.ConditionalFormat):
         )
         # Keep this loaded snapshot aligned with the actions already queued so
         # deleting several objects from it continues to target the right index.
-        self.parent.api.remove(self._entry)
+        self.parent.remove(self._entry)
 
 
 class ConditionalFormats(base_classes.ConditionalFormats):
     def __init__(self, range, entries=None):
         self.range = range
         self._api = entries
+        self._pending = []
 
     @property
     def api(self):
@@ -3770,10 +3850,50 @@ class ConditionalFormats(base_classes.ConditionalFormats):
     def __contains__(self, key):
         return isinstance(key, numbers.Number) and 1 <= key <= len(self._loaded())
 
+    def position(self, entry):
+        entries = self._api if self._api is not None else self._pending
+        return entries.index(entry)
+
+    def remove(self, entry):
+        entries = self._api if self._api is not None else self._pending
+        entries.remove(entry)
+
+    @staticmethod
+    def _entry(rule_type, spec):
+        entry = {
+            "type": rule_type,
+            "stop_if_true": spec["stop_if_true"],
+            "fill_color": None,
+            "font_color": None,
+            "font_bold": None,
+            "font_italic": None,
+        }
+        entry.update(spec)
+        if "operator" in entry:
+            entry["operator"] = _CONDITIONAL_FORMAT_OPERATOR_PY2JS[entry["operator"]]
+        for key in ("fill_color", "font_color"):
+            if entry.get(key) is not None:
+                entry[key] = _color_to_hex(entry[key])
+        return entry
+
+    def _add(self, rule_type, spec):
+        entry = self._entry(rule_type, spec)
+        self.range.append_json_action(func="addConditionalFormat", args=[entry])
+        entries = self._api if self._api is not None else self._pending
+        entries.insert(0, entry)
+        return ConditionalFormat(self, entry)
+
+    def add_cell_value(self, spec):
+        return self._add("CellValue", spec)
+
+    def add_custom(self, spec):
+        return self._add("Custom", spec)
+
     def clear(self):
         self.range.append_json_action(func="clearConditionalFormats", args=[])
         if self._api is not None:
             self._api.clear()
+        self._pending.clear()
 
 
 class Note(base_classes.Note):
