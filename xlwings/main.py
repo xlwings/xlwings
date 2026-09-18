@@ -3911,7 +3911,7 @@ def _add_conditional_format_creation_style(
 
 
 class ConditionalFormat:
-    """Represents one conditional-format rule in a range collection.
+    """Represents one conditional-format rule that applies to a range.
 
     ```{versionadded} 0.37.5
     ```
@@ -3927,9 +3927,6 @@ class ConditionalFormat:
         Rule types outside the initially supported cell-value, custom-formula,
         color-scale, data-bar and icon-set families are reported as
         ``"unknown"`` rather than omitted.
-
-        ```{versionadded} 0.37.5
-        ```
         """
         rule_type = self.impl.type
         if rule_type not in CONDITIONAL_FORMAT_TYPES:
@@ -3942,9 +3939,6 @@ class ConditionalFormat:
 
         ``None`` is returned for color scales, data bars and icon sets, which
         don't have stop-if-true behavior.
-
-        ```{versionadded} 0.37.5
-        ```
         """
         return self.impl.stop_if_true
 
@@ -4033,7 +4027,8 @@ class ConditionalFormat:
 
     @property
     def thresholds(self) -> tuple[int | float | str | None, ...] | None:
-        """The values corresponding to :attr:`threshold_types`.
+        """The values corresponding to
+        {attr}`threshold_types <xlwings.ConditionalFormat.threshold_types>`.
 
         Criteria such as ``"automatic"``, ``"lowest_value"`` and
         ``"highest_value"`` have a value of ``None``.
@@ -4065,9 +4060,6 @@ class ConditionalFormat:
             formats = await sheet["B2:B12"].get_conditional_formats()
             formats[0].set(formula1=70, stop_if_true=True)
             ```
-
-        ```{versionadded} 0.37.5
-        ```
         """
         changes: dict[str, Any] = {}
         rule_type = self.type
@@ -4123,11 +4115,7 @@ class ConditionalFormat:
             self.impl.set(changes)
 
     def delete(self) -> None:
-        """Delete this complete rule from all ranges to which it applies.
-
-        ```{versionadded} 0.37.5
-        ```
-        """
+        """Delete this complete rule from all ranges to which it applies."""
         self.impl.delete()
 
     def __repr__(self) -> str:
@@ -4135,16 +4123,15 @@ class ConditionalFormat:
 
 
 class ConditionalFormats(Collection[ConditionalFormat]):
-    """The ordered conditional-format rules overlapping a range.
+    """An ordered collection of conditional-format rules for a range.
 
-    In xlwings Lite, fetch a live snapshot before inspecting the collection:
+    New rules are inserted at the top of Excel's conditional-formatting rule
+    order. Rules are evaluated from highest to lowest priority. If a matching
+    rule has `stop_if_true=True`, Excel skips lower-priority rules.
 
-    ```python
-    formats = await sheet["A1:D10"].get_conditional_formats()
-    for rule in formats:
-        print(rule.type, rule.stop_if_true)
-    formats[0].delete()
-    ```
+    In xlwings Lite, use
+    `await sheet["A1:D10"].get_conditional_formats()` instead of
+    `sheet["A1:D10"].conditional_formats`.
 
     ```{versionadded} 0.37.5
     ```
@@ -4164,7 +4151,7 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         font_italic: bool | None = None,
         stop_if_true: bool = False,
     ) -> ConditionalFormat:
-        """Add a highest-priority cell-value rule.
+        """Add a cell-value rule.
 
         ``formula2`` is required for ``"between"`` and ``"not_between"`` and
         rejected for the other operators. Colors accept the same RGB tuple,
@@ -4176,9 +4163,6 @@ class ConditionalFormats(Collection[ConditionalFormat]):
                 "less_than", 60, fill_color="#ffff00", font_italic=True
             )
             ```
-
-        ```{versionadded} 0.37.5
-        ```
         """
         operator = _conditional_format_operator(operator)
         formula1 = _conditional_format_value(formula1, "formula1")
@@ -4213,7 +4197,7 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         font_italic: bool | None = None,
         stop_if_true: bool = False,
     ) -> ConditionalFormat:
-        """Add a highest-priority custom-formula rule.
+        """Add a custom-formula rule.
 
         Examples:
             ```python
@@ -4221,9 +4205,6 @@ class ConditionalFormats(Collection[ConditionalFormat]):
                 '=$D2="Late"', fill_color="#ffc7ce"
             )
             ```
-
-        ```{versionadded} 0.37.5
-        ```
         """
         spec: dict[str, Any] = {
             "formula": _conditional_format_formula(formula),
@@ -4245,7 +4226,7 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         thresholds: Sequence[int | float] | None = None,
         threshold_type: ConditionalFormatThresholdType = "number",
     ) -> ConditionalFormat:
-        """Add a highest-priority two- or three-color scale.
+        """Add a two- or three-color scale.
 
         ``colors`` contains two or three colors ordered from the minimum to
         the maximum. Without ``thresholds``, a two-color scale uses the lowest
@@ -4262,9 +4243,6 @@ class ConditionalFormats(Collection[ConditionalFormat]):
                 threshold_type="number",
             )
             ```
-
-        ```{versionadded} 0.37.5
-        ```
         """
         colors = _conditional_format_colors(colors)
         threshold_type = _conditional_format_threshold_type(threshold_type)
@@ -4299,13 +4277,10 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         gradient: bool = True,
         show_value: bool = True,
     ) -> ConditionalFormat:
-        """Add a highest-priority data bar.
+        """Add a data bar.
 
         Omitted bounds are automatic. Supplied bounds use ``threshold_type``,
         which can be ``"number"``, ``"percent"`` or ``"percentile"``.
-
-        ```{versionadded} 0.37.5
-        ```
         """
         threshold_type = _conditional_format_threshold_type(threshold_type)
         minimum = (
@@ -4341,7 +4316,7 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         show_value: bool = True,
         reverse_order: bool = False,
     ) -> ConditionalFormat:
-        """Add a highest-priority built-in icon set.
+        """Add a built-in icon set.
 
         Custom thresholds contain one fewer value than the number of icons and
         must be strictly increasing. Without them, the icons use equal percent
@@ -4361,9 +4336,6 @@ class ConditionalFormats(Collection[ConditionalFormat]):
                 "3_traffic_lights_1", thresholds=[60, 80]
             )
             ```
-
-        ```{versionadded} 0.37.5
-        ```
         """
         icon_set = _conditional_format_icon_set(icon_set)
         threshold_type = _conditional_format_threshold_type(threshold_type)
@@ -4393,9 +4365,6 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         """Clear all conditional formats active on the represented range.
 
         Rules that also apply outside the range remain active there.
-
-        ```{versionadded} 0.37.5
-        ```
         """
         self.impl.clear()
 
