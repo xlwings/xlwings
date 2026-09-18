@@ -2466,13 +2466,15 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
         )
 
     @staticmethod
-    def _set_threshold(criterion, criterion_type, value, *, automatic_type=None):
+    def _set_threshold(
+        criterion, criterion_type, value, *, automatic_type=None, modify=False
+    ):
         xl_type = (
             automatic_type
             if criterion_type == "automatic"
             else _CONDITIONAL_FORMAT_THRESHOLD_TO_XL[criterion_type]
         )
-        if hasattr(criterion, "Modify"):
+        if modify:
             if value is None:
                 criterion.Modify(xl_type)
             else:
@@ -2511,12 +2513,14 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
             spec["threshold_types"][0],
             spec["thresholds"][0],
             automatic_type=constants.ConditionValueTypes.xlConditionValueAutomaticMin,
+            modify=True,
         )
         self._set_threshold(
             rule.MaxPoint,
             spec["threshold_types"][1],
             spec["thresholds"][1],
             automatic_type=constants.ConditionValueTypes.xlConditionValueAutomaticMax,
+            modify=True,
         )
         return self._finish_visual_add(rule)
 
