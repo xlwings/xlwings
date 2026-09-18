@@ -8,6 +8,7 @@ these properties back isn't supported (the values aren't part of the payload
 sent to Python), so the getters still raise NotImplementedError.
 """
 
+import datetime as dt
 import sys
 from types import ModuleType, SimpleNamespace
 
@@ -196,6 +197,153 @@ def test_data_validation_named_range_source(book):
 def test_data_validation_delete(book):
     book.sheets[0]["A1:A3"].data_validation.delete()
     assert last_action(book)["func"] == "deleteDataValidation"
+
+
+@pytest.mark.parametrize(
+    "method,args,expected",
+    [
+        (
+            "set_whole_number",
+            ("between", 1, 10),
+            {
+                "type": "whole_number",
+                "operator": "between",
+                "formula1": "1",
+                "formula2": "10",
+            },
+        ),
+        (
+            "set_decimal",
+            ("greater_than", 0.5),
+            {
+                "type": "decimal",
+                "operator": "greater_than",
+                "formula1": "0.5",
+                "formula2": None,
+            },
+        ),
+        (
+            "set_date",
+            ("greater_than_or_equal", dt.date(2026, 1, 1)),
+            {
+                "type": "date",
+                "operator": "greater_than_or_equal",
+                "formula1": "=DATE(2026,1,1)",
+                "formula2": None,
+            },
+        ),
+        (
+            "set_time",
+            ("less_than", dt.time(6)),
+            {
+                "type": "time",
+                "operator": "less_than",
+                "formula1": "=TIME(6,0,0)",
+                "formula2": None,
+            },
+        ),
+        (
+            "set_text_length",
+            ("less_than_or_equal", 40),
+            {
+                "type": "text_length",
+                "operator": "less_than_or_equal",
+                "formula1": "40",
+                "formula2": None,
+            },
+        ),
+    ],
+)
+def test_data_validation_comparison_rule_actions(book, method, args, expected):
+    getattr(book.sheets[0]["A1:A3"].data_validation, method)(*args)
+    action = last_action(book)
+    assert action["func"] == "setDataValidationRule"
+    assert action["args"] == [expected]
+
+
+def test_data_validation_custom_rule_action(book):
+    book.sheets[0]["A1:A3"].data_validation.set_custom("=COUNTIF(A:A,A1)=1")
+    assert last_action(book)["args"] == [
+        {
+            "type": "custom",
+            "operator": None,
+            "formula1": "=COUNTIF(A:A,A1)=1",
+            "formula2": None,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "method,args,error",
+    [
+        ("set_decimal", ("unknown", 1), "Invalid data-validation operator"),
+        ("set_decimal", ("between", 1), "formula2 is required"),
+        ("set_decimal", ("greater_than", 1, 2), "formula2 isn't valid"),
+        ("set_decimal", ("greater_than", True), "must not be a bool"),
+        ("set_decimal", ("greater_than", float("inf")), "finite number"),
+        (
+            "set_date",
+            ("greater_than", dt.datetime.now(dt.UTC)),
+            "timezone-naive datetime",
+        ),
+        (
+            "set_time",
+            ("greater_than", dt.time(9, tzinfo=dt.UTC)),
+            "timezone-naive time",
+        ),
+        ("set_custom", ("A1>0",), "starting with '='"),
+        ("set_custom", ("=" + "x" * 255,), "255 characters"),
+    ],
+)
+def test_data_validation_rule_rejects_invalid_arguments(book, method, args, error):
+    with pytest.raises((TypeError, ValueError), match=error):
+        getattr(book.sheets[0]["A1"].data_validation, method)(*args)
+    assert actions(book) == []
+
+
+@pytest.mark.anyio
+async def test_data_validation_async_snapshot(book, monkeypatch):
+    entry = {
+        "type": "whole_number",
+        "operator": "between",
+        "formula1": "=1",
+        "formula2": "=10",
+        "formula": None,
+        "source": None,
+        "in_cell_dropdown": None,
+        "ignore_blank": True,
+        "input_title": "Quantity",
+        "input_message": "Enter 1 through 10",
+        "show_input": True,
+        "error_title": "Invalid",
+        "error_message": "Use a whole number",
+        "show_error": True,
+        "alert_style": "stop",
+    }
+
+    async def get_range_data(self, key, method=None):
+        assert key == "data_validation"
+        return entry
+
+    monkeypatch.setattr(R.Range, "_get_range_data", get_range_data)
+    validation = await book.sheets[0]["A1:A3"].get_data_validation()
+    assert validation.type == "whole_number"
+    assert validation.operator == "between"
+    assert validation.formula1 == "=1"
+    assert validation.formula2 == "=10"
+    assert validation.ignore_blank is True
+    assert validation.input_title == "Quantity"
+    assert validation.error_message == "Use a whole number"
+    assert validation.alert_style == "stop"
+
+    validation.set_decimal("greater_than", 0)
+    assert validation.type == "whole_number"
+    assert last_action(book)["args"][0]["type"] == "decimal"
+
+
+def test_data_validation_sync_snapshot_requires_lite(book):
+    with pytest.raises(NotImplementedError, match="get_data_validation"):
+        _ = book.sheets[0]["A1"].data_validation.type
 
 
 @pytest.mark.parametrize(

@@ -1873,12 +1873,164 @@ class Border(base_classes.Border):
 
 
 class DataValidation(base_classes.DataValidation):
+    _TYPE_FROM_XL = {
+        constants.DVType.xlValidateWholeNumber: "whole_number",
+        constants.DVType.xlValidateDecimal: "decimal",
+        constants.DVType.xlValidateList: "list",
+        constants.DVType.xlValidateDate: "date",
+        constants.DVType.xlValidateTime: "time",
+        constants.DVType.xlValidateTextLength: "text_length",
+        constants.DVType.xlValidateCustom: "custom",
+    }
+    _TYPE_TO_XL = {value: key for key, value in _TYPE_FROM_XL.items()}
+    _OPERATOR_FROM_XL = {
+        constants.FormatConditionOperator.xlBetween: "between",
+        constants.FormatConditionOperator.xlNotBetween: "not_between",
+        constants.FormatConditionOperator.xlEqual: "equal_to",
+        constants.FormatConditionOperator.xlNotEqual: "not_equal_to",
+        constants.FormatConditionOperator.xlGreater: "greater_than",
+        constants.FormatConditionOperator.xlLess: "less_than",
+        constants.FormatConditionOperator.xlGreaterEqual: "greater_than_or_equal",
+        constants.FormatConditionOperator.xlLessEqual: "less_than_or_equal",
+    }
+    _OPERATOR_TO_XL = {value: key for key, value in _OPERATOR_FROM_XL.items()}
+    _ALERT_STYLE_FROM_XL = {
+        constants.DVAlertStyle.xlValidAlertStop: "stop",
+        constants.DVAlertStyle.xlValidAlertWarning: "warning",
+        constants.DVAlertStyle.xlValidAlertInformation: "information",
+    }
+
     def __init__(self, parent):
         self.parent = parent
 
     @property
     def api(self):
         return self.parent.xl.Validation
+
+    def _nonuniform_type(self):
+        try:
+            validation_cells = self.parent.xl.SpecialCells(
+                constants.CellType.xlCellTypeAllValidation
+            )
+            intersection = self.parent.xl.Application.Intersect(
+                self.parent.xl, validation_cells
+            )
+        except pywintypes.com_error:
+            return "none"
+        if intersection is None:
+            return "none"
+        try:
+            validated_count = int(intersection.Cells.CountLarge)
+            target_count = int(self.parent.xl.Cells.CountLarge)
+        except (AttributeError, TypeError, ValueError, pywintypes.com_error):
+            validated_count = int(intersection.Cells.Count)
+            target_count = int(self.parent.xl.Cells.Count)
+        return "mixed_criteria" if validated_count < target_count else "inconsistent"
+
+    @property
+    def type(self):
+        try:
+            native_type = self.parent.xl.Validation.Type
+        except pywintypes.com_error:
+            return self._nonuniform_type()
+        if native_type is None:
+            return self._nonuniform_type()
+        return self._TYPE_FROM_XL.get(native_type, "unknown")
+
+    def _property(self, name):
+        if self.type in {"none", "mixed_criteria", "inconsistent"}:
+            return None
+        try:
+            value = getattr(self.parent.xl.Validation, name)
+        except pywintypes.com_error:
+            return None
+        return value
+
+    @property
+    def operator(self):
+        if self.type not in {
+            "whole_number",
+            "decimal",
+            "date",
+            "time",
+            "text_length",
+        }:
+            return None
+        return self._OPERATOR_FROM_XL.get(self._property("Operator"))
+
+    @property
+    def formula1(self):
+        if self.type not in {
+            "whole_number",
+            "decimal",
+            "date",
+            "time",
+            "text_length",
+        }:
+            return None
+        value = self._property("Formula1")
+        return None if value is None else str(value)
+
+    @property
+    def formula2(self):
+        if self.operator not in {"between", "not_between"}:
+            return None
+        value = self._property("Formula2")
+        return None if value is None else str(value)
+
+    @property
+    def formula(self):
+        if self.type != "custom":
+            return None
+        value = self._property("Formula1")
+        return None if value is None else str(value)
+
+    @property
+    def source(self):
+        if self.type != "list":
+            return None
+        value = self._property("Formula1")
+        return None if value is None else str(value)
+
+    @property
+    def in_cell_dropdown(self):
+        value = self._property("InCellDropdown") if self.type == "list" else None
+        return None if value is None else bool(value)
+
+    @property
+    def ignore_blank(self):
+        value = self._property("IgnoreBlank")
+        return None if value is None else bool(value)
+
+    @property
+    def input_title(self):
+        return self._property("InputTitle")
+
+    @property
+    def input_message(self):
+        return self._property("InputMessage")
+
+    @property
+    def show_input(self):
+        value = self._property("ShowInput")
+        return None if value is None else bool(value)
+
+    @property
+    def error_title(self):
+        return self._property("ErrorTitle")
+
+    @property
+    def error_message(self):
+        return self._property("ErrorMessage")
+
+    @property
+    def show_error(self):
+        value = self._property("ShowError")
+        return None if value is None else bool(value)
+
+    @property
+    def alert_style(self):
+        return self._ALERT_STYLE_FROM_XL.get(self._property("AlertStyle"))
 
     def _formula(self, source):
         if isinstance(source, base_classes.Range):
@@ -1896,46 +2048,31 @@ class DataValidation(base_classes.DataValidation):
             )
         return formula
 
+    def _set(self, rule_type, operator=None, formula1=None, formula2=None):
+        current_type = self.type
+        if current_type in {"mixed_criteria", "inconsistent"}:
+            raise xlwings.XlwingsError(
+                "Cannot update data validation because the target cells have "
+                "different validation rules."
+            )
+        kwargs = {"Type": self._TYPE_TO_XL[rule_type], "Formula1": formula1}
+        if operator is not None:
+            kwargs["Operator"] = self._OPERATOR_TO_XL[operator]
+        if formula2 is not None:
+            kwargs["Formula2"] = formula2
+        validation = self.parent.xl.Validation
+        if current_type == "none":
+            validation.Add(**kwargs)
+        else:
+            validation.Modify(**kwargs)
+
     def set_list(self, source, in_cell_dropdown):
         formula = self._formula(source)
-        validation = self.parent.xl.Validation
-        try:
-            validation_type = validation.Type
-        except pywintypes.com_error:
-            try:
-                validation_cells = self.parent.xl.SpecialCells(
-                    constants.CellType.xlCellTypeAllValidation
-                )
-                intersection = self.parent.xl.Application.Intersect(
-                    self.parent.xl, validation_cells
-                )
-            except pywintypes.com_error:
-                intersection = None
-            if intersection is not None:
-                raise xlwings.XlwingsError(
-                    "Cannot update data validation because the target cells have "
-                    "different validation rules."
-                )
-            has_validation = False
-        else:
-            if validation_type is None:
-                raise xlwings.XlwingsError(
-                    "Cannot update data validation because the target cells have "
-                    "different validation rules."
-                )
-            has_validation = True
+        self._set("list", formula1=formula)
+        self.parent.xl.Validation.InCellDropdown = in_cell_dropdown
 
-        if has_validation:
-            validation.Modify(
-                Type=constants.DVType.xlValidateList,
-                Formula1=formula,
-            )
-        else:
-            validation.Add(
-                Type=constants.DVType.xlValidateList,
-                Formula1=formula,
-            )
-        validation.InCellDropdown = in_cell_dropdown
+    def set_rule(self, rule_type, operator, formula1, formula2):
+        self._set(rule_type, operator, formula1, formula2)
 
     def delete(self):
         self.parent.xl.Validation.Delete()

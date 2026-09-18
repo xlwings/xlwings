@@ -11,6 +11,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 
 from __future__ import annotations
 
+import datetime as dt
 import math
 import numbers
 import os
@@ -45,6 +46,8 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    DATA_VALIDATION_OPERATORS,
+    DATA_VALIDATION_TYPES,
     HORIZONTAL_ALIGNMENTS,
     PIVOT_FUNCTIONS,
     PIVOT_LAYOUTS,
@@ -55,6 +58,9 @@ from .base_classes import (
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    DataValidationAlertStyle,
+    DataValidationOperator,
+    DataValidationType,
     HorizontalAlignment,
     PivotFunction,
     PivotLayout,
@@ -2264,14 +2270,16 @@ class Range:
     def data_validation(self) -> DataValidation:
         """Returns the data validation object for the range.
 
-        Use :meth:`DataValidation.set_list` to create or update a list validation and
-        :meth:`DataValidation.delete` to remove validation from the range.
+        Use it to create, replace, or remove a validation rule. On xlwings Lite,
+        inspect the live rule with :meth:`Range.get_data_validation`.
 
         Examples:
             ```python
             sheet["A1:A10"].data_validation.set_list(["Open", "Closed"])
             sheet["B1:B10"].data_validation.set_list(sheet["D1:D3"])
             sheet["C1:C10"].data_validation.set_list(book.names["Statuses"])
+            sheet["E1:E10"].data_validation.set_whole_number("between", 1, 10)
+            sheet["F1:F10"].data_validation.set_custom("=F1<>\"\"")
             sheet["A1:A10"].data_validation.delete()
             ```
 
@@ -2777,6 +2785,19 @@ class Range:
         """
         impl = await self._impl.get_table()
         return Table(impl=impl) if impl else None
+
+    async def get_data_validation(self) -> DataValidation:
+        """Fetch this range's data-validation rule on demand.
+
+        The returned :class:`DataValidation` is a point-in-time snapshot. Its
+        :attr:`DataValidation.type` is ``"none"`` when the range has no validation,
+        ``"mixed_criteria"`` when only some cells have validation, and
+        ``"inconsistent"`` when cells have different rules. Requires xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return DataValidation(impl=await self._impl.get_data_validation(), parent=self)
 
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells
@@ -5929,6 +5950,12 @@ class DataValidation:
     On remote engines, mutations require an Office.js client that supports
     ExcelApi 1.8.
 
+    Comparison setters accept these operators: ``"between"``, ``"not_between"``,
+    ``"equal_to"``, ``"not_equal_to"``, ``"greater_than"``, ``"less_than"``,
+    ``"greater_than_or_equal"``, and ``"less_than_or_equal"``. Formula strings
+    are passed to Excel unchanged. Python date and time values are converted to
+    Excel serial formulas so their meaning doesn't depend on the user's locale.
+
     ```{versionadded} 0.37.5
     ```
     """
@@ -5941,6 +5968,91 @@ class DataValidation:
     def api(self) -> Any:
         """Returns the native data validation object of the engine being used."""
         return self.impl.api
+
+    @property
+    def type(self) -> DataValidationType:
+        """The normalized validation type for this range.
+
+        ``"none"`` means that no cell has validation, ``"mixed_criteria"`` means
+        that only some cells have validation, and ``"inconsistent"`` means that
+        cells have different validation rules. Unsupported native rule types are
+        reported as ``"unknown"``.
+        """
+        value = self.impl.type
+        return cast(
+            DataValidationType,
+            value if value in DATA_VALIDATION_TYPES else "unknown",
+        )
+
+    @property
+    def operator(self) -> DataValidationOperator | None:
+        """The comparison operator, or ``None`` for list and custom rules."""
+        return self.impl.operator
+
+    @property
+    def formula1(self) -> str | None:
+        """The first comparison operand as an Excel formula string."""
+        return self.impl.formula1
+
+    @property
+    def formula2(self) -> str | None:
+        """The second operand for between/not-between rules."""
+        return self.impl.formula2
+
+    @property
+    def formula(self) -> str | None:
+        """The formula for a custom validation rule."""
+        return self.impl.formula
+
+    @property
+    def source(self) -> str | None:
+        """The source string for a list validation rule."""
+        return self.impl.source
+
+    @property
+    def in_cell_dropdown(self) -> bool | None:
+        """Whether a list rule displays an in-cell dropdown."""
+        return self.impl.in_cell_dropdown
+
+    @property
+    def ignore_blank(self) -> bool | None:
+        """Whether blank cells are ignored by the validation rule."""
+        return self.impl.ignore_blank
+
+    @property
+    def input_title(self) -> str | None:
+        """The input-prompt title."""
+        return self.impl.input_title
+
+    @property
+    def input_message(self) -> str | None:
+        """The input-prompt message."""
+        return self.impl.input_message
+
+    @property
+    def show_input(self) -> bool | None:
+        """Whether the input prompt is shown."""
+        return self.impl.show_input
+
+    @property
+    def error_title(self) -> str | None:
+        """The validation-error title."""
+        return self.impl.error_title
+
+    @property
+    def error_message(self) -> str | None:
+        """The validation-error message."""
+        return self.impl.error_message
+
+    @property
+    def show_error(self) -> bool | None:
+        """Whether invalid entries display an error alert."""
+        return self.impl.show_error
+
+    @property
+    def alert_style(self) -> DataValidationAlertStyle | None:
+        """The error-alert style: ``"stop"``, ``"warning"``, or ``"information"``."""
+        return self.impl.alert_style
 
     @staticmethod
     def _literal_source(
@@ -6014,6 +6126,152 @@ class DataValidation:
         else:
             normalized_source = self._literal_source(source)
         self.impl.set_list(normalized_source, in_cell_dropdown)
+
+    @staticmethod
+    def _operator(value: Any) -> DataValidationOperator:
+        if isinstance(value, str) and value in DATA_VALIDATION_OPERATORS:
+            return cast(DataValidationOperator, value)
+        raise ValueError(
+            f"Invalid data-validation operator {value!r}. Valid values are: "
+            f"{', '.join(repr(v) for v in DATA_VALIDATION_OPERATORS)}."
+        )
+
+    @staticmethod
+    def _operand(value: Any, name: str, kind: str) -> str:
+        if isinstance(value, bool):
+            raise TypeError(f"{name} must not be a bool")
+        if kind == "date" and isinstance(value, (dt.datetime, dt.date)):
+            if isinstance(value, dt.datetime) and value.tzinfo is not None:
+                raise ValueError(f"{name} must be a timezone-naive datetime")
+            date_formula = f"=DATE({value.year},{value.month},{value.day})"
+            if isinstance(value, dt.datetime) and value.time() != dt.time():
+                seconds: int | float = value.second
+                if value.microsecond:
+                    seconds += value.microsecond / 1_000_000
+                date_formula += f"+TIME({value.hour},{value.minute},{seconds})"
+            value = date_formula
+        elif kind == "time" and isinstance(value, dt.time):
+            if value.tzinfo is not None:
+                raise ValueError(f"{name} must be a timezone-naive time")
+            seconds = value.second
+            if value.microsecond:
+                seconds += value.microsecond / 1_000_000
+            value = f"=TIME({value.hour},{value.minute},{seconds})"
+        elif isinstance(value, (dt.datetime, dt.date, dt.time)):
+            raise TypeError(f"{name} isn't valid for {kind} validation")
+
+        if isinstance(value, str):
+            if not value:
+                raise ValueError(f"{name} must not be empty")
+            text = value
+        elif isinstance(value, numbers.Real) and math.isfinite(value):
+            text = str(value)
+            if kind in {"date", "time"}:
+                text = f"={text}"
+        else:
+            raise TypeError(f"{name} must be a formula string or a finite number")
+        if len(text) > 255:
+            raise ValueError(f"{name} cannot exceed 255 characters")
+        return text
+
+    def _set_comparison(
+        self,
+        rule_type: str,
+        operator: DataValidationOperator,
+        formula1: Any,
+        formula2: Any,
+    ) -> None:
+        operator = self._operator(operator)
+        formula1 = self._operand(formula1, "formula1", rule_type)
+        if operator in {"between", "not_between"}:
+            if formula2 is None:
+                raise ValueError(f"formula2 is required for operator {operator!r}")
+            formula2 = self._operand(formula2, "formula2", rule_type)
+        elif formula2 is not None:
+            raise ValueError(f"formula2 isn't valid for operator {operator!r}")
+        self.impl.set_rule(rule_type, operator, formula1, formula2)
+
+    def set_whole_number(
+        self,
+        operator: DataValidationOperator,
+        formula1: int | float | str,
+        formula2: int | float | str | None = None,
+    ) -> None:
+        """Create or update a whole-number validation rule.
+
+        ``formula2`` is required for ``"between"`` and ``"not_between"`` and
+        rejected for every other operator. Existing prompts and error alerts are
+        preserved.
+        """
+        self._set_comparison("whole_number", operator, formula1, formula2)
+
+    def set_decimal(
+        self,
+        operator: DataValidationOperator,
+        formula1: int | float | str,
+        formula2: int | float | str | None = None,
+    ) -> None:
+        """Create or update a decimal validation rule.
+
+        ``formula2`` is required for ``"between"`` and ``"not_between"`` and
+        rejected for every other operator. Existing prompts and error alerts are
+        preserved.
+        """
+        self._set_comparison("decimal", operator, formula1, formula2)
+
+    def set_date(
+        self,
+        operator: DataValidationOperator,
+        formula1: dt.date | dt.datetime | int | float | str,
+        formula2: dt.date | dt.datetime | int | float | str | None = None,
+    ) -> None:
+        """Create or update a date validation rule.
+
+        Operands may be Python dates, naive datetimes, finite Excel serial numbers,
+        or Excel formula strings. Existing prompts and error alerts are preserved.
+        """
+        self._set_comparison("date", operator, formula1, formula2)
+
+    def set_time(
+        self,
+        operator: DataValidationOperator,
+        formula1: dt.time | int | float | str,
+        formula2: dt.time | int | float | str | None = None,
+    ) -> None:
+        """Create or update a time validation rule.
+
+        Operands may be naive Python times, finite Excel day fractions, or Excel
+        formula strings. Existing prompts and error alerts are preserved.
+        """
+        self._set_comparison("time", operator, formula1, formula2)
+
+    def set_text_length(
+        self,
+        operator: DataValidationOperator,
+        formula1: int | float | str,
+        formula2: int | float | str | None = None,
+    ) -> None:
+        """Create or update a text-length validation rule.
+
+        ``formula2`` is required for ``"between"`` and ``"not_between"`` and
+        rejected for every other operator. Existing prompts and error alerts are
+        preserved.
+        """
+        self._set_comparison("text_length", operator, formula1, formula2)
+
+    def set_custom(self, formula: str) -> None:
+        """Create or update a custom-formula validation rule.
+
+        The formula must be an A1-style formula starting with ``=``. Existing
+        prompts and error alerts are preserved.
+        """
+        if not isinstance(formula, str):
+            raise TypeError("formula must be a string")
+        if not formula.startswith("=") or len(formula) == 1:
+            raise ValueError("formula must be a non-empty A1 formula starting with '='")
+        if len(formula) > 255:
+            raise ValueError("formula cannot exceed 255 characters")
+        self.impl.set_rule("custom", None, formula, None)
 
     def delete(self) -> None:
         """Removes data validation from the range."""

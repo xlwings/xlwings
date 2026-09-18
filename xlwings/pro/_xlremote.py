@@ -1764,6 +1764,10 @@ class Range(base_classes.Range):
                 return Table(self.sheet, ix + 1)
         raise KeyError(name)
 
+    async def get_data_validation(self):
+        entry = await self._get_range_data("data_validation")
+        return DataValidation(self, entry)
+
     async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
 
@@ -2147,12 +2151,82 @@ class Range(base_classes.Range):
 
 
 class DataValidation(base_classes.DataValidation):
-    def __init__(self, parent):
+    def __init__(self, parent, entry=None):
         self.parent = parent
+        self._entry = entry
 
     @property
     def api(self):
         return None
+
+    def _read(self, name):
+        if self._entry is None:
+            raise NotImplementedError(
+                "Reading data validation synchronously isn't supported on this "
+                "engine. Use 'await myrange.get_data_validation()' to fetch it on "
+                "demand."
+            )
+        return self._entry.get(name)
+
+    @property
+    def type(self):
+        return self._read("type")
+
+    @property
+    def operator(self):
+        return self._read("operator")
+
+    @property
+    def formula1(self):
+        return self._read("formula1")
+
+    @property
+    def formula2(self):
+        return self._read("formula2")
+
+    @property
+    def formula(self):
+        return self._read("formula")
+
+    @property
+    def source(self):
+        return self._read("source")
+
+    @property
+    def in_cell_dropdown(self):
+        return self._read("in_cell_dropdown")
+
+    @property
+    def ignore_blank(self):
+        return self._read("ignore_blank")
+
+    @property
+    def input_title(self):
+        return self._read("input_title")
+
+    @property
+    def input_message(self):
+        return self._read("input_message")
+
+    @property
+    def show_input(self):
+        return self._read("show_input")
+
+    @property
+    def error_title(self):
+        return self._read("error_title")
+
+    @property
+    def error_message(self):
+        return self._read("error_message")
+
+    @property
+    def show_error(self):
+        return self._read("show_error")
+
+    @property
+    def alert_style(self):
+        return self._read("alert_style")
 
     def set_list(self, source, in_cell_dropdown):
         self.parent._require_officejs("data_validation")
@@ -2172,6 +2246,20 @@ class DataValidation(base_classes.DataValidation):
         self.parent.append_json_action(
             func="setDataValidationList",
             args=[source_payload, in_cell_dropdown],
+        )
+
+    def set_rule(self, rule_type, operator, formula1, formula2):
+        self.parent._require_officejs("data_validation")
+        self.parent.append_json_action(
+            func="setDataValidationRule",
+            args=[
+                {
+                    "type": rule_type,
+                    "operator": operator,
+                    "formula1": formula1,
+                    "formula2": formula2,
+                }
+            ],
         )
 
     def delete(self):
