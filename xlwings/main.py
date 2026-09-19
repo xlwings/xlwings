@@ -2303,7 +2303,7 @@ class Range:
     def autofilter(self) -> AutoFilter:
         """Returns the AutoFilter for this range.
 
-        The first row is treated as the header row and ``field`` arguments are one-based column positions relative to the range.
+        The first row is treated as the header row and `field` arguments are one-based column positions relative to the range.
 
         Examples:
             ```python
@@ -3377,7 +3377,7 @@ class Range:
 class AutoFilter:
     """An AutoFilter belonging to a range or table.
 
-    Do not construct this class directly; access it through {attr}`Range.autofilter <xlwings.Range.autofilter>` or {attr}`Table.autofilter <xlwings.Table.autofilter>`.
+    Do not construct this class directly; access it through {attr}`Range.autofilter <xlwings.Range.autofilter>` or {attr}`Table.autofilter <xlwings.main.Table.autofilter>`.
 
     ```{versionadded} 0.37.5
     ```
@@ -3440,7 +3440,7 @@ class AutoFilter:
     ) -> None:
         """Filters a field using a comparison.
 
-        ``None`` represents blanks with ``"equal_to"`` and nonblanks with ``"not_equal_to"``. ``"between"`` and ``"not_between"`` require a second value; all other operators reject one.
+        `None` represents blanks with `"equal_to"` and nonblanks with `"not_equal_to"`. `"between"` and `"not_between"` require a second value; all other operators reject one.
         """
         field = self._validate_field(field)
         if operator not in AUTOFILTER_COMPARISON_OPERATORS:
@@ -4674,7 +4674,7 @@ class Table:
     def autofilter(self) -> AutoFilter:
         """Returns the AutoFilter for this table.
 
-        ``field`` arguments are one-based column positions relative to the table.
+        `field` arguments are one-based column positions relative to the table.
 
         ```{versionadded} 0.37.5
         ```
