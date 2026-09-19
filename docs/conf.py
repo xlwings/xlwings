@@ -241,13 +241,19 @@ def _widen_literals(annotation):
             return str
         return annotation
     if origin in (typing.Union, types.UnionType):
-        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        original_args = typing.get_args(annotation)
+        args = tuple(_widen_literals(a) for a in original_args)
+        if args == original_args:
+            return annotation
         # Deduplicate while keeping order, e.g. Literal[...] | str -> str
         args = tuple(dict.fromkeys(args))
         return args[0] if len(args) == 1 else typing.Union[args]
     if origin is not None and typing.get_args(annotation):
         # Generics such as list[Literal[...] | str] -> list[str]
-        args = tuple(_widen_literals(a) for a in typing.get_args(annotation))
+        original_args = typing.get_args(annotation)
+        args = tuple(_widen_literals(a) for a in original_args)
+        if args == original_args:
+            return annotation
         try:
             return origin[args]
         except TypeError:

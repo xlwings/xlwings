@@ -19,7 +19,6 @@ import re
 import sys
 import time
 import warnings
-from collections.abc import Sequence
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
@@ -30,6 +29,7 @@ from typing import (
     Generic,
     Iterator,
     Mapping,
+    Sequence,
     TypeVar,
     cast,
     get_args,
