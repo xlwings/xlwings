@@ -208,8 +208,8 @@ def test_data_validation_delete(book):
             {
                 "type": "whole_number",
                 "operator": "between",
-                "formula1": "1",
-                "formula2": "10",
+                "formula1": "=1",
+                "formula2": "=10",
             },
         ),
         (
@@ -218,7 +218,7 @@ def test_data_validation_delete(book):
             {
                 "type": "decimal",
                 "operator": "greater_than",
-                "formula1": "0.5",
+                "formula1": "=0.5",
                 "formula2": None,
             },
         ),
@@ -248,7 +248,7 @@ def test_data_validation_delete(book):
             {
                 "type": "text_length",
                 "operator": "less_than_or_equal",
-                "formula1": "40",
+                "formula1": "=40",
                 "formula2": None,
             },
         ),
@@ -306,8 +306,8 @@ async def test_data_validation_async_snapshot(book, monkeypatch):
     entry = {
         "type": "whole_number",
         "operator": "between",
-        "formula1": "=1",
-        "formula2": "=10",
+        "formula1": 1,
+        "formula2": "10",
         "formula": None,
         "source": None,
         "in_cell_dropdown": None,

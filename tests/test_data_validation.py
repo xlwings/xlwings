@@ -3,6 +3,8 @@
 import datetime as dt
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -38,6 +40,43 @@ def _set_property(validation, windows_name, mac_name, value):
         setattr(validation.api, windows_name, value)
     else:
         getattr(validation.api, mac_name).set(value)
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS backend only")
+def test_mac_literal_list_uses_locale_separator():
+    from xlwings import _xlmac
+
+    get_international = Mock(return_value=";")
+    parent = SimpleNamespace(
+        sheet=SimpleNamespace(
+            book=SimpleNamespace(
+                app=SimpleNamespace(
+                    xl=SimpleNamespace(get_international=get_international)
+                )
+            )
+        )
+    )
+
+    formula = _xlmac.DataValidation(parent)._formula(["Open", "Closed"])
+
+    assert formula == "Open;Closed"
+    get_international.assert_called_once_with(data_type=_xlmac.kw.list_separator)
+
+
+@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows backend only")
+def test_windows_literal_list_uses_locale_separator():
+    from xlwings import _xlwindows, constants
+
+    separator_key = constants.ApplicationInternational.xlListSeparator
+    parent = SimpleNamespace(
+        xl=SimpleNamespace(
+            Application=SimpleNamespace(International={separator_key: ";"})
+        )
+    )
+
+    formula = _xlwindows.DataValidation(parent)._formula(["Open", "Closed"])
+
+    assert formula == "Open;Closed"
 
 
 def test_literal_list(validation_range):
@@ -162,6 +201,13 @@ def test_comparison_rules(validation_range, method, args, rule_type, operator):
         assert validation.formula2 is not None
     else:
         assert validation.formula2 is None
+
+
+def test_numeric_comparison_operands_round_trip_as_formulas(validation_range):
+    validation = validation_range.data_validation
+    validation.set_whole_number("between", 1, 10)
+    assert validation.formula1 == "=1"
+    assert validation.formula2 == "=10"
 
 
 def test_custom_rule(validation_range):

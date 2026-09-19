@@ -1806,7 +1806,10 @@ class DataValidation(base_classes.DataValidation):
         elif isinstance(source, base_classes.Name):
             formula = f"={source.name}"
         else:
-            formula = ",".join(source)
+            separator = self.parent.sheet.book.app.xl.get_international(
+                data_type=kw.list_separator
+            )
+            formula = separator.join(source)
         if len(formula) > 255:
             raise ValueError(
                 "the Excel data validation source cannot exceed 255 characters"

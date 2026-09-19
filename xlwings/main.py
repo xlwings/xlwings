@@ -6638,12 +6638,12 @@ class DataValidation:
     @property
     def formula1(self) -> str | None:
         """The first comparison operand as an Excel formula string."""
-        return self.impl.formula1
+        return self._normalized_formula(self.impl.formula1)
 
     @property
     def formula2(self) -> str | None:
         """The second operand for between/not-between rules."""
-        return self.impl.formula2
+        return self._normalized_formula(self.impl.formula2)
 
     @property
     def formula(self) -> str | None:
@@ -6786,6 +6786,13 @@ class DataValidation:
         )
 
     @staticmethod
+    def _normalized_formula(value: Any) -> str | None:
+        if value is None:
+            return None
+        formula = str(value)
+        return formula if formula.startswith("=") else f"={formula}"
+
+    @staticmethod
     def _operand(value: Any, name: str, kind: str) -> str:
         if isinstance(value, bool):
             raise TypeError(f"{name} must not be a bool")
@@ -6812,11 +6819,9 @@ class DataValidation:
         if isinstance(value, str):
             if not value:
                 raise ValueError(f"{name} must not be empty")
-            text = value
+            text = value if value.startswith("=") else f"={value}"
         elif isinstance(value, numbers.Real) and math.isfinite(value):
-            text = str(value)
-            if kind in {"date", "time"}:
-                text = f"={text}"
+            text = f"={value}"
         else:
             raise TypeError(f"{name} must be a formula string or a finite number")
         if len(text) > 255:
