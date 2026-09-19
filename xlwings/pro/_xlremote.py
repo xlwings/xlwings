@@ -861,8 +861,11 @@ class Book(base_classes.Book):
             actions_js = to_js(
                 {"actions": actions}, dict_converter=js.Object.fromEntries
             )
-            await js.xlwings.runActions(actions_js)
+            # runActions may fail after applying only part of the batch. Never retain
+            # that indeterminate batch: replaying it can duplicate non-idempotent
+            # actions such as adding a defined name.
             self._json["actions"] = []
+            await js.xlwings.runActions(actions_js)
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
@@ -1825,6 +1828,10 @@ class Range(base_classes.Range):
                 return Table(self.sheet, ix + 1)
         raise KeyError(name)
 
+    async def get_data_validation(self):
+        entry = await self._get_range_data("data_validation")
+        return DataValidation(self, entry)
+
     async def get_conditional_formats(self):
         entries = await self._get_range_data("conditional_formats")
         return ConditionalFormats(self, entries)
@@ -2191,6 +2198,10 @@ class Range(base_classes.Range):
     def borders(self):
         return Borders(self, self.sheet.book.api)
 
+    @property
+    def data_validation(self):
+        return DataValidation(self)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -2205,6 +2216,123 @@ class Range(base_classes.Range):
                 sheet=self.sheet,
                 arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
+
+
+class DataValidation(base_classes.DataValidation):
+    def __init__(self, parent, entry=None):
+        self.parent = parent
+        self._entry = entry
+
+    @property
+    def api(self):
+        return None
+
+    def _read(self, name):
+        if self._entry is None:
+            raise NotImplementedError(
+                "Reading data validation synchronously isn't supported on this "
+                "engine. Use 'await myrange.get_data_validation()' to fetch it on "
+                "demand."
+            )
+        return self._entry.get(name)
+
+    @property
+    def type(self):
+        return self._read("type")
+
+    @property
+    def operator(self):
+        return self._read("operator")
+
+    @property
+    def formula1(self):
+        return self._read("formula1")
+
+    @property
+    def formula2(self):
+        return self._read("formula2")
+
+    @property
+    def formula(self):
+        return self._read("formula")
+
+    @property
+    def source(self):
+        return self._read("source")
+
+    @property
+    def in_cell_dropdown(self):
+        return self._read("in_cell_dropdown")
+
+    @property
+    def ignore_blank(self):
+        return self._read("ignore_blank")
+
+    @property
+    def input_title(self):
+        return self._read("input_title")
+
+    @property
+    def input_message(self):
+        return self._read("input_message")
+
+    @property
+    def show_input(self):
+        return self._read("show_input")
+
+    @property
+    def error_title(self):
+        return self._read("error_title")
+
+    @property
+    def error_message(self):
+        return self._read("error_message")
+
+    @property
+    def show_error(self):
+        return self._read("show_error")
+
+    @property
+    def alert_style(self):
+        return self._read("alert_style")
+
+    def set_list(self, source, in_cell_dropdown):
+        self.parent._require_officejs("data_validation")
+        if isinstance(source, base_classes.Range):
+            source_payload = {
+                "type": "range",
+                "sheet_position": source.sheet.index - 1,
+                "start_row": source.row - 1,
+                "start_column": source.column - 1,
+                "row_count": source.shape[0],
+                "column_count": source.shape[1],
+            }
+        elif isinstance(source, base_classes.Name):
+            source_payload = {"type": "name", "name": source.name}
+        else:
+            source_payload = {"type": "literal", "values": source}
+        self.parent.append_json_action(
+            func="setDataValidationList",
+            args=[source_payload, in_cell_dropdown],
+        )
+
+    def set_rule(self, rule_type, operator, formula1, formula2):
+        self.parent._require_officejs("data_validation")
+        self.parent.append_json_action(
+            func="setDataValidationRule",
+            args=[
+                {
+                    "type": rule_type,
+                    "operator": operator,
+                    "formula1": formula1,
+                    "formula2": formula2,
+                }
+            ],
+        )
+
+    def delete(self):
+        self.parent._require_officejs("data_validation")
+        self.parent.append_json_action(func="deleteDataValidation")
 
 
 class Collection(base_classes.Collection):

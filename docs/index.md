@@ -97,6 +97,7 @@ api/chart_legend
 api/charts
 api/conditional_format
 api/conditional_formats
+api/data_validation
 api/font
 api/name
 api/names

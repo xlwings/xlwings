@@ -47,6 +47,33 @@ BorderLineStyle = Literal[
 ]
 BorderWeight = Literal["hairline", "thin", "medium", "thick"]
 
+DataValidationType = Literal[
+    "none",
+    "whole_number",
+    "decimal",
+    "list",
+    "date",
+    "time",
+    "text_length",
+    "custom",
+    "inconsistent",
+    "mixed_criteria",
+    "unknown",
+]
+DATA_VALIDATION_TYPES: tuple[str, ...] = get_args(DataValidationType)
+DataValidationOperator = Literal[
+    "between",
+    "not_between",
+    "equal_to",
+    "not_equal_to",
+    "greater_than",
+    "less_than",
+    "greater_than_or_equal",
+    "less_than_or_equal",
+]
+DATA_VALIDATION_OPERATORS: tuple[str, ...] = get_args(DataValidationOperator)
+DataValidationAlertStyle = Literal["stop", "warning", "information"]
+
 # Conditional-format types supported by the first public rule model. Other
 # native rule types remain visible as `unknown` so callers can inspect and
 # delete them without the engines silently dropping them from the collection.
@@ -698,6 +725,11 @@ class Range:
     async def get_table(self):
         raise NotImplementedError("get_table() is only supported in xlwings Lite")
 
+    async def get_data_validation(self):
+        raise NotImplementedError(
+            "get_data_validation() is only supported in xlwings Lite"
+        )
+
     async def get_color(self):
         raise NotImplementedError("Range.get_color() is only supported in xlwings Lite")
 
@@ -802,6 +834,10 @@ class Range:
 
     @property
     def borders(self):
+        raise NotImplementedError()
+
+    @property
+    def data_validation(self):
         raise NotImplementedError()
 
     @property
@@ -980,6 +1016,21 @@ class Range:
         raise NotImplementedError()
 
     def autofill(self, destination, type_):
+        raise NotImplementedError()
+
+
+class DataValidation:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    def set_list(self, source, in_cell_dropdown):
+        raise NotImplementedError()
+
+    def set_rule(self, rule_type, operator, formula1, formula2):
+        raise NotImplementedError()
+
+    def delete(self):
         raise NotImplementedError()
 
 

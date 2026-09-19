@@ -1115,6 +1115,10 @@ class Range(base_classes.Range):
         return Borders(self, self.xl)
 
     @property
+    def data_validation(self):
+        return DataValidation(self)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             rv = self.xl.column_width.get()
@@ -1636,6 +1640,210 @@ class Border(base_classes.Border):
                 self.xl.color.set(int_to_rgb(color_or_rgb))
             else:
                 self.xl.color.set(color_or_rgb)
+
+
+class DataValidation(base_classes.DataValidation):
+    _TYPE_FROM_KW = {
+        kw.validate_whole_number: "whole_number",
+        kw.validate_decimal: "decimal",
+        kw.validate_list: "list",
+        kw.validated_date: "date",
+        kw.validate_time: "time",
+        kw.validate_text_length: "text_length",
+        kw.validate_custom: "custom",
+    }
+    _TYPE_TO_KW = {value: key for key, value in _TYPE_FROM_KW.items()}
+    _OPERATOR_FROM_KW = {
+        kw.operator_between: "between",
+        kw.operator_not_between: "not_between",
+        kw.operator_equal: "equal_to",
+        kw.operator_not_equal: "not_equal_to",
+        kw.operator_greater: "greater_than",
+        kw.operator_less: "less_than",
+        kw.operator_greater_equal: "greater_than_or_equal",
+        kw.operator_less_equal: "less_than_or_equal",
+    }
+    _OPERATOR_TO_KW = {value: key for key, value in _OPERATOR_FROM_KW.items()}
+    _ALERT_STYLE_FROM_KW = {
+        kw.valid_alert_stop: "stop",
+        kw.valid_alert_warning: "warning",
+        kw.valid_alert_information: "information",
+    }
+
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        return self.parent.xl.validation
+
+    def _nonuniform_type(self):
+        try:
+            validation_cells = self.parent.xl.special_cells(
+                type=kw.cell_type_all_validation
+            )
+            intersection = self.parent.sheet.book.app.xl.intersect(
+                range1=self.parent.xl,
+                range2=validation_cells,
+            )
+        except CommandError:
+            return "none"
+        try:
+            validated_count = intersection.count(each=kw.cell)
+        except CommandError:
+            return "inconsistent"
+        target_count = self.parent.shape[0] * self.parent.shape[1]
+        return "mixed_criteria" if validated_count < target_count else "inconsistent"
+
+    @property
+    def type(self):
+        try:
+            native_type = self.parent.xl.validation.validation_type.get()
+        except CommandError:
+            return self._nonuniform_type()
+        if native_type == kw.missing_value:
+            return self._nonuniform_type()
+        return self._TYPE_FROM_KW.get(native_type, "unknown")
+
+    def _property(self, name):
+        if self.type in {"none", "mixed_criteria", "inconsistent"}:
+            return None
+        try:
+            value = getattr(self.parent.xl.validation, name).get()
+        except CommandError:
+            return None
+        return None if value == kw.missing_value else value
+
+    @property
+    def operator(self):
+        if self.type not in {
+            "whole_number",
+            "decimal",
+            "date",
+            "time",
+            "text_length",
+        }:
+            return None
+        return self._OPERATOR_FROM_KW.get(self._property("validation_operator"))
+
+    @property
+    def formula1(self):
+        if self.type not in {
+            "whole_number",
+            "decimal",
+            "date",
+            "time",
+            "text_length",
+        }:
+            return None
+        value = self._property("formula1")
+        return None if value is None else str(value)
+
+    @property
+    def formula2(self):
+        if self.operator not in {"between", "not_between"}:
+            return None
+        value = self._property("formula2")
+        return None if value is None else str(value)
+
+    @property
+    def formula(self):
+        if self.type != "custom":
+            return None
+        value = self._property("formula1")
+        return None if value is None else str(value)
+
+    @property
+    def source(self):
+        if self.type != "list":
+            return None
+        value = self._property("formula1")
+        return None if value is None else str(value)
+
+    @property
+    def in_cell_dropdown(self):
+        value = self._property("in_cell_dropdown") if self.type == "list" else None
+        return None if value is None else bool(value)
+
+    @property
+    def ignore_blank(self):
+        value = self._property("ignore_blank")
+        return None if value is None else bool(value)
+
+    @property
+    def input_title(self):
+        return self._property("input_title")
+
+    @property
+    def input_message(self):
+        return self._property("input_message")
+
+    @property
+    def show_input(self):
+        value = self._property("show_input")
+        return None if value is None else bool(value)
+
+    @property
+    def error_title(self):
+        return self._property("error_title")
+
+    @property
+    def error_message(self):
+        return self._property("error_message")
+
+    @property
+    def show_error(self):
+        value = self._property("show_error")
+        return None if value is None else bool(value)
+
+    @property
+    def alert_style(self):
+        return self._ALERT_STYLE_FROM_KW.get(self._property("alert_style"))
+
+    def _formula(self, source):
+        if isinstance(source, base_classes.Range):
+            formula = f"={source.get_address(True, True, True)}"
+        elif isinstance(source, base_classes.Name):
+            formula = f"={source.name}"
+        else:
+            separator = self.parent.sheet.book.app.xl.get_international(
+                data_type=kw.list_separator
+            )
+            formula = separator.join(source)
+        if len(formula) > 255:
+            raise ValueError(
+                "the Excel data validation source cannot exceed 255 characters"
+            )
+        return formula
+
+    def _set(self, rule_type, operator=None, formula1=None, formula2=None):
+        current_type = self.type
+        if current_type in {"mixed_criteria", "inconsistent"}:
+            raise xlwings.XlwingsError(
+                "Cannot update data validation because the target cells have "
+                "different validation rules."
+            )
+        kwargs = {"type": self._TYPE_TO_KW[rule_type], "formula1": formula1}
+        if operator is not None:
+            kwargs["operator"] = self._OPERATOR_TO_KW[operator]
+        if formula2 is not None:
+            kwargs["formula2"] = formula2
+        validation = self.parent.xl.validation
+        if current_type == "none":
+            validation.add_data_validation(**kwargs)
+        else:
+            validation.modify(**kwargs)
+
+    def set_list(self, source, in_cell_dropdown):
+        formula = self._formula(source)
+        self._set("list", formula1=formula)
+        self.parent.xl.validation.in_cell_dropdown.set(in_cell_dropdown)
+
+    def set_rule(self, rule_type, operator, formula1, formula2):
+        self._set(rule_type, operator, formula1, formula2)
+
+    def delete(self):
+        self.parent.xl.validation.delete()
 
 
 class Borders(base_classes.Borders):

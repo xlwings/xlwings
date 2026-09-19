@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.5 (TBD)
 
 - Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
+- Added `Range.data_validation` with list, whole-number, decimal, date, time, text-length, and custom-formula validation. xlwings Lite can inspect validation rules on demand with `await Range.get_data_validation()`.
 
 ## v0.37.4 (Sep 16, 2026)
 
