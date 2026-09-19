@@ -6880,8 +6880,7 @@ class DataValidation:
     ) -> None:
         """Create or update a date validation rule.
 
-        Operands may be Python dates, naive datetimes, finite Excel serial numbers,
-        or Excel formula strings. Existing prompts and error alerts are preserved.
+        Operands may be Python dates, naive datetimes, Excel serial numbers, or Excel formula strings. Existing prompts and error alerts are preserved.
         """
         self._set_comparison("date", operator, formula1, formula2)
 
@@ -6893,8 +6892,7 @@ class DataValidation:
     ) -> None:
         """Create or update a time validation rule.
 
-        Operands may be naive Python times, finite Excel day fractions, or Excel
-        formula strings. Existing prompts and error alerts are preserved.
+        Operands may be naive Python times, Excel day fractions, or Excel formula strings. Existing prompts and error alerts are preserved.
         """
         self._set_comparison("time", operator, formula1, formula2)
 
