@@ -1,7 +1,7 @@
 import os
 import sys
 import unittest
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import xlwings as xw
@@ -109,23 +109,59 @@ class TestRangeInstantiation(TestBase):
 
 
 class TestRangeAutoFilter(unittest.TestCase):
+    def test_criteria_snapshot(self):
+        criterion = xw.AutoFilterCriteria(
+            {
+                "field": 2,
+                "type": "comparison",
+                "values": None,
+                "operator": "between",
+                "value1": "1/1/2026",
+                "value2": "3/31/2026",
+                "count": None,
+                "percent": None,
+            }
+        )
+        self.assertEqual(criterion.field, 2)
+        self.assertEqual(criterion.type, "comparison")
+        self.assertEqual(criterion.operator, "between")
+        self.assertEqual(criterion.value1, "1/1/2026")
+        self.assertEqual(criterion.value2, "3/31/2026")
+        self.assertIsNone(criterion.values)
+
     def test_autofilter_apply_and_clear(self):
         book = xw.Book()
         sheet = book.sheets[0]
         values = [
-            ["Region", "Amount", "Status"],
-            ["East", 5, "Open"],
-            ["West", 10, None],
-            ["North", 15, "Closed"],
-            ["East", 20, None],
+            ["Region", "Amount", "Status", "When"],
+            ["East", 5, "Open", datetime(2026, 1, 1)],
+            ["West", 10, None, datetime(2026, 2, 1)],
+            ["North", 15, "Closed", datetime(2026, 3, 1)],
+            ["East", 20, None, datetime(2026, 4, 1)],
         ]
-        target = sheet["A1:C5"]
+        target = sheet["A1:D5"]
         try:
             target.value = values
             formulas = target.formula
             target.autofilter.apply_values(1, ["East", "West"])
             target.autofilter.apply_comparison(2, "between", 5, 15)
             target.autofilter.apply_comparison(3, "equal_to", None)
+            target.autofilter.apply_comparison(4, "greater_than", date(2026, 1, 15))
+            criteria = target.autofilter.criteria
+            self.assertEqual(
+                [item.type for item in criteria],
+                [
+                    "values",
+                    "comparison",
+                    "comparison",
+                    "comparison",
+                ],
+            )
+            self.assertEqual(criteria[1].operator, "between")
+            self.assertEqual(criteria[2].operator, "equal_to")
+            target.autofilter.apply_top_items(2, 2)
+            self.assertEqual(target.autofilter.criteria[1].type, "top_items")
+            self.assertIn(target.autofilter.criteria[1].count, (None, 2))
             self.assertEqual(target.value, values)
             self.assertEqual(target.formula, formulas)
             target.autofilter.clear(2)
@@ -136,7 +172,6 @@ class TestRangeAutoFilter(unittest.TestCase):
 
 
 class TestRangeAttributes(TestBase):
-
     def test_iterator(self):
         self.wb1.sheets[0].range("A20").value = [[1.0, 2.0], [3.0, 4.0]]
         r = self.wb1.sheets[0].range("A20:B21")

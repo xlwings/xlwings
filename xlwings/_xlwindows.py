@@ -2780,23 +2780,47 @@ class AutoFilter(base_classes.AutoFilter):
     def _escape(value):
         return value.replace("~", "~~").replace("*", "~*").replace("?", "~?")
 
+    @staticmethod
+    def _criterion_value(value):
+        if not isinstance(value, dict):
+            return value
+        if value.get("type") == "date":
+            parsed = dt.date.fromisoformat(value["value"])
+            return f"{parsed.month}/{parsed.day}/{parsed.year}"
+        if value.get("type") == "datetime":
+            parsed = dt.datetime.fromisoformat(value["value"])
+            seconds = f"{parsed.second + parsed.microsecond / 1_000_000:g}"
+            return (
+                f"{parsed.month}/{parsed.day}/{parsed.year} "
+                f"{parsed.hour}:{parsed.minute}:{seconds}"
+            )
+        raise ValueError("Unknown AutoFilter comparison value type")
+
     def _criteria(self, operator, value1, value2):
         if value1 is None:
             return ("=" if operator == "equal_to" else "<>"), None, None
-        value1 = self._escape(value1)
+        value1 = self._escape(self._criterion_value(value1))
         if operator == "between":
             return (
                 f">={value1}",
                 constants.AutoFilterOperator.xlAnd,
-                f"<={self._escape(value2)}",
+                f"<={self._escape(self._criterion_value(value2))}",
             )
         if operator == "not_between":
             return (
                 f"<{value1}",
                 constants.AutoFilterOperator.xlOr,
-                f">{self._escape(value2)}",
+                f">{self._escape(self._criterion_value(value2))}",
             )
         return f"{self._COMPARISON_PREFIXES[operator]}{value1}", None, None
+
+    @property
+    def _range(self):
+        return self.parent.xl.Range if self.is_table else self.parent.xl
+
+    @property
+    def _column_count(self):
+        return self.parent.range.shape[1] if self.is_table else self.parent.shape[1]
 
     def _worksheet_filter_range(self):
         sheet = self.parent.sheet.xl
@@ -2814,9 +2838,72 @@ class AutoFilter(base_classes.AutoFilter):
                 "This worksheet already has an AutoFilter on a different range"
             )
 
+    def _native_autofilter(self):
+        if self.is_table:
+            return self.parent.xl.AutoFilter
+        existing = self._worksheet_filter_range()
+        if existing is None or existing.Address != self.parent.xl.Address:
+            return None
+        return self.parent.sheet.xl.AutoFilter
+
+    @property
+    def criteria(self):
+        autofilter = self._native_autofilter()
+        if autofilter is None:
+            return [
+                base_classes.empty_autofilter_criteria(field)
+                for field in range(1, self._column_count + 1)
+            ]
+        snapshots = []
+        operator_types = {
+            constants.AutoFilterOperator.xlFilterValues: "values",
+            constants.AutoFilterOperator.xlTop10Items: "top_items",
+            constants.AutoFilterOperator.xlBottom10Items: "bottom_items",
+            constants.AutoFilterOperator.xlTop10Percent: "top_percent",
+            constants.AutoFilterOperator.xlBottom10Percent: "bottom_percent",
+        }
+        for field in range(1, self._column_count + 1):
+            native_filter = autofilter.Filters(field)
+            if not native_filter.On:
+                snapshots.append(base_classes.empty_autofilter_criteria(field))
+                continue
+            try:
+                operator = native_filter.Operator
+            except Exception:
+                operator = None
+            type_ = operator_types.get(operator, "comparison")
+            if operator not in (
+                0,
+                constants.AutoFilterOperator.xlAnd,
+                constants.AutoFilterOperator.xlOr,
+                *operator_types,
+            ):
+                type_ = "unknown"
+            try:
+                criteria2 = native_filter.Criteria2
+            except Exception:
+                criteria2 = None
+            try:
+                criteria1 = native_filter.Criteria1
+            except Exception:
+                criteria1 = None
+            snapshots.append(
+                base_classes.autofilter_criteria_snapshot(
+                    field,
+                    type_,
+                    criteria1,
+                    criteria2,
+                    {
+                        constants.AutoFilterOperator.xlAnd: "and",
+                        constants.AutoFilterOperator.xlOr: "or",
+                    }.get(operator),
+                )
+            )
+        return snapshots
+
     def apply_values(self, field, values):
         self._ensure_target()
-        self.parent.xl.AutoFilter(
+        self._range.AutoFilter(
             Field=field,
             Criteria1=values,
             Operator=constants.AutoFilterOperator.xlFilterValues,
@@ -2829,16 +2916,38 @@ class AutoFilter(base_classes.AutoFilter):
         if native_operator is not None:
             kwargs["Operator"] = native_operator
             kwargs["Criteria2"] = criteria2
-        self.parent.xl.AutoFilter(**kwargs)
+        self._range.AutoFilter(**kwargs)
+
+    def _apply_top_bottom(self, field, value, operator):
+        self._ensure_target()
+        self._range.AutoFilter(Field=field, Criteria1=str(value), Operator=operator)
+
+    def apply_top_items(self, field, count):
+        self._apply_top_bottom(field, count, constants.AutoFilterOperator.xlTop10Items)
+
+    def apply_bottom_items(self, field, count):
+        self._apply_top_bottom(
+            field, count, constants.AutoFilterOperator.xlBottom10Items
+        )
+
+    def apply_top_percent(self, field, percent):
+        self._apply_top_bottom(
+            field, percent, constants.AutoFilterOperator.xlTop10Percent
+        )
+
+    def apply_bottom_percent(self, field, percent):
+        self._apply_top_bottom(
+            field, percent, constants.AutoFilterOperator.xlBottom10Percent
+        )
 
     def clear(self, field):
         if not self.is_table:
             existing = self._worksheet_filter_range()
             if existing is None or existing.Address != self.parent.xl.Address:
                 return
-        fields = [field] if field is not None else range(1, self.parent.shape[1] + 1)
+        fields = [field] if field is not None else range(1, self._column_count + 1)
         for field_index in fields:
-            self.parent.xl.AutoFilter(Field=field_index)
+            self._range.AutoFilter(Field=field_index)
 
 
 class Table(base_classes.Table):
@@ -2887,7 +2996,7 @@ class Table(base_classes.Table):
 
     @property
     def autofilter(self):
-        return AutoFilter(self.range, is_table=True)
+        return AutoFilter(self, is_table=True)
 
     @property
     def show_autofilter(self):

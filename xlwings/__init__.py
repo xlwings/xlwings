@@ -202,6 +202,7 @@ else:
 from .main import (
     App,
     AutoFilter,
+    AutoFilterCriteria,
     Book,
     BookAsync,
     Chart,
@@ -233,6 +234,7 @@ from .utils import xlserial_to_datetime as to_datetime
 __all__ = (
     "App",
     "AutoFilter",
+    "AutoFilterCriteria",
     "Book",
     "BookAsync",
     "Chart",

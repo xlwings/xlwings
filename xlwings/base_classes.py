@@ -1,3 +1,4 @@
+import math
 from typing import Any, Literal, get_args
 
 
@@ -87,6 +88,128 @@ AutoFilterComparisonOperator = Literal[
 AUTOFILTER_COMPARISON_OPERATORS: tuple[str, ...] = get_args(
     AutoFilterComparisonOperator
 )
+AutoFilterCriteriaType = Literal[
+    "none",
+    "values",
+    "comparison",
+    "top_items",
+    "bottom_items",
+    "top_percent",
+    "bottom_percent",
+    "unknown",
+]
+AUTOFILTER_CRITERIA_TYPES: tuple[str, ...] = get_args(AutoFilterCriteriaType)
+
+
+def empty_autofilter_criteria(field: int, type_: str = "none") -> dict[str, Any]:
+    return {
+        "field": field,
+        "type": type_,
+        "values": None,
+        "operator": None,
+        "value1": None,
+        "value2": None,
+        "count": None,
+        "percent": None,
+    }
+
+
+def _unescape_autofilter_value(value: str) -> str:
+    result = []
+    index = 0
+    while index < len(value):
+        if value[index] == "~" and index + 1 < len(value) and value[index + 1] in "~*?":
+            index += 1
+        result.append(value[index])
+        index += 1
+    return "".join(result)
+
+
+def _split_autofilter_comparison(value: Any) -> tuple[str | None, str | None]:
+    if not isinstance(value, str):
+        return None, None
+    for prefix in (">=", "<=", "<>", ">", "<", "="):
+        if value.startswith(prefix):
+            operand = value[len(prefix) :]
+            return prefix, _unescape_autofilter_value(operand) if operand else None
+    return "=", _unescape_autofilter_value(value)
+
+
+def autofilter_criteria_snapshot(
+    field: int,
+    type_: str,
+    criteria1: Any = None,
+    criteria2: Any = None,
+    join_operator: str | None = None,
+) -> dict[str, Any]:
+    snapshot = empty_autofilter_criteria(field, type_)
+    if type_ == "values":
+        values = criteria1 if isinstance(criteria1, (list, tuple)) else [criteria1]
+        if any(not isinstance(value, str) for value in values):
+            return empty_autofilter_criteria(field, "unknown")
+        snapshot["values"] = [
+            value[1:] if value.startswith("=") else value for value in values
+        ]
+        return snapshot
+    if type_ in ("top_items", "bottom_items"):
+        value = str(criteria1).removeprefix("=")
+        if value.startswith((">", "<")):
+            return snapshot
+        try:
+            snapshot["count"] = int(value)
+        except (TypeError, ValueError):
+            return empty_autofilter_criteria(field, "unknown")
+        return snapshot
+    if type_ in ("top_percent", "bottom_percent"):
+        value = str(criteria1).removeprefix("=")
+        if value.startswith((">", "<")):
+            return snapshot
+        try:
+            snapshot["percent"] = float(value)
+        except (TypeError, ValueError):
+            return empty_autofilter_criteria(field, "unknown")
+        if not math.isfinite(snapshot["percent"]):
+            return empty_autofilter_criteria(field, "unknown")
+        return snapshot
+    if type_ != "comparison":
+        return snapshot
+
+    prefix1, value1 = _split_autofilter_comparison(criteria1)
+    prefix2, value2 = _split_autofilter_comparison(criteria2)
+    if prefix1 is None:
+        return empty_autofilter_criteria(field, "unknown")
+    if criteria2 is not None:
+        if (
+            join_operator == "or"
+            and (prefix1, prefix2) == ("=", "=")
+            and value1 is not None
+            and value2 is not None
+        ):
+            snapshot["type"] = "values"
+            snapshot["values"] = [value1, value2]
+            return snapshot
+        if join_operator == "and" and (prefix1, prefix2) == (">=", "<="):
+            operator = "between"
+        elif join_operator == "or" and (prefix1, prefix2) == ("<", ">"):
+            operator = "not_between"
+        else:
+            return empty_autofilter_criteria(field, "unknown")
+    else:
+        operator = {
+            "=": "equal_to",
+            "<>": "not_equal_to",
+            ">": "greater_than",
+            "<": "less_than",
+            ">=": "greater_than_or_equal",
+            "<=": "less_than_or_equal",
+        }.get(prefix1)
+        if operator is None:
+            return empty_autofilter_criteria(field, "unknown")
+    snapshot["operator"] = operator
+    snapshot["value1"] = value1
+    snapshot["value2"] = value2
+    return snapshot
+
 
 # Conditional-format types supported by the first public rule model. Other
 # native rule types remain visible as `unknown` so callers can inspect and
@@ -1053,10 +1176,29 @@ class DataValidation:
 
 
 class AutoFilter:
+    @property
+    def criteria(self):
+        raise NotImplementedError()
+
+    async def get_criteria(self):
+        raise NotImplementedError("get_criteria() is only supported in xlwings Lite")
+
     def apply_values(self, field, values):
         raise NotImplementedError()
 
     def apply_comparison(self, field, operator, value1, value2):
+        raise NotImplementedError()
+
+    def apply_top_items(self, field, count):
+        raise NotImplementedError()
+
+    def apply_bottom_items(self, field, count):
+        raise NotImplementedError()
+
+    def apply_top_percent(self, field, percent):
+        raise NotImplementedError()
+
+    def apply_bottom_percent(self, field, percent):
         raise NotImplementedError()
 
     def clear(self, field):

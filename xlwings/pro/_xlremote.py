@@ -2813,6 +2813,27 @@ class AutoFilter(base_classes.AutoFilter):
                 func=table_func, args=[self.table_index, *args]
             )
 
+    @property
+    def criteria(self):
+        raise NotImplementedError(
+            "AutoFilter.criteria isn't available on this engine; in xlwings Lite, "
+            "use await autofilter.get_criteria()"
+        )
+
+    async def get_criteria(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_criteria() is only supported in xlwings Lite"
+            )
+        import js
+
+        data_js = await js.xlwings.getAutoFilterCriteria(
+            self.parent.sheet.name,
+            self.parent.address,
+            self.table_index,
+        )
+        return _normalize_jsnull(data_js.to_py())
+
     def apply_values(self, field, values):
         self._append(
             "applyAutoFilterRange",
@@ -2829,6 +2850,25 @@ class AutoFilter(base_classes.AutoFilter):
         if value2 is not None:
             spec["value2"] = value2
         self._append("applyAutoFilterRange", "applyAutoFilterTable", [field, spec])
+
+    def _apply_top_bottom(self, field, type_, value):
+        self._append(
+            "applyAutoFilterRange",
+            "applyAutoFilterTable",
+            [field, {"type": type_, "value": value}],
+        )
+
+    def apply_top_items(self, field, count):
+        self._apply_top_bottom(field, "top_items", count)
+
+    def apply_bottom_items(self, field, count):
+        self._apply_top_bottom(field, "bottom_items", count)
+
+    def apply_top_percent(self, field, percent):
+        self._apply_top_bottom(field, "top_percent", percent)
+
+    def apply_bottom_percent(self, field, percent):
+        self._apply_top_bottom(field, "bottom_percent", percent)
 
     def clear(self, field):
         self._append("clearAutoFilterRange", "clearAutoFilterTable", [field])

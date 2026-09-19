@@ -2543,19 +2543,47 @@ class AutoFilter(base_classes.AutoFilter):
     def _escape(value):
         return value.replace("~", "~~").replace("*", "~*").replace("?", "~?")
 
+    @staticmethod
+    def _criterion_value(value):
+        if not isinstance(value, dict):
+            return value
+        if value.get("type") == "date":
+            parsed = dt.date.fromisoformat(value["value"])
+            return f"{parsed.month}/{parsed.day}/{parsed.year}"
+        if value.get("type") == "datetime":
+            parsed = dt.datetime.fromisoformat(value["value"])
+            seconds = f"{parsed.second + parsed.microsecond / 1_000_000:g}"
+            return (
+                f"{parsed.month}/{parsed.day}/{parsed.year} "
+                f"{parsed.hour}:{parsed.minute}:{seconds}"
+            )
+        raise ValueError("Unknown AutoFilter comparison value type")
+
     def _criteria(self, operator, value1, value2):
         if value1 is None:
             return ("=" if operator == "equal_to" else "<>"), None, None
-        value1 = self._escape(value1)
+        value1 = self._escape(self._criterion_value(value1))
         if operator == "between":
-            return f">={value1}", kw.autofilter_and, f"<={self._escape(value2)}"
+            return (
+                f">={value1}",
+                kw.autofilter_and,
+                f"<={self._escape(self._criterion_value(value2))}",
+            )
         if operator == "not_between":
-            return f"<{value1}", kw.autofilter_or, f">{self._escape(value2)}"
+            return (
+                f"<{value1}",
+                kw.autofilter_or,
+                f">{self._escape(self._criterion_value(value2))}",
+            )
         return f"{self._COMPARISON_PREFIXES[operator]}{value1}", None, None
 
     @property
     def _range(self):
         return self.parent.xl.range_object if self.is_table else self.parent.xl
+
+    @property
+    def _column_count(self):
+        return self.parent.range.shape[1] if self.is_table else self.parent.shape[1]
 
     def _worksheet_filter_range(self):
         sheet = self.parent.sheet.xl
@@ -2572,6 +2600,74 @@ class AutoFilter(base_classes.AutoFilter):
                 "This worksheet already has an AutoFilter on a different range"
             )
 
+    def _native_autofilter(self):
+        if self.is_table:
+            return self.parent.xl.autofilter_object
+        existing = self._worksheet_filter_range()
+        if existing is None or existing != self.parent.xl.get_address():
+            return None
+        return self.parent.sheet.xl.autofilter_object
+
+    @property
+    def criteria(self):
+        autofilter = self._native_autofilter()
+        if autofilter is None:
+            return [
+                base_classes.empty_autofilter_criteria(field)
+                for field in range(1, self._column_count + 1)
+            ]
+        snapshots = []
+        operator_types = {
+            kw.filter_by_value: "values",
+            kw.top_10_items: "top_items",
+            kw.bottom_10_items: "bottom_items",
+            kw.top_10_percent: "top_percent",
+            kw.bottom_10_percent: "bottom_percent",
+        }
+        comparison_operators = {
+            kw.autofilter_and: "and",
+            kw.autofilter_or: "or",
+        }
+        for field in range(1, self._column_count + 1):
+            native_filter = autofilter.filters[field]
+            if not native_filter.filter_on.get():
+                snapshots.append(base_classes.empty_autofilter_criteria(field))
+                continue
+            try:
+                operator = native_filter.operator.get()
+            except (CommandError, AttributeError):
+                operator = None
+            type_ = operator_types.get(operator, "comparison")
+            if operator not in (
+                None,
+                kw.missing_value,
+                *comparison_operators,
+                *operator_types,
+            ):
+                type_ = "unknown"
+            try:
+                criteria2 = native_filter.criteria2.get()
+                if criteria2 == kw.missing_value:
+                    criteria2 = None
+            except (CommandError, AttributeError):
+                criteria2 = None
+            try:
+                criteria1 = native_filter.criteria1.get()
+                if criteria1 == kw.missing_value:
+                    criteria1 = None
+            except (CommandError, AttributeError):
+                criteria1 = None
+            snapshots.append(
+                base_classes.autofilter_criteria_snapshot(
+                    field,
+                    type_,
+                    criteria1,
+                    criteria2,
+                    comparison_operators.get(operator),
+                )
+            )
+        return snapshots
+
     def apply_values(self, field, values):
         self._ensure_target()
         self._range.autofilter_range(
@@ -2587,15 +2683,30 @@ class AutoFilter(base_classes.AutoFilter):
             kwargs["criteria2"] = criteria2
         self._range.autofilter_range(**kwargs)
 
+    def _apply_top_bottom(self, field, value, operator):
+        self._ensure_target()
+        self._range.autofilter_range(
+            field=field, criteria1=str(value), operator=operator
+        )
+
+    def apply_top_items(self, field, count):
+        self._apply_top_bottom(field, count, kw.top_10_items)
+
+    def apply_bottom_items(self, field, count):
+        self._apply_top_bottom(field, count, kw.bottom_10_items)
+
+    def apply_top_percent(self, field, percent):
+        self._apply_top_bottom(field, percent, kw.top_10_percent)
+
+    def apply_bottom_percent(self, field, percent):
+        self._apply_top_bottom(field, percent, kw.bottom_10_percent)
+
     def clear(self, field):
         if not self.is_table:
             existing = self._worksheet_filter_range()
             if existing is None or existing != self.parent.xl.get_address():
                 return
-        column_count = (
-            self.parent.range.shape[1] if self.is_table else self.parent.shape[1]
-        )
-        fields = [field] if field is not None else range(1, column_count + 1)
+        fields = [field] if field is not None else range(1, self._column_count + 1)
         for field_index in fields:
             self._range.autofilter_range(field=field_index)
 

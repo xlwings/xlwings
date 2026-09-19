@@ -3906,6 +3906,11 @@ def test_range_autofilter_actions():
     autofilter = book.sheets[0].range("A1:C8").autofilter
     autofilter.apply_values(2, ["East", 3, True])
     autofilter.apply_comparison(3, "between", 10, 20)
+    autofilter.apply_comparison(
+        2, "between", dt.date(2026, 1, 2), dt.datetime(2026, 3, 4, 5, 6, 7)
+    )
+    autofilter.apply_top_items(3, 10)
+    autofilter.apply_bottom_percent(2, 12.5)
     autofilter.apply_comparison(1, "equal_to", None)
     autofilter.clear(2)
     autofilter.clear()
@@ -3927,6 +3932,29 @@ def test_range_autofilter_actions():
                     "value2": "20",
                 },
             ],
+        ),
+        (
+            "applyAutoFilterRange",
+            [
+                2,
+                {
+                    "type": "comparison",
+                    "operator": "between",
+                    "value1": {"type": "date", "value": "2026-01-02"},
+                    "value2": {
+                        "type": "datetime",
+                        "value": "2026-03-04T05:06:07",
+                    },
+                },
+            ],
+        ),
+        (
+            "applyAutoFilterRange",
+            [3, {"type": "top_items", "value": 10}],
+        ),
+        (
+            "applyAutoFilterRange",
+            [2, {"type": "bottom_percent", "value": 12.5}],
         ),
         (
             "applyAutoFilterRange",
@@ -3953,6 +3981,8 @@ def test_table_autofilter_actions_include_table_and_range_targets():
     book = _officejs_book()
     autofilter = book.sheets[0].tables[0].autofilter
     autofilter.apply_comparison(2, "not_equal_to", None)
+    autofilter.apply_bottom_items(1, 5)
+    autofilter.apply_top_percent(2, 25)
     autofilter.clear()
 
     actions = book.json()["actions"]
@@ -3968,6 +3998,14 @@ def test_table_autofilter_actions_include_table_and_range_targets():
                     "value1": None,
                 },
             ],
+        ),
+        (
+            "applyAutoFilterTable",
+            [0, 1, {"type": "bottom_items", "value": 5}],
+        ),
+        (
+            "applyAutoFilterTable",
+            [0, 2, {"type": "top_percent", "value": 25.0}],
         ),
         ("clearAutoFilterTable", [0, None]),
     ]
@@ -4001,6 +4039,18 @@ def test_table_autofilter_actions_include_table_and_range_targets():
             lambda af: af.apply_comparison(1, "approximately", 1),
             (ValueError, "operator must be one of"),
         ),
+        (
+            lambda af: af.apply_comparison(
+                1,
+                "equal_to",
+                dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc),
+            ),
+            (ValueError, "timezone-naive"),
+        ),
+        (lambda af: af.apply_top_items(1, True), (TypeError, "integer")),
+        (lambda af: af.apply_bottom_items(1, 256), (ValueError, "1 and 255")),
+        (lambda af: af.apply_top_percent(1, True), (TypeError, "number")),
+        (lambda af: af.apply_bottom_percent(1, 101), (ValueError, "0 and 100")),
     ],
 )
 def test_autofilter_validation_does_not_queue_actions(call, error):
@@ -4017,6 +4067,13 @@ def test_autofilter_rejects_non_officejs_clients():
     with pytest.raises(NotImplementedError, match="Office.js"):
         book.sheets[0].range("A1:C8").autofilter.clear()
     assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_autofilter_sync_criteria_points_at_async():
+    book = _officejs_book()
+    with pytest.raises(NotImplementedError, match=r"await autofilter\.get_criteria"):
+        book.sheets[0].range("A1:C8").autofilter.criteria
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

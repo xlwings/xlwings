@@ -1,4 +1,5 @@
 import unittest
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -70,20 +71,28 @@ class TestTable(unittest.TestCase):
         book = xw.Book()
         sheet = book.sheets[0]
         values = [
-            ["Region", "Amount", "Status"],
-            ["East", 5, "Open"],
-            ["West", 10, None],
-            ["North", 15, "Closed"],
-            ["East", 20, None],
+            ["Region", "Amount", "Status", "When"],
+            ["East", 5, "Open", datetime(2026, 1, 1)],
+            ["West", 10, None, datetime(2026, 2, 1)],
+            ["North", 15, "Closed", datetime(2026, 3, 1)],
+            ["East", 20, None, datetime(2026, 4, 1)],
         ]
         try:
-            target = sheet["A1:C5"]
+            target = sheet["A1:D5"]
             target.value = values
             formulas = target.formula
             table = sheet.tables.add(target)
             table.autofilter.apply_values(1, ["East", "West"])
             table.autofilter.apply_comparison(2, "greater_than_or_equal", 10)
             table.autofilter.apply_comparison(3, "not_equal_to", None)
+            table.autofilter.apply_comparison(4, "less_than", date(2026, 4, 1))
+            table.autofilter.apply_bottom_percent(2, 50)
+            criteria = table.autofilter.criteria
+            self.assertEqual(criteria[0].type, "values")
+            self.assertEqual(criteria[1].type, "bottom_percent")
+            self.assertIn(criteria[1].percent, (None, 50))
+            self.assertEqual(criteria[2].operator, "not_equal_to")
+            self.assertEqual(criteria[3].operator, "less_than")
             self.assertEqual(target.value, values)
             self.assertEqual(target.formula, formulas)
             table.autofilter.clear(2)
