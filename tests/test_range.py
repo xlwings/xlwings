@@ -108,9 +108,10 @@ class TestRangeInstantiation(TestBase):
         self.wb1.sheets[0].range("A1").value = []
 
 
-class TestRangeAttributes(TestBase):
+class TestRangeAutoFilter(unittest.TestCase):
     def test_autofilter_apply_and_clear(self):
-        sheet = self.wb1.sheets.add()
+        book = xw.Book()
+        sheet = book.sheets[0]
         values = [
             ["Region", "Amount", "Status"],
             ["East", 5, "Open"],
@@ -131,7 +132,10 @@ class TestRangeAttributes(TestBase):
             target.autofilter.clear()
             self.assertEqual(target.value, values)
         finally:
-            sheet.delete()
+            book.close()
+
+
+class TestRangeAttributes(TestBase):
 
     def test_iterator(self):
         self.wb1.sheets[0].range("A20").value = [[1.0, 2.0], [3.0, 4.0]]
