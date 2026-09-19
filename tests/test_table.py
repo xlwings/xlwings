@@ -66,6 +66,32 @@ class TestTable(unittest.TestCase):
         self.assertFalse(self.test_table.show_autofilter)
         self.test_table.show_autofilter = True
 
+    def test_autofilter_apply_and_clear(self):
+        book = xw.Book()
+        sheet = book.sheets[0]
+        values = [
+            ["Region", "Amount", "Status"],
+            ["East", 5, "Open"],
+            ["West", 10, None],
+            ["North", 15, "Closed"],
+            ["East", 20, None],
+        ]
+        try:
+            target = sheet["A1:C5"]
+            target.value = values
+            formulas = target.formula
+            table = sheet.tables.add(target)
+            table.autofilter.apply_values(1, ["East", "West"])
+            table.autofilter.apply_comparison(2, "greater_than_or_equal", 10)
+            table.autofilter.apply_comparison(3, "not_equal_to", None)
+            self.assertEqual(target.value, values)
+            self.assertEqual(target.formula, formulas)
+            table.autofilter.clear(2)
+            table.autofilter.clear()
+            self.assertEqual(target.value, values)
+        finally:
+            book.close()
+
     def test_show_headers(self):
         self.assertTrue(self.test_table.show_headers)
         self.test_table.show_headers = False

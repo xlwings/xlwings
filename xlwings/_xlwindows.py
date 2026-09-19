@@ -1307,6 +1307,10 @@ class Range(base_classes.Range):
         return self.xl
 
     @property
+    def autofilter(self):
+        return AutoFilter(self)
+
+    @property
     def sheet(self):
         return Sheet(xl=self.coords[0])
 
@@ -2758,6 +2762,85 @@ class Shapes(Collection):
     _wrap = Shape
 
 
+class AutoFilter(base_classes.AutoFilter):
+    _COMPARISON_PREFIXES = {
+        "equal_to": "=",
+        "not_equal_to": "<>",
+        "greater_than": ">",
+        "less_than": "<",
+        "greater_than_or_equal": ">=",
+        "less_than_or_equal": "<=",
+    }
+
+    def __init__(self, parent, is_table=False):
+        self.parent = parent
+        self.is_table = is_table
+
+    @staticmethod
+    def _escape(value):
+        return value.replace("~", "~~").replace("*", "~*").replace("?", "~?")
+
+    def _criteria(self, operator, value1, value2):
+        if value1 is None:
+            return ("=" if operator == "equal_to" else "<>"), None, None
+        value1 = self._escape(value1)
+        if operator == "between":
+            return (
+                f">={value1}",
+                constants.AutoFilterOperator.xlAnd,
+                f"<={self._escape(value2)}",
+            )
+        if operator == "not_between":
+            return (
+                f"<{value1}",
+                constants.AutoFilterOperator.xlOr,
+                f">{self._escape(value2)}",
+            )
+        return f"{self._COMPARISON_PREFIXES[operator]}{value1}", None, None
+
+    def _worksheet_filter_range(self):
+        sheet = self.parent.sheet.xl
+        if not sheet.AutoFilterMode:
+            return None
+        autofilter = sheet.AutoFilter
+        return autofilter.Range if autofilter is not None else None
+
+    def _ensure_target(self):
+        if self.is_table:
+            return
+        existing = self._worksheet_filter_range()
+        if existing is not None and existing.Address != self.parent.xl.Address:
+            raise ValueError(
+                "This worksheet already has an AutoFilter on a different range"
+            )
+
+    def apply_values(self, field, values):
+        self._ensure_target()
+        self.parent.xl.AutoFilter(
+            Field=field,
+            Criteria1=values,
+            Operator=constants.AutoFilterOperator.xlFilterValues,
+        )
+
+    def apply_comparison(self, field, operator, value1, value2):
+        self._ensure_target()
+        criteria1, native_operator, criteria2 = self._criteria(operator, value1, value2)
+        kwargs = {"Field": field, "Criteria1": criteria1}
+        if native_operator is not None:
+            kwargs["Operator"] = native_operator
+            kwargs["Criteria2"] = criteria2
+        self.parent.xl.AutoFilter(**kwargs)
+
+    def clear(self, field):
+        if not self.is_table:
+            existing = self._worksheet_filter_range()
+            if existing is None or existing.Address != self.parent.xl.Address:
+                return
+        fields = [field] if field is not None else range(1, self.parent.shape[1] + 1)
+        for field_index in fields:
+            self.parent.xl.AutoFilter(Field=field_index)
+
+
 class Table(base_classes.Table):
     def __init__(self, xl):
         self.xl = xl
@@ -2801,6 +2884,10 @@ class Table(base_classes.Table):
     @property
     def range(self):
         return Range(xl=self.xl.Range)
+
+    @property
+    def autofilter(self):
+        return AutoFilter(self.range, is_table=True)
 
     @property
     def show_autofilter(self):
