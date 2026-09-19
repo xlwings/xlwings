@@ -6701,7 +6701,10 @@ class DataValidation:
 
     @property
     def alert_style(self) -> DataValidationAlertStyle | None:
-        """The error-alert style: ``"stop"``, ``"warning"``, or ``"information"``."""
+        """The error-alert style.
+
+        One of `"stop"`, `"warning"`, or `"information"`.
+        """
         return self.impl.alert_style
 
     @staticmethod
