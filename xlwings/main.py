@@ -3381,7 +3381,7 @@ class AutoFilter:
 
     Fields are one-based column positions relative to the range or table. Value filters accept strings, finite numbers, and booleans. Comparison filters accept `"between"`, `"not_between"`, `"equal_to"`, `"not_equal_to"`, `"greater_than"`, `"less_than"`, `"greater_than_or_equal"`, and `"less_than_or_equal"`.
 
-    Range AutoFilters are supported on Windows and with Office.js clients such as xlwings Server and xlwings Lite. Excel's macOS automation API doesn't support filtering an ordinary range, so use a table there. Table AutoFilters are supported on all three engines.
+    Range and table AutoFilters are supported on Windows, macOS, and with Office.js clients such as xlwings Server and xlwings Lite.
 
     On Office.js clients, range AutoFilters require ExcelApi 1.14 and table AutoFilters require ExcelApi 1.2. Applying a range filter raises an error if the worksheet already has an AutoFilter on a different range. Clearing criteria leaves filter controls and sort state intact.
 

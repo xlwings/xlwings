@@ -109,10 +109,6 @@ class TestRangeInstantiation(TestBase):
 
 
 class TestRangeAttributes(TestBase):
-    @unittest.skipIf(
-        sys.platform == "darwin",
-        "Excel's macOS automation API doesn't support Range AutoFilter",
-    )
     def test_autofilter_apply_and_clear(self):
         sheet = self.wb1.sheets.add()
         values = [

@@ -1000,7 +1000,7 @@ class Range(base_classes.Range):
 
     @property
     def autofilter(self):
-        return AutoFilter(self, supported=False)
+        return AutoFilter(self)
 
     def __len__(self):
         return self.coords[2] * self.coords[3]
@@ -2535,16 +2535,9 @@ class AutoFilter(base_classes.AutoFilter):
         "less_than_or_equal": "<=",
     }
 
-    def __init__(self, parent, supported=True):
+    def __init__(self, parent, is_table=False):
         self.parent = parent
-        self.supported = supported
-
-    def _require_supported(self):
-        if not self.supported:
-            raise NotImplementedError(
-                "Range.autofilter operations aren't supported by Excel on macOS; "
-                "use Table.autofilter instead"
-            )
+        self.is_table = is_table
 
     @staticmethod
     def _escape(value):
@@ -2562,16 +2555,31 @@ class AutoFilter(base_classes.AutoFilter):
 
     @property
     def _range(self):
-        return self.parent.xl.range_object
+        return self.parent.xl.range_object if self.is_table else self.parent.xl
+
+    def _worksheet_filter_range(self):
+        sheet = self.parent.sheet.xl
+        if not sheet.autofilter_mode.get():
+            return None
+        return sheet.autofilter_object.range_object.get_address()
+
+    def _ensure_target(self):
+        if self.is_table:
+            return
+        existing = self._worksheet_filter_range()
+        if existing is not None and existing != self.parent.xl.get_address():
+            raise ValueError(
+                "This worksheet already has an AutoFilter on a different range"
+            )
 
     def apply_values(self, field, values):
-        self._require_supported()
+        self._ensure_target()
         self._range.autofilter_range(
             field=field, criteria1=values, operator=kw.filter_by_value
         )
 
     def apply_comparison(self, field, operator, value1, value2):
-        self._require_supported()
+        self._ensure_target()
         criteria1, native_operator, criteria2 = self._criteria(operator, value1, value2)
         kwargs = {"field": field, "criteria1": criteria1}
         if native_operator is not None:
@@ -2580,10 +2588,14 @@ class AutoFilter(base_classes.AutoFilter):
         self._range.autofilter_range(**kwargs)
 
     def clear(self, field):
-        self._require_supported()
-        fields = (
-            [field] if field is not None else range(1, self.parent.range.shape[1] + 1)
+        if not self.is_table:
+            existing = self._worksheet_filter_range()
+            if existing is None or existing != self.parent.xl.get_address():
+                return
+        column_count = (
+            self.parent.range.shape[1] if self.is_table else self.parent.shape[1]
         )
+        fields = [field] if field is not None else range(1, column_count + 1)
         for field_index in fields:
             self._range.autofilter_range(field=field_index)
 
@@ -2647,7 +2659,7 @@ class Table(base_classes.Table):
 
     @property
     def autofilter(self):
-        return AutoFilter(self)
+        return AutoFilter(self, is_table=True)
 
     @property
     def show_autofilter(self):
