@@ -74,6 +74,20 @@ DataValidationOperator = Literal[
 DATA_VALIDATION_OPERATORS: tuple[str, ...] = get_args(DataValidationOperator)
 DataValidationAlertStyle = Literal["stop", "warning", "information"]
 
+AutoFilterComparisonOperator = Literal[
+    "between",
+    "not_between",
+    "equal_to",
+    "not_equal_to",
+    "greater_than",
+    "less_than",
+    "greater_than_or_equal",
+    "less_than_or_equal",
+]
+AUTOFILTER_COMPARISON_OPERATORS: tuple[str, ...] = get_args(
+    AutoFilterComparisonOperator
+)
+
 # Conditional-format types supported by the first public rule model. Other
 # native rule types remain visible as `unknown` so callers can inspect and
 # delete them without the engines silently dropping them from the collection.
@@ -659,6 +673,10 @@ class Sheet:
 
 
 class Range:
+    @property
+    def autofilter(self):
+        raise NotImplementedError()
+
     def get_async_pipeline_overrides(self, options):
         raise NotImplementedError("get_value() is only supported in xlwings Lite")
 
@@ -1031,6 +1049,17 @@ class DataValidation:
         raise NotImplementedError()
 
     def delete(self):
+        raise NotImplementedError()
+
+
+class AutoFilter:
+    def apply_values(self, field, values):
+        raise NotImplementedError()
+
+    def apply_comparison(self, field, operator, value1, value2):
+        raise NotImplementedError()
+
+    def clear(self, field):
         raise NotImplementedError()
 
 
@@ -1645,6 +1674,10 @@ class Table:
 
     @property
     def range(self):
+        raise NotImplementedError()
+
+    @property
+    def autofilter(self):
         raise NotImplementedError()
 
     @property

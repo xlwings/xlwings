@@ -1496,6 +1496,10 @@ class Range(base_classes.Range):
         )
 
     @property
+    def autofilter(self):
+        return AutoFilter(self)
+
+    @property
     def api(self):
         return get_range_api(
             tuple(tuple(row) for row in self.sheet.api["values"]), self.arg1, self.arg2
@@ -2795,6 +2799,41 @@ class Names(base_classes.Names):
 engine = Engine()
 
 
+class AutoFilter(base_classes.AutoFilter):
+    def __init__(self, parent, table_index=None):
+        self.parent = parent
+        self.table_index = table_index
+
+    def _append(self, range_func, table_func, args):
+        self.parent._require_officejs("autofilter")
+        if self.table_index is None:
+            self.parent.append_json_action(func=range_func, args=args)
+        else:
+            self.parent.append_json_action(
+                func=table_func, args=[self.table_index, *args]
+            )
+
+    def apply_values(self, field, values):
+        self._append(
+            "applyAutoFilterRange",
+            "applyAutoFilterTable",
+            [field, {"type": "values", "values": values}],
+        )
+
+    def apply_comparison(self, field, operator, value1, value2):
+        spec = {
+            "type": "comparison",
+            "operator": operator,
+            "value1": value1,
+        }
+        if value2 is not None:
+            spec["value2"] = value2
+        self._append("applyAutoFilterRange", "applyAutoFilterTable", [field, spec])
+
+    def clear(self, field):
+        self._append("clearAutoFilterRange", "clearAutoFilterTable", [field])
+
+
 class Table(base_classes.Table):
     @property
     def show_autofilter(self):
@@ -2805,6 +2844,10 @@ class Table(base_classes.Table):
         self.append_json_action(
             func="showAutofilterTable", args=[self.index - 1, value]
         )
+
+    @property
+    def autofilter(self):
+        return AutoFilter(self.range, table_index=self.index - 1)
 
     def __init__(self, parent, key):
         self._parent = parent

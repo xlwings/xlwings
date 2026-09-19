@@ -998,6 +998,10 @@ class Range(base_classes.Range):
     def api(self):
         return self.xl
 
+    @property
+    def autofilter(self):
+        return AutoFilter(self, supported=False)
+
     def __len__(self):
         return self.coords[2] * self.coords[3]
 
@@ -2521,6 +2525,69 @@ class ConditionalFormats(Collection, base_classes.ConditionalFormats):
             ConditionalFormat(self.parent, 1).delete()
 
 
+class AutoFilter(base_classes.AutoFilter):
+    _COMPARISON_PREFIXES = {
+        "equal_to": "=",
+        "not_equal_to": "<>",
+        "greater_than": ">",
+        "less_than": "<",
+        "greater_than_or_equal": ">=",
+        "less_than_or_equal": "<=",
+    }
+
+    def __init__(self, parent, supported=True):
+        self.parent = parent
+        self.supported = supported
+
+    def _require_supported(self):
+        if not self.supported:
+            raise NotImplementedError(
+                "Range.autofilter operations aren't supported by Excel on macOS; "
+                "use Table.autofilter instead"
+            )
+
+    @staticmethod
+    def _escape(value):
+        return value.replace("~", "~~").replace("*", "~*").replace("?", "~?")
+
+    def _criteria(self, operator, value1, value2):
+        if value1 is None:
+            return ("=" if operator == "equal_to" else "<>"), None, None
+        value1 = self._escape(value1)
+        if operator == "between":
+            return f">={value1}", kw.autofilter_and, f"<={self._escape(value2)}"
+        if operator == "not_between":
+            return f"<{value1}", kw.autofilter_or, f">{self._escape(value2)}"
+        return f"{self._COMPARISON_PREFIXES[operator]}{value1}", None, None
+
+    @property
+    def _range(self):
+        return self.parent.xl.range_object
+
+    def apply_values(self, field, values):
+        self._require_supported()
+        self._range.autofilter_range(
+            field=field, criteria1=values, operator=kw.filter_by_value
+        )
+
+    def apply_comparison(self, field, operator, value1, value2):
+        self._require_supported()
+        criteria1, native_operator, criteria2 = self._criteria(operator, value1, value2)
+        kwargs = {"field": field, "criteria1": criteria1}
+        if native_operator is not None:
+            kwargs["operator"] = native_operator
+            kwargs["criteria2"] = criteria2
+        self._range.autofilter_range(**kwargs)
+
+    def clear(self, field):
+        self._require_supported()
+        fields = (
+            [field] if field is not None else range(1, self.parent.range.shape[1] + 1)
+        )
+        for field_index in fields:
+            self._range.autofilter_range(field=field_index)
+
+
 class Table(base_classes.Table):
     def __init__(self, parent, key):
         self._parent = parent
@@ -2577,6 +2644,10 @@ class Table(base_classes.Table):
     @property
     def range(self):
         return Range(self.parent, self.xl.range_object.get_address())
+
+    @property
+    def autofilter(self):
+        return AutoFilter(self)
 
     @property
     def show_autofilter(self):

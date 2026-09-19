@@ -201,6 +201,7 @@ else:
 # API
 from .main import (
     App,
+    AutoFilter,
     Book,
     BookAsync,
     Chart,
@@ -231,6 +232,7 @@ from .utils import xlserial_to_datetime as to_datetime
 
 __all__ = (
     "App",
+    "AutoFilter",
     "Book",
     "BookAsync",
     "Chart",

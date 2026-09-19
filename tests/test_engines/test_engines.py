@@ -3901,6 +3901,125 @@ def _officejs_book():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_autofilter_actions():
+    book = _officejs_book()
+    autofilter = book.sheets[0].range("A1:C8").autofilter
+    autofilter.apply_values(2, ["East", 3, True])
+    autofilter.apply_comparison(3, "between", 10, 20)
+    autofilter.apply_comparison(1, "equal_to", None)
+    autofilter.clear(2)
+    autofilter.clear()
+
+    actions = book.json()["actions"]
+    assert [(action["func"], action["args"]) for action in actions] == [
+        (
+            "applyAutoFilterRange",
+            [2, {"type": "values", "values": ["East", "3", "TRUE"]}],
+        ),
+        (
+            "applyAutoFilterRange",
+            [
+                3,
+                {
+                    "type": "comparison",
+                    "operator": "between",
+                    "value1": "10",
+                    "value2": "20",
+                },
+            ],
+        ),
+        (
+            "applyAutoFilterRange",
+            [
+                1,
+                {
+                    "type": "comparison",
+                    "operator": "equal_to",
+                    "value1": None,
+                },
+            ],
+        ),
+        ("clearAutoFilterRange", [2]),
+        ("clearAutoFilterRange", [None]),
+    ]
+    assert all(action["start_row"] == 0 for action in actions)
+    assert all(action["start_column"] == 0 for action in actions)
+    assert all(action["row_count"] == 8 for action in actions)
+    assert all(action["column_count"] == 3 for action in actions)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_autofilter_actions_include_table_and_range_targets():
+    book = _officejs_book()
+    autofilter = book.sheets[0].tables[0].autofilter
+    autofilter.apply_comparison(2, "not_equal_to", None)
+    autofilter.clear()
+
+    actions = book.json()["actions"]
+    assert [(action["func"], action["args"]) for action in actions] == [
+        (
+            "applyAutoFilterTable",
+            [
+                0,
+                2,
+                {
+                    "type": "comparison",
+                    "operator": "not_equal_to",
+                    "value1": None,
+                },
+            ],
+        ),
+        ("clearAutoFilterTable", [0, None]),
+    ]
+    assert all(action["start_row"] == 9 for action in actions)
+    assert all(action["start_column"] == 0 for action in actions)
+    assert all(action["row_count"] == 2 for action in actions)
+    assert all(action["column_count"] == 2 for action in actions)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "call,error",
+    [
+        (lambda af: af.apply_values(0, ["East"]), (ValueError, "between 1")),
+        (lambda af: af.apply_values(1, []), (ValueError, "must not be empty")),
+        (lambda af: af.apply_values(1, "East"), (TypeError, "sequence")),
+        (lambda af: af.apply_values(1, [float("nan")]), (ValueError, "finite")),
+        (
+            lambda af: af.apply_comparison(1, "between", 1),
+            (ValueError, "requires value1 and value2"),
+        ),
+        (
+            lambda af: af.apply_comparison(1, "equal_to", 1, 2),
+            (ValueError, "does not accept value2"),
+        ),
+        (
+            lambda af: af.apply_comparison(1, "greater_than", None),
+            (ValueError, "None is only supported"),
+        ),
+        (
+            lambda af: af.apply_comparison(1, "approximately", 1),
+            (ValueError, "operator must be one of"),
+        ),
+    ],
+)
+def test_autofilter_validation_does_not_queue_actions(call, error):
+    book = _officejs_book()
+    autofilter = book.sheets[0].range("A1:C8").autofilter
+    with pytest.raises(error[0], match=error[1]):
+        call(autofilter)
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_autofilter_rejects_non_officejs_clients():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    with pytest.raises(NotImplementedError, match="Office.js"):
+        book.sheets[0].range("A1:C8").autofilter.clear()
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 @pytest.mark.parametrize("value,expected", _HORIZONTAL_ALIGNMENTS)
 def test_horizontal_alignment_setter(value, expected):
     book = _officejs_book()
