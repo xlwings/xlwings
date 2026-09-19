@@ -6596,7 +6596,7 @@ class DataValidation:
     """Data validation for a range.
 
     Do not construct this class directly; access it through
-    {attr}`Range.data_validation`.
+    {attr}`Range.data_validation <xlwings.Range.data_validation>`.
 
     Comparison setters accept these operators: ``"between"``, ``"not_between"``,
     ``"equal_to"``, ``"not_equal_to"``, ``"greater_than"``, ``"less_than"``,
