@@ -6602,6 +6602,19 @@ class DataValidation:
     ``"equal_to"``, ``"not_equal_to"``, ``"greater_than"``, ``"less_than"``,
     ``"greater_than_or_equal"``, and ``"less_than_or_equal"``.
 
+    Examples:
+        Create a dropdown from literal values:
+
+        ```python
+        sheet["A1:A10"].data_validation.set_list(["Open", "Closed"])
+        ```
+
+        Require whole numbers between 1 and 10:
+
+        ```python
+        sheet["B1:B10"].data_validation.set_whole_number("between", 1, 10)
+        ```
+
     ```{versionadded} 0.37.5
     ```
     """
