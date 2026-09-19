@@ -2280,7 +2280,7 @@ class Range:
         """Returns the data validation object for the range.
 
         Use it to create, replace, or remove a validation rule. On xlwings Lite,
-        inspect the live rule with {meth}`Range.get_data_validation`.
+        use {meth}`Range.get_data_validation` instead.
 
         Examples:
             ```python
@@ -2820,12 +2820,13 @@ class Range:
         return Table(impl=impl) if impl else None
 
     async def get_data_validation(self) -> DataValidation:
-        """Fetch this range's data-validation rule on demand.
+        """Fetch this range's data-validation rule for the range.
 
-        The returned {class}`DataValidation` is a point-in-time snapshot. Its
-        {attr}`DataValidation.type` is ``"none"`` when the range has no validation,
+        Returns ``"none"`` when the range has no validation,
         ``"mixed_criteria"`` when only some cells have validation, and
-        ``"inconsistent"`` when cells have different rules. Requires xlwings Lite.
+        ``"inconsistent"`` when cells have different rules.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -6597,14 +6598,9 @@ class DataValidation:
     Do not construct this class directly; access it through
     {attr}`Range.data_validation`.
 
-    On remote engines, mutations require an Office.js client that supports
-    ExcelApi 1.8.
-
     Comparison setters accept these operators: ``"between"``, ``"not_between"``,
     ``"equal_to"``, ``"not_equal_to"``, ``"greater_than"``, ``"less_than"``,
-    ``"greater_than_or_equal"``, and ``"less_than_or_equal"``. Formula strings
-    are passed to Excel unchanged. Python date and time values are converted to
-    Excel serial formulas so their meaning doesn't depend on the user's locale.
+    ``"greater_than_or_equal"``, and ``"less_than_or_equal"``.
 
     ```{versionadded} 0.37.5
     ```
