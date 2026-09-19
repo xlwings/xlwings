@@ -6595,7 +6595,7 @@ class DataValidation:
     """Data validation for a range.
 
     Do not construct this class directly; access it through
-    {attr}`Range.data_validation`.
+    {attr}`Range.data_validation <xlwings.Range.data_validation>`.
 
     On remote engines, mutations require an Office.js client that supports
     ExcelApi 1.8.
