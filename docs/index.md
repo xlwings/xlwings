@@ -36,7 +36,7 @@ To run xlwings without having to install Python, you have two options:
 :::::
 
 :::::{grid-item-card} {octicon}`code-square;2em;sd-text-success` API Reference
-:link: api/index
+:link: api/top_level_functions
 :link-type: doc
 
 This is a description of all the classes, methods, properties and functions that xlwings offers to work with the Excel object model.
@@ -75,5 +75,50 @@ pro/release
 
 whatsnew
 license
-api/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: API Reference
+:hidden:
+
+api/top_level_functions
+api/udf_decorators
+api/app
+api/apps
+api/book
+api/book_async
+api/books
+api/border
+api/borders
+api/characters
+api/chart
+api/chart_legend
+api/charts
+api/conditional_format
+api/conditional_formats
+api/data_validation
+api/font
+api/name
+api/names
+api/note
+api/page_setup
+api/picture
+api/pictures
+api/pivot_field
+api/pivot_fields
+api/pivot_table
+api/pivot_tables
+api/pivot_value_field
+api/pivot_value_fields
+api/range
+api/range_columns
+api/range_rows
+api/reports
+api/shape
+api/shapes
+api/sheet
+api/sheets
+api/table
+api/tables
 ```

@@ -381,6 +381,12 @@ class Range(base_classes.Range):
             return 1, 1
 
     @property
+    def conditional_formats(self):
+        raise NotImplementedError(
+            "Range.conditional_formats isn't supported by the calamine engine."
+        )
+
+    @property
     def max_cells_per_read(self):
         # Preserve the file reader's whole-sheet used-range shortcut: sheet.cells
         # spans the full grid, so implicit slicing would request billions of cells

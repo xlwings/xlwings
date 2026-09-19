@@ -74,6 +74,67 @@ DataValidationOperator = Literal[
 DATA_VALIDATION_OPERATORS: tuple[str, ...] = get_args(DataValidationOperator)
 DataValidationAlertStyle = Literal["stop", "warning", "information"]
 
+# Conditional-format types supported by the first public rule model. Other
+# native rule types remain visible as `unknown` so callers can inspect and
+# delete them without the engines silently dropping them from the collection.
+ConditionalFormatType = Literal[
+    "cell_value",
+    "custom",
+    "color_scale",
+    "data_bar",
+    "icon_set",
+    "unknown",
+]
+CONDITIONAL_FORMAT_TYPES: tuple[str, ...] = get_args(ConditionalFormatType)
+ConditionalFormatOperator = Literal[
+    "between",
+    "not_between",
+    "equal_to",
+    "not_equal_to",
+    "greater_than",
+    "less_than",
+    "greater_than_or_equal",
+    "less_than_or_equal",
+]
+CONDITIONAL_FORMAT_OPERATORS: tuple[str, ...] = get_args(ConditionalFormatOperator)
+ConditionalFormatThresholdType = Literal["number", "percent", "percentile"]
+CONDITIONAL_FORMAT_THRESHOLD_TYPES: tuple[str, ...] = get_args(
+    ConditionalFormatThresholdType
+)
+ConditionalFormatCriterionType = Literal[
+    "automatic",
+    "lowest_value",
+    "highest_value",
+    "number",
+    "percent",
+    "percentile",
+    "formula",
+    "unknown",
+]
+ConditionalFormatIconSet = Literal[
+    "3_arrows",
+    "3_arrows_gray",
+    "3_flags",
+    "3_traffic_lights_1",
+    "3_traffic_lights_2",
+    "3_signs",
+    "3_symbols",
+    "3_symbols_2",
+    "4_arrows",
+    "4_arrows_gray",
+    "4_red_to_black",
+    "4_rating",
+    "4_traffic_lights",
+    "5_arrows",
+    "5_arrows_gray",
+    "5_rating",
+    "5_quarters",
+    "3_stars",
+    "3_triangles",
+    "5_boxes",
+]
+CONDITIONAL_FORMAT_ICON_SETS: tuple[str, ...] = get_args(ConditionalFormatIconSet)
+
 # Border side names in canonical order. main.Borders validates and expands the
 # user-facing selectors into these before calling an engine, so engines only
 # ever see the canonical names. The first six are the grid sides that the
@@ -672,6 +733,11 @@ class Range:
     async def get_color(self):
         raise NotImplementedError("Range.get_color() is only supported in xlwings Lite")
 
+    async def get_conditional_formats(self):
+        raise NotImplementedError(
+            "get_conditional_formats() is only supported in xlwings Lite"
+        )
+
     def adjust_indent(self, amount):
         raise NotImplementedError()
 
@@ -862,6 +928,10 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    @property
+    def conditional_formats(self):
         raise NotImplementedError()
 
     @property
@@ -1428,6 +1498,110 @@ class Note:
         raise NotImplementedError("Note.get_text() is only supported in xlwings Lite")
 
     def delete(self):
+        raise NotImplementedError()
+
+
+class ConditionalFormat:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def type(self):
+        raise NotImplementedError()
+
+    @property
+    def stop_if_true(self):
+        raise NotImplementedError()
+
+    @property
+    def operator(self):
+        raise NotImplementedError()
+
+    @property
+    def formula1(self):
+        raise NotImplementedError()
+
+    @property
+    def formula2(self):
+        raise NotImplementedError()
+
+    @property
+    def formula(self):
+        raise NotImplementedError()
+
+    @property
+    def fill_color(self):
+        raise NotImplementedError()
+
+    @property
+    def font_color(self):
+        raise NotImplementedError()
+
+    @property
+    def font_bold(self):
+        raise NotImplementedError()
+
+    @property
+    def font_italic(self):
+        raise NotImplementedError()
+
+    @property
+    def colors(self):
+        raise NotImplementedError()
+
+    @property
+    def bar_color(self):
+        raise NotImplementedError()
+
+    @property
+    def gradient(self):
+        raise NotImplementedError()
+
+    @property
+    def show_value(self):
+        raise NotImplementedError()
+
+    @property
+    def icon_set(self):
+        raise NotImplementedError()
+
+    @property
+    def reverse_order(self):
+        raise NotImplementedError()
+
+    @property
+    def threshold_types(self):
+        raise NotImplementedError()
+
+    @property
+    def thresholds(self):
+        raise NotImplementedError()
+
+    def set(self, changes):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class ConditionalFormats(Collection):
+    def add_cell_value(self, spec):
+        raise NotImplementedError()
+
+    def add_custom(self, spec):
+        raise NotImplementedError()
+
+    def add_color_scale(self, spec):
+        raise NotImplementedError()
+
+    def add_data_bar(self, spec):
+        raise NotImplementedError()
+
+    def add_icon_set(self, spec):
+        raise NotImplementedError()
+
+    def clear(self):
         raise NotImplementedError()
 
 

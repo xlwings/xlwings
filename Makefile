@@ -11,4 +11,4 @@ lint:
 .PHONY: docs
 docs:
 	uv sync --group all
-	uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
+	uv run sphinx-autobuild docs docs/_build/html --port 9000 -E --watch xlwings

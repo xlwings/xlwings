@@ -46,6 +46,10 @@ from .base_classes import (
     CHART_LEGEND_POSITIONS,
     CHART_PLOT_BY,
     CHART_TYPES,
+    CONDITIONAL_FORMAT_ICON_SETS,
+    CONDITIONAL_FORMAT_OPERATORS,
+    CONDITIONAL_FORMAT_THRESHOLD_TYPES,
+    CONDITIONAL_FORMAT_TYPES,
     DATA_VALIDATION_OPERATORS,
     DATA_VALIDATION_TYPES,
     HORIZONTAL_ALIGNMENTS,
@@ -58,6 +62,11 @@ from .base_classes import (
     BorderWeight,
     ChartLegendPosition,
     ChartPlotBy,
+    ConditionalFormatCriterionType,
+    ConditionalFormatIconSet,
+    ConditionalFormatOperator,
+    ConditionalFormatThresholdType,
+    ConditionalFormatType,
     DataValidationAlertStyle,
     DataValidationOperator,
     DataValidationType,
@@ -2271,7 +2280,7 @@ class Range:
         """Returns the data validation object for the range.
 
         Use it to create, replace, or remove a validation rule. On xlwings Lite,
-        inspect the live rule with :meth:`Range.get_data_validation`.
+        inspect the live rule with {meth}`Range.get_data_validation`.
 
         Examples:
             ```python
@@ -2287,6 +2296,19 @@ class Range:
         ```
         """
         return DataValidation(impl=self.impl.data_validation, parent=self)
+
+    @property
+    def conditional_formats(self) -> ConditionalFormats:
+        """Returns the conditional-format rules for this range.
+
+        In xlwings Lite, use
+        `await sheet["A1:D10"].get_conditional_formats()` for inspection;
+        `sheet["A1:D10"].conditional_formats.clear()` remains available.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ConditionalFormats(impl=self.impl.conditional_formats)
 
     @property
     def characters(self) -> Characters:
@@ -2652,6 +2674,17 @@ class Range:
         """
         return await self._impl.get_color()
 
+    async def get_conditional_formats(self) -> ConditionalFormats:
+        """Fetch the ordered conditional-format rules on demand.
+
+        Rules are returned from highest to lowest evaluation priority. Requires
+        xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ConditionalFormats(impl=await self._impl.get_conditional_formats())
+
     async def get_wrap_text(self) -> bool | None:
         """Fetch the wrap text setting on demand.
 
@@ -2789,8 +2822,8 @@ class Range:
     async def get_data_validation(self) -> DataValidation:
         """Fetch this range's data-validation rule on demand.
 
-        The returned :class:`DataValidation` is a point-in-time snapshot. Its
-        :attr:`DataValidation.type` is ``"none"`` when the range has no validation,
+        The returned {class}`DataValidation` is a point-in-time snapshot. Its
+        {attr}`DataValidation.type` is ``"none"`` when the range has no validation,
         ``"mixed_criteria"`` when only some cells have validation, and
         ``"inconsistent"`` when cells have different rules. Requires xlwings Lite.
 
@@ -3758,6 +3791,623 @@ class PageSetup:
     @print_area.setter
     def print_area(self, value: str | None) -> None:
         self.impl.print_area = value
+
+
+def _conditional_format_operator(value: Any) -> ConditionalFormatOperator:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_OPERATORS:
+        return cast(ConditionalFormatOperator, value)
+    raise ValueError(
+        f"Invalid conditional-format operator {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_OPERATORS)}."
+    )
+
+
+def _conditional_format_value(value: Any, name: str) -> str:
+    if isinstance(value, str):
+        if value:
+            return value
+    elif (
+        isinstance(value, numbers.Real)
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+    ):
+        return str(value)
+    raise ValueError(f"{name} must be a non-empty string or a finite number.")
+
+
+def _conditional_format_formula(value: Any) -> str:
+    if isinstance(value, str) and value.startswith("=") and len(value) > 1:
+        return value
+    raise ValueError("formula must be a non-empty A1 formula starting with '='.")
+
+
+def _conditional_format_bool(value: Any, name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    raise TypeError(f"{name} must be a boolean.")
+
+
+def _conditional_format_threshold_type(value: Any) -> ConditionalFormatThresholdType:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_THRESHOLD_TYPES:
+        return cast(ConditionalFormatThresholdType, value)
+    raise ValueError(
+        f"Invalid conditional-format threshold type {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_THRESHOLD_TYPES)}."
+    )
+
+
+def _conditional_format_threshold(
+    value: Any, threshold_type: str, name: str
+) -> int | float:
+    if (
+        not isinstance(value, numbers.Real)
+        or isinstance(value, bool)
+        or not math.isfinite(value)
+    ):
+        raise ValueError(f"{name} must be a finite number.")
+    if threshold_type in {"percent", "percentile"} and not 0 <= value <= 100:
+        raise ValueError(f"{name} must be between 0 and 100 for {threshold_type!r}.")
+    return value
+
+
+def _conditional_format_thresholds(
+    values: Any,
+    *,
+    count: int,
+    threshold_type: ConditionalFormatThresholdType,
+    name: str = "thresholds",
+) -> tuple[int | float, ...]:
+    if isinstance(values, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of numbers.")
+    try:
+        result = tuple(values)
+    except TypeError:
+        raise TypeError(f"{name} must be a sequence of numbers.") from None
+    if len(result) != count:
+        raise ValueError(f"{name} must contain exactly {count} values.")
+    result = tuple(
+        _conditional_format_threshold(value, threshold_type, f"{name}[{index}]")
+        for index, value in enumerate(result)
+    )
+    if any(left >= right for left, right in zip(result, result[1:])):
+        raise ValueError(f"{name} must be strictly increasing.")
+    return result
+
+
+def _conditional_format_colors(values: Any) -> tuple[tuple[int, int, int], ...]:
+    if isinstance(values, (str, bytes)):
+        raise TypeError("colors must be a sequence containing two or three colors.")
+    try:
+        values = tuple(values)
+    except TypeError:
+        raise TypeError(
+            "colors must be a sequence containing two or three colors."
+        ) from None
+    if len(values) not in {2, 3}:
+        raise ValueError("colors must contain exactly two or three colors.")
+    return tuple(_border_color(value) for value in values)
+
+
+def _conditional_format_icon_set(value: Any) -> ConditionalFormatIconSet:
+    if isinstance(value, str) and value in CONDITIONAL_FORMAT_ICON_SETS:
+        return cast(ConditionalFormatIconSet, value)
+    raise ValueError(
+        f"Invalid conditional-format icon set {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CONDITIONAL_FORMAT_ICON_SETS)}."
+    )
+
+
+def _validate_cell_value_rule(operator: Any, formula1: Any, formula2: Any) -> None:
+    if operator is None or formula1 is None:
+        raise ValueError("Cell-value rules require operator and formula1.")
+    wants_formula2 = operator in {"between", "not_between"}
+    if wants_formula2 and formula2 is None:
+        raise ValueError(f"formula2 is required for operator {operator!r}.")
+    if not wants_formula2 and formula2 is not None:
+        raise ValueError("formula2 is only valid for between/not_between rules.")
+
+
+def _add_conditional_format_changes(
+    changes: dict[str, Any],
+    *,
+    fill_color: Any,
+    font_color: Any,
+    font_bold: Any,
+    font_italic: Any,
+    stop_if_true: Any,
+) -> None:
+    if fill_color is not _UNSET:
+        changes["fill_color"] = _border_color(fill_color)
+    if font_color is not _UNSET:
+        changes["font_color"] = _border_color(font_color)
+    if font_bold is not _UNSET:
+        changes["font_bold"] = _conditional_format_bool(font_bold, "font_bold")
+    if font_italic is not _UNSET:
+        changes["font_italic"] = _conditional_format_bool(font_italic, "font_italic")
+    if stop_if_true is not _UNSET:
+        changes["stop_if_true"] = _conditional_format_bool(stop_if_true, "stop_if_true")
+
+
+def _add_conditional_format_creation_style(
+    spec: dict[str, Any],
+    *,
+    fill_color: Any,
+    font_color: Any,
+    font_bold: Any,
+    font_italic: Any,
+) -> None:
+    values = {
+        "fill_color": fill_color,
+        "font_color": font_color,
+        "font_bold": font_bold,
+        "font_italic": font_italic,
+    }
+    for name, value in values.items():
+        if value is None:
+            continue
+        if name.endswith("_color"):
+            spec[name] = _border_color(value)
+        else:
+            spec[name] = _conditional_format_bool(value, name)
+
+
+class ConditionalFormat:
+    """Represents one conditional-format rule that applies to a range.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def type(self) -> ConditionalFormatType:
+        """The normalized rule type.
+
+        Rule types outside the initially supported cell-value, custom-formula,
+        color-scale, data-bar and icon-set families are reported as
+        `"unknown"` rather than omitted.
+        """
+        rule_type = self.impl.type
+        if rule_type not in CONDITIONAL_FORMAT_TYPES:
+            return "unknown"
+        return cast(ConditionalFormatType, rule_type)
+
+    @property
+    def stop_if_true(self) -> bool | None:
+        """Whether lower-priority rules stop when this rule matches.
+
+        `None` is returned for color scales, data bars and icon sets, which
+        don't have stop-if-true behavior.
+        """
+        return self.impl.stop_if_true
+
+    @property
+    def operator(self) -> ConditionalFormatOperator | None:
+        """The comparison operator for a cell-value rule, otherwise `None`."""
+        return self.impl.operator
+
+    @property
+    def formula1(self) -> str | None:
+        """The first operand for a cell-value rule, otherwise `None`."""
+        return self.impl.formula1
+
+    @property
+    def formula2(self) -> str | None:
+        """The second operand for a between/not-between rule, otherwise `None`."""
+        return self.impl.formula2
+
+    @property
+    def formula(self) -> str | None:
+        """The formula for a custom-formula rule, otherwise `None`."""
+        return self.impl.formula
+
+    @property
+    def fill_color(self) -> tuple[int, int, int] | None:
+        """The rule's fill color as an RGB tuple, or `None` if unset."""
+        return self.impl.fill_color
+
+    @property
+    def font_color(self) -> tuple[int, int, int] | None:
+        """The rule's font color as an RGB tuple, or `None` if unset."""
+        return self.impl.font_color
+
+    @property
+    def font_bold(self) -> bool | None:
+        """The rule's bold setting, or `None` if it doesn't set bold."""
+        return self.impl.font_bold
+
+    @property
+    def font_italic(self) -> bool | None:
+        """The rule's italic setting, or `None` if it doesn't set italic."""
+        return self.impl.font_italic
+
+    @property
+    def colors(self) -> tuple[tuple[int, int, int], ...] | None:
+        """The ordered colors of a color-scale rule, otherwise `None`.
+
+        Colors run from the minimum criterion to the maximum criterion.
+        """
+        return self.impl.colors
+
+    @property
+    def bar_color(self) -> tuple[int, int, int] | None:
+        """The positive fill color of a data-bar rule, otherwise `None`."""
+        return self.impl.bar_color
+
+    @property
+    def gradient(self) -> bool | None:
+        """Whether a data bar uses a gradient fill, otherwise `None`."""
+        return self.impl.gradient
+
+    @property
+    def show_value(self) -> bool | None:
+        """Whether cell values remain visible for a data bar or icon set."""
+        return self.impl.show_value
+
+    @property
+    def icon_set(self) -> ConditionalFormatIconSet | None:
+        """The built-in style of an icon-set rule, otherwise `None`."""
+        return self.impl.icon_set
+
+    @property
+    def reverse_order(self) -> bool | None:
+        """Whether an icon set's icon order is reversed, otherwise `None`."""
+        return self.impl.reverse_order
+
+    @property
+    def threshold_types(self) -> tuple[ConditionalFormatCriterionType, ...] | None:
+        """The ordered criterion types for a visual rule, otherwise `None`.
+
+        Color scales include all criteria, data bars include the lower and
+        upper bounds, and icon sets include only the effective thresholds
+        between icons.
+        """
+        return self.impl.threshold_types
+
+    @property
+    def thresholds(self) -> tuple[int | float | str | None, ...] | None:
+        """The values corresponding to
+        {attr}`threshold_types <xlwings.ConditionalFormat.threshold_types>`.
+
+        Criteria such as `"automatic"`, `"lowest_value"` and
+        `"highest_value"` have a value of `None`.
+        """
+        return self.impl.thresholds
+
+    def set(
+        self,
+        *,
+        operator: ConditionalFormatOperator = _UNSET,
+        formula1: str | int | float = _UNSET,
+        formula2: str | int | float | None = _UNSET,
+        formula: str = _UNSET,
+        fill_color: tuple[int, int, int] | str | int = _UNSET,
+        font_color: tuple[int, int, int] | str | int = _UNSET,
+        font_bold: bool = _UNSET,
+        font_italic: bool = _UNSET,
+        stop_if_true: bool = _UNSET,
+    ) -> None:
+        """Change selected attributes of this rule in place.
+
+        Omitted attributes remain unchanged. Cell-value rules accept
+        `operator`, `formula1` and `formula2`; custom-formula rules accept
+        `formula`. Formatting and `stop_if_true` apply to either family.
+        Other rule types can't be edited by this initial API.
+
+        Examples:
+            ```python
+            formats = await sheet["B2:B12"].get_conditional_formats()
+            formats[0].set(formula1=70, stop_if_true=True)
+            ```
+        """
+        changes: dict[str, Any] = {}
+        rule_type = self.type
+        if rule_type not in {"cell_value", "custom"}:
+            raise NotImplementedError(
+                f"Editing {rule_type!r} conditional-format rules isn't supported."
+            )
+        if rule_type == "cell_value":
+            if formula is not _UNSET:
+                raise ValueError("formula is only valid for custom-formula rules.")
+            if operator is not _UNSET:
+                changes["operator"] = _conditional_format_operator(operator)
+            if formula1 is not _UNSET:
+                changes["formula1"] = _conditional_format_value(formula1, "formula1")
+            if formula2 is not _UNSET:
+                changes["formula2"] = (
+                    None
+                    if formula2 is None
+                    else _conditional_format_value(formula2, "formula2")
+                )
+            effective_operator = changes.get("operator", self.operator)
+            effective_formula1 = changes.get("formula1", self.formula1)
+            effective_formula2 = changes.get("formula2", self.formula2)
+            if (
+                operator is not _UNSET
+                and formula2 is _UNSET
+                and effective_operator not in {"between", "not_between"}
+            ):
+                effective_formula2 = None
+            _validate_cell_value_rule(
+                effective_operator, effective_formula1, effective_formula2
+            )
+            if effective_operator not in {"between", "not_between"} and (
+                operator is not _UNSET or formula2 is not _UNSET
+            ):
+                changes["formula2"] = None
+        else:
+            if any(value is not _UNSET for value in (operator, formula1, formula2)):
+                raise ValueError(
+                    "operator, formula1 and formula2 are only valid for cell-value rules."
+                )
+            if formula is not _UNSET:
+                changes["formula"] = _conditional_format_formula(formula)
+        _add_conditional_format_changes(
+            changes,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+            stop_if_true=stop_if_true,
+        )
+        if changes:
+            self.impl.set(changes)
+
+    def delete(self) -> None:
+        """Delete this complete rule from all ranges to which it applies."""
+        self.impl.delete()
+
+    def __repr__(self) -> str:
+        return f"<ConditionalFormat type={self.type!r}>"
+
+
+class ConditionalFormats(Collection[ConditionalFormat]):
+    """An ordered collection of conditional-format rules for a range.
+
+    New rules are inserted at the top of Excel's conditional-formatting rule
+    order. Rules are evaluated from highest to lowest priority. If a matching
+    rule has `stop_if_true=True`, Excel skips lower-priority rules.
+
+    In xlwings Lite, use
+    `await sheet["A1:D10"].get_conditional_formats()` instead of
+    `sheet["A1:D10"].conditional_formats`.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    _wrap = ConditionalFormat
+
+    def add_cell_value(
+        self,
+        operator: ConditionalFormatOperator,
+        formula1: str | int | float,
+        formula2: str | int | float | None = None,
+        *,
+        fill_color: tuple[int, int, int] | str | int | None = None,
+        font_color: tuple[int, int, int] | str | int | None = None,
+        font_bold: bool | None = None,
+        font_italic: bool | None = None,
+        stop_if_true: bool = False,
+    ) -> ConditionalFormat:
+        """Add a cell-value rule.
+
+        `formula2` is required for `"between"` and `"not_between"` and
+        rejected for the other operators. Colors accept the same RGB tuple,
+        hex string, or Excel color integer forms as other xlwings color APIs.
+
+        Examples:
+            ```python
+            sheet["B2:B12"].conditional_formats.add_cell_value(
+                "less_than", 60, fill_color="#ffff00", font_italic=True
+            )
+            ```
+        """
+        operator = _conditional_format_operator(operator)
+        formula1 = _conditional_format_value(formula1, "formula1")
+        formula2 = (
+            None
+            if formula2 is None
+            else _conditional_format_value(formula2, "formula2")
+        )
+        _validate_cell_value_rule(operator, formula1, formula2)
+        spec: dict[str, Any] = {
+            "operator": operator,
+            "formula1": formula1,
+            "formula2": formula2,
+            "stop_if_true": _conditional_format_bool(stop_if_true, "stop_if_true"),
+        }
+        _add_conditional_format_creation_style(
+            spec,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+        )
+        return ConditionalFormat(impl=self.impl.add_cell_value(spec))
+
+    def add_custom(
+        self,
+        formula: str,
+        *,
+        fill_color: tuple[int, int, int] | str | int | None = None,
+        font_color: tuple[int, int, int] | str | int | None = None,
+        font_bold: bool | None = None,
+        font_italic: bool | None = None,
+        stop_if_true: bool = False,
+    ) -> ConditionalFormat:
+        """Add a custom-formula rule.
+
+        Examples:
+            ```python
+            sheet["A2:D20"].conditional_formats.add_custom(
+                '=$D2="Late"', fill_color="#ffc7ce"
+            )
+            ```
+        """
+        spec: dict[str, Any] = {
+            "formula": _conditional_format_formula(formula),
+            "stop_if_true": _conditional_format_bool(stop_if_true, "stop_if_true"),
+        }
+        _add_conditional_format_creation_style(
+            spec,
+            fill_color=fill_color,
+            font_color=font_color,
+            font_bold=font_bold,
+            font_italic=font_italic,
+        )
+        return ConditionalFormat(impl=self.impl.add_custom(spec))
+
+    def add_color_scale(
+        self,
+        colors: Sequence[tuple[int, int, int] | str | int],
+        *,
+        thresholds: Sequence[int | float] | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+    ) -> ConditionalFormat:
+        """Add a two- or three-color scale.
+
+        `colors` contains two or three colors ordered from the minimum to
+        the maximum. Without `thresholds`, a two-color scale uses the lowest
+        and highest values, while a three-color scale adds the 50th percentile
+        as its midpoint. Custom thresholds must match the number of colors and
+        be strictly increasing. `threshold_type` can be `"number"`,
+        `"percent"` or `"percentile"`.
+
+        Examples:
+            ```python
+            sheet["B2:B20"].conditional_formats.add_color_scale(
+                ["#f8696b", "#ffeb84", "#63be7b"],
+                thresholds=[0, 50, 100],
+                threshold_type="number",
+            )
+            ```
+        """
+        colors = _conditional_format_colors(colors)
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        if thresholds is None:
+            if len(colors) == 2:
+                threshold_types = ("lowest_value", "highest_value")
+                threshold_values = (None, None)
+            else:
+                threshold_types = ("lowest_value", "percentile", "highest_value")
+                threshold_values = (None, 50, None)
+        else:
+            threshold_values = _conditional_format_thresholds(
+                thresholds,
+                count=len(colors),
+                threshold_type=threshold_type,
+            )
+            threshold_types = (threshold_type,) * len(colors)
+        spec = {
+            "colors": colors,
+            "threshold_types": threshold_types,
+            "thresholds": threshold_values,
+        }
+        return ConditionalFormat(impl=self.impl.add_color_scale(spec))
+
+    def add_data_bar(
+        self,
+        color: tuple[int, int, int] | str | int,
+        *,
+        minimum: int | float | None = None,
+        maximum: int | float | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+        gradient: bool = True,
+        show_value: bool = True,
+    ) -> ConditionalFormat:
+        """Add a data bar.
+
+        Omitted bounds are automatic. Supplied bounds use `threshold_type`,
+        which can be `"number"`, `"percent"` or `"percentile"`.
+        """
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        minimum = (
+            None
+            if minimum is None
+            else _conditional_format_threshold(minimum, threshold_type, "minimum")
+        )
+        maximum = (
+            None
+            if maximum is None
+            else _conditional_format_threshold(maximum, threshold_type, "maximum")
+        )
+        if minimum is not None and maximum is not None and minimum >= maximum:
+            raise ValueError("minimum must be less than maximum.")
+        spec = {
+            "bar_color": _border_color(color),
+            "gradient": _conditional_format_bool(gradient, "gradient"),
+            "show_value": _conditional_format_bool(show_value, "show_value"),
+            "threshold_types": (
+                threshold_type if minimum is not None else "automatic",
+                threshold_type if maximum is not None else "automatic",
+            ),
+            "thresholds": (minimum, maximum),
+        }
+        return ConditionalFormat(impl=self.impl.add_data_bar(spec))
+
+    def add_icon_set(
+        self,
+        icon_set: ConditionalFormatIconSet,
+        *,
+        thresholds: Sequence[int | float] | None = None,
+        threshold_type: ConditionalFormatThresholdType = "number",
+        show_value: bool = True,
+        reverse_order: bool = False,
+    ) -> ConditionalFormat:
+        """Add a built-in icon set.
+
+        Custom thresholds contain one fewer value than the number of icons and
+        must be strictly increasing. Without them, the icons use equal percent
+        bands (for example, 33 and 67 for a three-icon set).
+
+        Valid styles are `"3_arrows"`, `"3_arrows_gray"`, `"3_flags"`,
+        `"3_traffic_lights_1"`, `"3_traffic_lights_2"`, `"3_signs"`,
+        `"3_symbols"`, `"3_symbols_2"`, `"4_arrows"`,
+        `"4_arrows_gray"`, `"4_red_to_black"`, `"4_rating"`,
+        `"4_traffic_lights"`, `"5_arrows"`, `"5_arrows_gray"`,
+        `"5_rating"`, `"5_quarters"`, `"3_stars"`,
+        `"3_triangles"` and `"5_boxes"`.
+
+        Examples:
+            ```python
+            sheet["C2:C20"].conditional_formats.add_icon_set(
+                "3_traffic_lights_1", thresholds=[60, 80]
+            )
+            ```
+        """
+        icon_set = _conditional_format_icon_set(icon_set)
+        threshold_type = _conditional_format_threshold_type(threshold_type)
+        count = int(icon_set[0])
+        if thresholds is None:
+            threshold_values = tuple(
+                round(index * 100 / count) for index in range(1, count)
+            )
+            threshold_types = ("percent",) * (count - 1)
+        else:
+            threshold_values = _conditional_format_thresholds(
+                thresholds,
+                count=count - 1,
+                threshold_type=threshold_type,
+            )
+            threshold_types = (threshold_type,) * (count - 1)
+        spec = {
+            "icon_set": icon_set,
+            "show_value": _conditional_format_bool(show_value, "show_value"),
+            "reverse_order": _conditional_format_bool(reverse_order, "reverse_order"),
+            "threshold_types": threshold_types,
+            "thresholds": threshold_values,
+        }
+        return ConditionalFormat(impl=self.impl.add_icon_set(spec))
+
+    def clear(self) -> None:
+        """Clear all conditional formats active on the represented range.
+
+        Rules that also apply outside the range remain active there.
+        """
+        self.impl.clear()
 
 
 class Note:
@@ -5945,7 +6595,7 @@ class DataValidation:
     """Data validation for a range.
 
     Do not construct this class directly; access it through
-    :attr:`Range.data_validation`.
+    {attr}`Range.data_validation`.
 
     On remote engines, mutations require an Office.js client that supports
     ExcelApi 1.8.
