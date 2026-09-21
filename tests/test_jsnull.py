@@ -137,6 +137,15 @@ def test_normalize_skips_values_key(fake_pyodide):
     assert result["values"][0][1] is jsnull
 
 
+def test_normalize_values_key_when_requested(fake_pyodide):
+    values = fake_pyodide
+    result = _xlremote._normalize_jsnull(
+        {"type": "comparison", "values": values}, normalize_values=True
+    )
+
+    assert result == {"type": "comparison", "values": None}
+
+
 def test_normalize_noop_without_pyodide():
     """With no ``pyodide`` importable, the input is returned unchanged."""
     sentinel = object()

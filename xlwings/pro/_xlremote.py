@@ -303,7 +303,7 @@ def _sheet_values_loaded(sheet_api):
     return sheet_api.get(_SHEET_VALUES_LOADED_KEY, False)
 
 
-def _normalize_jsnull(obj):
+def _normalize_jsnull(obj, *, normalize_values=False):
     """Recursively replace Pyodide's `JsNull` sentinel with Python `None`.
 
     Pyodide >= 0.28 converts JS `null` to `pyodide.ffi.jsnull` instead of
@@ -314,11 +314,14 @@ def _normalize_jsnull(obj):
     `None` at the JS boundary so downstream code stays Pyodide-version
     agnostic.
 
-    The `values` arrays (cell data) are skipped here for two reasons. First,
+    The `values` arrays (cell data) are skipped by default for two reasons. First,
     *book* data (`getBookData()`) represents empty cells as `""`, not
     `null`, so a book's `values` cannot contain `JsNull`. Second, walking
     them would mean an extra full pass over every cell of an eagerly-loaded book
     (e.g. `xw.Book(json=...)` in xlwings Lite's notebook runner).
+
+    Callers whose `values` fields are metadata rather than cell matrices can set
+    `normalize_values=True`.
 
     Note this is *not* true for custom function *arguments*: Excel's custom
     functions runtime sends empty cells in a range argument as JS `null` ->
@@ -334,7 +337,10 @@ def _normalize_jsnull(obj):
         if isinstance(o, JsNull):
             return None
         if isinstance(o, dict):
-            return {k: v if k == "values" else walk(v) for k, v in o.items()}
+            return {
+                k: v if k == "values" and not normalize_values else walk(v)
+                for k, v in o.items()
+            }
         if isinstance(o, list):
             return [walk(v) for v in o]
         return o
@@ -2832,7 +2838,7 @@ class AutoFilter(base_classes.AutoFilter):
             self.parent.address,
             self.table_index,
         )
-        return _normalize_jsnull(data_js.to_py())
+        return _normalize_jsnull(data_js.to_py(), normalize_values=True)
 
     def apply_values(self, field, values):
         self._append(
