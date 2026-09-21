@@ -3449,25 +3449,33 @@ class AutoFilter:
 
     Do not construct this class directly; access it through {attr}`Range.autofilter <xlwings.Range.autofilter>` or {attr}`Table.autofilter <xlwings.main.Table.autofilter>`.
 
-    Fields are one-based column positions relative to the range or table. Value filters accept strings, finite numbers, and booleans. Comparison filters additionally accept Python dates and timezone-naive datetimes. Comparison operators are `"between"`, `"not_between"`, `"equal_to"`, `"not_equal_to"`, `"greater_than"`, `"less_than"`, `"greater_than_or_equal"`, and `"less_than_or_equal"`.
-
-    Range and table AutoFilters are supported on Windows, macOS, and with Office.js clients such as xlwings Server and xlwings Lite.
-
-    On Office.js clients, range AutoFilters require ExcelApi 1.14 and table AutoFilters require ExcelApi 1.2. Applying a range filter raises an error if the worksheet already has an AutoFilter on a different range. Clearing criteria leaves filter controls and sort state intact.
+    Fields are one-based column positions relative to the range or table. Value filters accept strings, finite numbers, and booleans. Comparison filters additionally accept Python dates and timezone-naive datetimes. Date and datetime values are not supported by `apply_values()`; to filter for a single exact date or datetime, use `apply_comparison()` with `"equal_to"`. Comparison operators are `"between"`, `"not_between"`, `"equal_to"`, `"not_equal_to"`, `"greater_than"`, `"less_than"`, `"greater_than_or_equal"`, and `"less_than_or_equal"`.
 
     Examples:
         ```python
         from datetime import date
 
-        data = sheet["A1:C100"]
+        import xlwings as xw
 
-        data.autofilter.apply_values(1, ["East", "West"])
-        data.autofilter.apply_comparison(3, "between", 10, 20)
-        data.autofilter.apply_comparison(2, "greater_than", date(2025, 1, 1))
-        data.autofilter.apply_top_items(3, 10)
-        data.autofilter.apply_comparison(2, "equal_to", None)
-        data.autofilter.clear(2)
-        data.autofilter.clear()
+        sheet = xw.Book().sheets[0]
+        myrange = sheet["A1:C6"]
+        myrange.value = [
+            ["Region", "Order date", "Amount"],
+            ["East", date(2025, 1, 1), 10],
+            ["West", date(2025, 1, 2), 20],
+            ["East", date(2025, 1, 3), 30],
+            ["North", date(2025, 1, 1), 40],
+            ["West", date(2025, 1, 4), 50],
+        ]
+
+        myrange.autofilter.apply_values(1, ["East", "West"])
+        myrange.autofilter.apply_comparison(3, "between", 10, 20)
+        # Use a comparison for an exact date instead of apply_values().
+        myrange.autofilter.apply_comparison(2, "equal_to", date(2025, 1, 1))
+        myrange.autofilter.apply_top_items(3, 2)
+        myrange.autofilter.apply_comparison(2, "equal_to", None)
+        myrange.autofilter.clear(2)
+        myrange.autofilter.clear()
         ```
 
     ```{versionadded} 0.37.5
@@ -3542,6 +3550,8 @@ class AutoFilter:
         self, field: int, values: Sequence[str | int | float | bool]
     ) -> None:
         """Filters a field to rows matching any of the supplied values.
+
+        Dates and datetimes are not supported. Use `apply_comparison(field, "equal_to", value)` to filter for a single exact date or datetime.
 
         Args:
             field: One-based column position relative to the range or table.
