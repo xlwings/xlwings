@@ -41,6 +41,8 @@ import xlwings
 from . import LicenseError, ShapeAlreadyExists, XlwingsError, utils
 from .base_classes import (
     _UNSET,
+    AUTOFILTER_COMPARISON_OPERATORS,
+    AUTOFILTER_CRITERIA_TYPES,
     BORDER_GRID_SIDES,
     BORDER_SIDES,
     CHART_LEGEND_POSITIONS,
@@ -56,6 +58,8 @@ from .base_classes import (
     PIVOT_FUNCTIONS,
     PIVOT_LAYOUTS,
     VERTICAL_ALIGNMENTS,
+    AutoFilterComparisonOperator,
+    AutoFilterCriteriaType,
     BorderGroup,
     BorderLineStyle,
     BorderSide,
@@ -2298,6 +2302,26 @@ class Range:
         return DataValidation(impl=self.impl.data_validation, parent=self)
 
     @property
+    def autofilter(self) -> AutoFilter:
+        """Returns the AutoFilter for this range.
+
+        The first row is treated as the header row and `field` arguments are one-based column positions relative to the range.
+
+        Examples:
+            ```python
+            data = sheet["A1:C100"]
+            data.autofilter.apply_values(1, ["East", "West"])
+            data.autofilter.apply_comparison(3, "greater_than_or_equal", 10)
+            data.autofilter.clear(1)
+            data.autofilter.clear()
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return AutoFilter(impl=self.impl.autofilter, parent=self)
+
+    @property
     def conditional_formats(self) -> ConditionalFormats:
         """Returns the conditional-format rules for this range.
 
@@ -3350,6 +3374,291 @@ class Range:
         ```
         """
         self.impl.autofill(destination=destination, type_=type_)
+
+
+class AutoFilterCriteria:
+    """The applied AutoFilter criterion for one field.
+
+    Instances are read-only entries returned by {attr}`AutoFilter.criteria` and {meth}`AutoFilter.get_criteria`.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Mapping[str, Any]) -> None:
+        self.impl = impl
+
+    @property
+    def field(self) -> int:
+        """The one-based field position relative to the filtered range or table."""
+        return int(self.impl["field"])
+
+    @property
+    def type(self) -> AutoFilterCriteriaType:
+        """The normalized criterion type."""
+        value = self.impl.get("type", "unknown")
+        return cast(
+            AutoFilterCriteriaType,
+            value if value in AUTOFILTER_CRITERIA_TYPES else "unknown",
+        )
+
+    @property
+    def values(self) -> list[str] | None:
+        """The included values for a values filter, otherwise `None`."""
+        values = self.impl.get("values")
+        return list(values) if values is not None else None
+
+    @property
+    def operator(self) -> AutoFilterComparisonOperator | None:
+        """The comparison operator, otherwise `None`."""
+        value = self.impl.get("operator")
+        return cast(
+            AutoFilterComparisonOperator | None,
+            value if value in AUTOFILTER_COMPARISON_OPERATORS else None,
+        )
+
+    @property
+    def value1(self) -> str | None:
+        """The first normalized comparison operand, otherwise `None`."""
+        return self.impl.get("value1")
+
+    @property
+    def value2(self) -> str | None:
+        """The second normalized comparison operand, otherwise `None`."""
+        return self.impl.get("value2")
+
+    @property
+    def count(self) -> int | None:
+        """The number of items for a top/bottom items filter, otherwise `None`.
+
+        This may be `None` when the native desktop engine only exposes the calculated cutoff value rather than the requested item count.
+        """
+        return self.impl.get("count")
+
+    @property
+    def percent(self) -> float | None:
+        """The percentage for a top/bottom percent filter, otherwise `None`.
+
+        This may be `None` when the native desktop engine only exposes the calculated cutoff value rather than the requested percentage.
+        """
+        return self.impl.get("percent")
+
+
+class AutoFilter:
+    """An AutoFilter belonging to a range or table.
+
+    Do not construct this class directly; access it through {attr}`Range.autofilter <xlwings.Range.autofilter>` or {attr}`Table.autofilter <xlwings.main.Table.autofilter>`.
+
+    Fields are one-based column positions relative to the range or table. Value filters accept strings, finite numbers, and booleans. Comparison filters additionally accept Python dates and timezone-naive datetimes. Date and datetime values are not supported by `apply_values()`; to filter for a single exact date or datetime, use `apply_comparison()` with `"equal_to"`. Comparison operators are `"between"`, `"not_between"`, `"equal_to"`, `"not_equal_to"`, `"greater_than"`, `"less_than"`, `"greater_than_or_equal"`, and `"less_than_or_equal"`.
+
+    Examples:
+        ```python
+        from datetime import date
+
+        import xlwings as xw
+
+        sheet = xw.Book().sheets[0]
+        myrange = sheet["A1:C6"]
+        myrange.value = [
+            ["Region", "Order date", "Amount"],
+            ["East", date(2025, 1, 1), 10],
+            ["West", date(2025, 1, 2), 20],
+            ["East", date(2025, 1, 3), 30],
+            ["North", date(2025, 1, 1), 40],
+            ["West", date(2025, 1, 4), 50],
+        ]
+
+        myrange.autofilter.apply_values(1, ["East", "West"])
+        myrange.autofilter.apply_comparison(3, "between", 10, 20)
+        # Use a comparison for an exact date instead of apply_values().
+        myrange.autofilter.apply_comparison(2, "equal_to", date(2025, 1, 1))
+        myrange.autofilter.apply_top_items(3, 2)
+        myrange.autofilter.apply_comparison(2, "equal_to", None)
+        myrange.autofilter.clear(2)
+        myrange.autofilter.clear()
+        ```
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any, parent: Range | Table) -> None:
+        self.impl = impl
+        self.parent = parent
+
+    def _validate_field(self, field: int) -> int:
+        if isinstance(field, bool) or not isinstance(field, int):
+            raise TypeError("field must be an integer")
+        column_count = (
+            self.parent.range.shape[1]
+            if isinstance(self.parent, Table)
+            else self.parent.shape[1]
+        )
+        if not 1 <= field <= column_count:
+            raise ValueError(
+                f"field must be between 1 and {column_count} for this AutoFilter"
+            )
+        return field
+
+    @staticmethod
+    def _normalize_value(value: str | int | float | bool) -> str:
+        if isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        if isinstance(value, str):
+            return value
+        if isinstance(value, int):
+            return str(value)
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                raise ValueError("AutoFilter values must be finite")
+            return str(value)
+        raise TypeError("AutoFilter values must be strings, numbers, or booleans")
+
+    @staticmethod
+    def _normalize_comparison_value(
+        value: str | int | float | bool | dt.date | dt.datetime,
+    ) -> str | dict[str, str]:
+        if isinstance(value, dt.datetime):
+            if value.tzinfo is not None:
+                raise ValueError("AutoFilter datetimes must be timezone-naive")
+            return {"type": "datetime", "value": value.isoformat()}
+        if isinstance(value, dt.date):
+            return {"type": "date", "value": value.isoformat()}
+        return AutoFilter._normalize_value(value)
+
+    @property
+    def criteria(self) -> list[AutoFilterCriteria]:
+        """Returns the criteria for all fields.
+
+        The list contains one entry per field, including entries whose type is `"none"`. In xlwings Lite, use {meth}`get_criteria` instead.
+        """
+        return [AutoFilterCriteria(impl=entry) for entry in self.impl.criteria]
+
+    async def get_criteria(self) -> list[AutoFilterCriteria]:
+        """Returns the criteria for all fields from Excel.
+
+        The list contains one entry per field, including entries whose type is `"none"`. Unsupported native criteria are reported as `"unknown"`. Requires xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return [
+            AutoFilterCriteria(impl=entry) for entry in await self.impl.get_criteria()
+        ]
+
+    def apply_values(
+        self, field: int, values: Sequence[str | int | float | bool]
+    ) -> None:
+        """Filters a field to rows matching any of the supplied values.
+
+        Dates and datetimes are not supported. Use `apply_comparison(field, "equal_to", value)` to filter for a single exact date or datetime.
+
+        Args:
+            field: One-based column position relative to the range or table.
+            values: One or more exact values to include.
+
+        Raises:
+            TypeError: If `field` isn't an integer or `values` isn't a sequence of supported scalar values.
+            ValueError: If `field` is outside the target, `values` is empty, or a number isn't finite.
+        """
+        field = self._validate_field(field)
+        if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+            raise TypeError("values must be a sequence, not a string")
+        if not values:
+            raise ValueError("values must not be empty")
+        self.impl.apply_values(field, [self._normalize_value(v) for v in values])
+
+    def apply_comparison(
+        self,
+        field: int,
+        operator: AutoFilterComparisonOperator,
+        value1: str | int | float | bool | dt.date | dt.datetime | None,
+        value2: str | int | float | bool | dt.date | dt.datetime | None = None,
+    ) -> None:
+        """Filters a field using a comparison.
+
+        `None` represents blanks with `"equal_to"` and nonblanks with `"not_equal_to"`. `"between"` and `"not_between"` require a second value; all other operators reject one.
+
+        Args:
+            field: One-based column position relative to the range or table.
+            operator: The comparison to apply.
+            value1: A string, finite number, boolean, date, timezone-naive datetime, or `None`.
+            value2: The upper bound for `"between"` and `"not_between"`; omit it for every other operator.
+
+        Raises:
+            TypeError: If a value has an unsupported type.
+            ValueError: If a field, operator, operand combination, or number is invalid.
+        """
+        field = self._validate_field(field)
+        if operator not in AUTOFILTER_COMPARISON_OPERATORS:
+            raise ValueError(
+                "operator must be one of " + ", ".join(AUTOFILTER_COMPARISON_OPERATORS)
+            )
+        if operator in ("between", "not_between"):
+            if value1 is None or value2 is None:
+                raise ValueError(f"{operator} requires value1 and value2")
+        elif value2 is not None:
+            raise ValueError(f"{operator} does not accept value2")
+        if value1 is None and operator not in ("equal_to", "not_equal_to"):
+            raise ValueError("None is only supported with equal_to and not_equal_to")
+        normalized1 = (
+            None if value1 is None else self._normalize_comparison_value(value1)
+        )
+        normalized2 = (
+            None if value2 is None else self._normalize_comparison_value(value2)
+        )
+        self.impl.apply_comparison(field, operator, normalized1, normalized2)
+
+    @staticmethod
+    def _validate_item_count(count: int) -> int:
+        if isinstance(count, bool) or not isinstance(count, int):
+            raise TypeError("count must be an integer")
+        if not 1 <= count <= 255:
+            raise ValueError("count must be between 1 and 255")
+        return count
+
+    @staticmethod
+    def _validate_percent(percent: int | float) -> float:
+        if isinstance(percent, bool) or not isinstance(percent, numbers.Real):
+            raise TypeError("percent must be a number")
+        normalized = float(percent)
+        if not math.isfinite(normalized) or not 0 <= normalized <= 100:
+            raise ValueError("percent must be between 0 and 100")
+        return normalized
+
+    def apply_top_items(self, field: int, count: int) -> None:
+        """Shows the highest-valued items in a field."""
+        self.impl.apply_top_items(
+            self._validate_field(field), self._validate_item_count(count)
+        )
+
+    def apply_bottom_items(self, field: int, count: int) -> None:
+        """Shows the lowest-valued items in a field."""
+        self.impl.apply_bottom_items(
+            self._validate_field(field), self._validate_item_count(count)
+        )
+
+    def apply_top_percent(self, field: int, percent: int | float) -> None:
+        """Shows the highest-valued percentage of items in a field."""
+        self.impl.apply_top_percent(
+            self._validate_field(field), self._validate_percent(percent)
+        )
+
+    def apply_bottom_percent(self, field: int, percent: int | float) -> None:
+        """Shows the lowest-valued percentage of items in a field."""
+        self.impl.apply_bottom_percent(
+            self._validate_field(field), self._validate_percent(percent)
+        )
+
+    def clear(self, field: int | None = None) -> None:
+        """Clears one field's criteria, or all criteria when `field` is omitted.
+
+        Args:
+            field: Optional one-based column position relative to the range or table.
+        """
+        if field is not None:
+            field = self._validate_field(field)
+        self.impl.clear(field)
 
 
 # These have to be after definition of Range to resolve circular reference
@@ -4556,6 +4865,17 @@ class Table:
     def range(self) -> Range:
         """Returns an xlwings range object of the table."""
         return Range(impl=self.impl.range)
+
+    @property
+    def autofilter(self) -> AutoFilter:
+        """Returns the AutoFilter for this table.
+
+        `field` arguments are one-based column positions relative to the table.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return AutoFilter(impl=self.impl.autofilter, parent=self)
 
     @property
     def show_autofilter(self) -> bool:

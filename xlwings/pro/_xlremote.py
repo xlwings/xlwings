@@ -303,7 +303,7 @@ def _sheet_values_loaded(sheet_api):
     return sheet_api.get(_SHEET_VALUES_LOADED_KEY, False)
 
 
-def _normalize_jsnull(obj):
+def _normalize_jsnull(obj, *, normalize_values=False):
     """Recursively replace Pyodide's `JsNull` sentinel with Python `None`.
 
     Pyodide >= 0.28 converts JS `null` to `pyodide.ffi.jsnull` instead of
@@ -314,11 +314,14 @@ def _normalize_jsnull(obj):
     `None` at the JS boundary so downstream code stays Pyodide-version
     agnostic.
 
-    The `values` arrays (cell data) are skipped here for two reasons. First,
+    The `values` arrays (cell data) are skipped by default for two reasons. First,
     *book* data (`getBookData()`) represents empty cells as `""`, not
     `null`, so a book's `values` cannot contain `JsNull`. Second, walking
     them would mean an extra full pass over every cell of an eagerly-loaded book
     (e.g. `xw.Book(json=...)` in xlwings Lite's notebook runner).
+
+    Callers whose `values` fields are metadata rather than cell matrices can set
+    `normalize_values=True`.
 
     Note this is *not* true for custom function *arguments*: Excel's custom
     functions runtime sends empty cells in a range argument as JS `null` ->
@@ -334,7 +337,10 @@ def _normalize_jsnull(obj):
         if isinstance(o, JsNull):
             return None
         if isinstance(o, dict):
-            return {k: v if k == "values" else walk(v) for k, v in o.items()}
+            return {
+                k: v if k == "values" and not normalize_values else walk(v)
+                for k, v in o.items()
+            }
         if isinstance(o, list):
             return [walk(v) for v in o]
         return o
@@ -1494,6 +1500,10 @@ class Range(base_classes.Range):
                 },
             }
         )
+
+    @property
+    def autofilter(self):
+        return AutoFilter(self)
 
     @property
     def api(self):
@@ -2795,6 +2805,81 @@ class Names(base_classes.Names):
 engine = Engine()
 
 
+class AutoFilter(base_classes.AutoFilter):
+    def __init__(self, parent, table_index=None):
+        self.parent = parent
+        self.table_index = table_index
+
+    def _append(self, range_func, table_func, args):
+        self.parent._require_officejs("autofilter")
+        if self.table_index is None:
+            self.parent.append_json_action(func=range_func, args=args)
+        else:
+            self.parent.append_json_action(
+                func=table_func, args=[self.table_index, *args]
+            )
+
+    @property
+    def criteria(self):
+        raise NotImplementedError(
+            "AutoFilter.criteria isn't available on this engine; in xlwings Lite, "
+            "use await autofilter.get_criteria()"
+        )
+
+    async def get_criteria(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_criteria() is only supported in xlwings Lite"
+            )
+        import js
+
+        data_js = await js.xlwings.getAutoFilterCriteria(
+            self.parent.sheet.name,
+            self.parent.address,
+            self.table_index,
+        )
+        return _normalize_jsnull(data_js.to_py(), normalize_values=True)
+
+    def apply_values(self, field, values):
+        self._append(
+            "applyAutoFilterRange",
+            "applyAutoFilterTable",
+            [field, {"type": "values", "values": values}],
+        )
+
+    def apply_comparison(self, field, operator, value1, value2):
+        spec = {
+            "type": "comparison",
+            "operator": operator,
+            "value1": value1,
+        }
+        if value2 is not None:
+            spec["value2"] = value2
+        self._append("applyAutoFilterRange", "applyAutoFilterTable", [field, spec])
+
+    def _apply_top_bottom(self, field, type_, value):
+        self._append(
+            "applyAutoFilterRange",
+            "applyAutoFilterTable",
+            [field, {"type": type_, "value": value}],
+        )
+
+    def apply_top_items(self, field, count):
+        self._apply_top_bottom(field, "top_items", count)
+
+    def apply_bottom_items(self, field, count):
+        self._apply_top_bottom(field, "bottom_items", count)
+
+    def apply_top_percent(self, field, percent):
+        self._apply_top_bottom(field, "top_percent", percent)
+
+    def apply_bottom_percent(self, field, percent):
+        self._apply_top_bottom(field, "bottom_percent", percent)
+
+    def clear(self, field):
+        self._append("clearAutoFilterRange", "clearAutoFilterTable", [field])
+
+
 class Table(base_classes.Table):
     @property
     def show_autofilter(self):
@@ -2805,6 +2890,10 @@ class Table(base_classes.Table):
         self.append_json_action(
             func="showAutofilterTable", args=[self.index - 1, value]
         )
+
+    @property
+    def autofilter(self):
+        return AutoFilter(self.range, table_index=self.index - 1)
 
     def __init__(self, parent, key):
         self._parent = parent

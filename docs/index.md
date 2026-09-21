@@ -86,6 +86,7 @@ api/top_level_functions
 api/udf_decorators
 api/app
 api/apps
+api/autofilter
 api/book
 api/book_async
 api/books
