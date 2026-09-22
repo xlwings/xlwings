@@ -64,6 +64,11 @@ cell_errors = (
 )
 
 
+def _parse_pid(pid_info):
+    match = re.search(r'^\s*"?pid"?\s*=\s*(\d+)(?!\w)', pid_info, re.M)
+    return int(match.group(1)) if match else None
+
+
 def _clean_value_data_element(
     value, datetime_builder, empty_as, number_builder, err_to_str
 ):
@@ -155,8 +160,9 @@ class Apps(base_classes.Apps):
                 pid_info = subprocess.check_output(
                     ["lsappinfo", "info", "-only", "pid", asn]
                 ).decode("utf-8")
-                if pid_info != '"pid"=[ NULL ] \n':
-                    yield int(pid_info.split("=")[1])
+                pid = _parse_pid(pid_info)
+                if pid is not None:
+                    yield pid
 
     def keys(self):
         return list(self._iter_excel_instances())
@@ -244,12 +250,12 @@ class App(base_classes.App):
         pid_info_frontmost = subprocess.check_output(
             ["lsappinfo", "info", "-only", "pid", frontmost_asn]
         ).decode("utf-8")
-        pid_frontmost = int(pid_info_frontmost.split("=")[1])
+        pid_frontmost = _parse_pid(pid_info_frontmost)
         try:
             appscript.app("System Events").processes[
                 its.unix_id == self.pid
             ].frontmost.set(True)
-            if not steal_focus:
+            if not steal_focus and pid_frontmost is not None:
                 appscript.app("System Events").processes[
                     its.unix_id == pid_frontmost
                 ].frontmost.set(True)

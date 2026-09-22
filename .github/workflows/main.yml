@@ -32,6 +32,18 @@ jobs:
           key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - run: pre-commit run --show-diff-on-failure --color=always --all-files
 
+  test-macos-backend:
+    # Prevent duplicate runs for own PRs
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pytest psutil appscript
+      - run: python -m pytest tests/test_xlmac.py
+
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
     runs-on: windows-2025
