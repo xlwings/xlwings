@@ -56,6 +56,8 @@ import xlwings
 
 from . import base_classes, constants, utils
 from .constants import (
+    AxisGroup,
+    AxisType,
     ColorIndex,
     ConsolidationFunction,
     DeleteShiftDirection,
@@ -3165,6 +3167,14 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
     def plot_by(self):
         return plot_by_i2s[self.xl.PlotBy]
 
@@ -3252,6 +3262,138 @@ class Chart(base_classes.Chart):
             self.parent.range("A1").select()
         except:  # noqa: E722
             pass
+
+
+class ChartAxis(base_classes.ChartAxis):
+    _axis_types = {
+        "category": AxisType.xlCategory,
+        "value": AxisType.xlValue,
+    }
+
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    @property
+    def _xl_axis_type(self):
+        return self._axis_types[self.axis_type]
+
+    @property
+    def visible(self):
+        return bool(self.parent.xl.HasAxis(self._xl_axis_type, AxisGroup.xlPrimary))
+
+    @visible.setter
+    def visible(self, value):
+        # HasAxis is an indexed COM property. Dynamic Dispatch can read it but
+        # Python assignment can't express the two indexes, so invoke the
+        # property-put directly with its runtime-resolved DISPID.
+        chart = self.parent.xl._inner
+        dispid = chart._oleobj_.GetIDsOfNames(0, "HasAxis")
+        chart._oleobj_.Invoke(
+            dispid,
+            0,
+            pythoncom.DISPATCH_PROPERTYPUT,
+            0,
+            self._xl_axis_type,
+            AxisGroup.xlPrimary,
+            bool(value),
+        )
+
+    def _axis(self):
+        if not self.visible:
+            raise xlwings.XlwingsError(
+                f"The chart has no visible primary {self.axis_type} axis."
+            )
+        return self.parent.xl.Axes(self._xl_axis_type, AxisGroup.xlPrimary)
+
+    @property
+    def api(self):
+        return self._axis() if self.visible else None
+
+    @property
+    def title(self):
+        if not self.visible:
+            return None
+        axis = self._axis()
+        return axis.AxisTitle.Text if axis.HasTitle else None
+
+    @title.setter
+    def title(self, value):
+        if value is None:
+            if self.visible:
+                self._axis().HasTitle = False
+            return
+        self.visible = True
+        axis = self._axis()
+        axis.HasTitle = True
+        axis.AxisTitle.Text = value
+
+    def _get_scale(self, attribute):
+        return float(getattr(self._axis(), attribute))
+
+    def _set_scale(self, attribute, auto_attribute, value):
+        axis = self._axis()
+        if value is None:
+            setattr(axis, auto_attribute, True)
+        else:
+            setattr(axis, attribute, value)
+
+    @property
+    def minimum_scale(self):
+        return self._get_scale("MinimumScale")
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self._set_scale("MinimumScale", "MinimumScaleIsAuto", value)
+
+    @property
+    def maximum_scale(self):
+        return self._get_scale("MaximumScale")
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self._set_scale("MaximumScale", "MaximumScaleIsAuto", value)
+
+    @property
+    def major_unit(self):
+        return self._get_scale("MajorUnit")
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._set_scale("MajorUnit", "MajorUnitIsAuto", value)
+
+    @property
+    def number_format(self):
+        return self._axis().TickLabels.NumberFormat
+
+    @number_format.setter
+    def number_format(self, value):
+        self._axis().TickLabels.NumberFormat = value
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        if visible is True:
+            self.visible = True
+        if title is not base_classes._UNSET:
+            self.title = title
+        if minimum_scale is not base_classes._UNSET:
+            self.minimum_scale = minimum_scale
+        if maximum_scale is not base_classes._UNSET:
+            self.maximum_scale = maximum_scale
+        if major_unit is not base_classes._UNSET:
+            self.major_unit = major_unit
+        if number_format is not base_classes._UNSET:
+            self.number_format = number_format
+        if visible is False:
+            self.visible = False
 
 
 class ChartLegend(base_classes.ChartLegend):

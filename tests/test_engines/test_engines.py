@@ -1107,6 +1107,142 @@ def test_chart_legend_api_not_available():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_axis_bulk_set_queues_one_action_and_writes_through():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+
+    chart.value_axis.set(
+        title="Revenue",
+        minimum_scale=0,
+        maximum_scale=100,
+        major_unit=20,
+        number_format="$#,##0",
+        visible=True,
+    )
+
+    assert [(action["func"], action["args"]) for action in _actions(book)] == [
+        (
+            "setChartAxis",
+            [
+                0,
+                "value",
+                {
+                    "title": "Revenue",
+                    "minimum_scale": 0.0,
+                    "maximum_scale": 100.0,
+                    "major_unit": 20.0,
+                    "number_format": "$#,##0",
+                    "visible": True,
+                },
+            ],
+        )
+    ]
+    assert _actions(book)[0]["sheet_position"] == 0
+    assert chart.value_axis.title == "Revenue"
+    assert chart.value_axis.minimum_scale == 0
+    assert chart.value_axis.maximum_scale == 100
+    assert chart.value_axis.major_unit == 20
+    assert chart.value_axis.number_format == "$#,##0"
+    assert chart.value_axis.visible is True
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_axis_individual_setters_and_automatic_scale():
+    book = _fresh_book()
+    axis = book.sheets[0].charts[0].category_axis
+
+    axis.title = None
+    axis.minimum_scale = None
+
+    assert [(action["func"], action["args"]) for action in _actions(book)] == [
+        ("setChartAxis", [0, "category", {"title": None}]),
+        ("setChartAxis", [0, "category", {"minimum_scale": None}]),
+    ]
+    assert axis.title is None
+    with pytest.raises(NotImplementedError, match="get_minimum_scale"):
+        axis.minimum_scale
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_axis_bulk_hide_uses_false_as_the_final_state():
+    book = _fresh_book()
+    axis = book.sheets[0].charts[0].value_axis
+
+    axis.set(title="Revenue", visible=False)
+
+    assert _actions(book)[-1]["args"] == [
+        0,
+        "value",
+        {"title": "Revenue", "visible": False},
+    ]
+    assert axis.visible is False
+    assert axis.title is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_axis_getters_and_api_raise_before_write():
+    book = _fresh_book()
+    axis = book.sheets[0].charts[0].value_axis
+
+    for attribute, getter in [
+        ("title", "get_title"),
+        ("minimum_scale", "get_minimum_scale"),
+        ("maximum_scale", "get_maximum_scale"),
+        ("major_unit", "get_major_unit"),
+        ("number_format", "get_number_format"),
+        ("visible", "get_visible"),
+    ]:
+        with pytest.raises(NotImplementedError, match=getter):
+            getattr(axis, attribute)
+    with pytest.raises(NotImplementedError, match="ChartAxis.api"):
+        axis.api
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(axis.get_visible())
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        ({"title": 1}, "Invalid title"),
+        ({"minimum_scale": float("nan")}, "Invalid minimum_scale"),
+        ({"maximum_scale": float("inf")}, "Invalid maximum_scale"),
+        ({"major_unit": 0}, "Invalid major_unit"),
+        ({"major_unit": True}, "Invalid major_unit"),
+        ({"number_format": None}, "Invalid number_format"),
+        ({"visible": 1}, "Invalid visible"),
+    ],
+)
+def test_chart_axis_set_validates_before_queueing(kwargs, match):
+    book = _fresh_book()
+    with pytest.raises(ValueError, match=match):
+        book.sheets[0].charts[0].value_axis.set(**kwargs)
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_pending_chart_replays_axis_formatting_after_creation():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+    chart.value_axis.set(title="Revenue", minimum_scale=0)
+    assert _actions(book) == []
+
+    chart.set_source_data(sheet["A1:B2"])
+
+    assert [action["func"] for action in _actions(book)] == [
+        "addChart",
+        "setChartAxis",
+    ]
+    assert _actions(book)[1]["args"] == [
+        len(sheet.charts) - 1,
+        "value",
+        {"title": "Revenue", "minimum_scale": 0.0},
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_charts_add_with_source_creates_immediately():
     book = _fresh_book()
     sheet = book.sheets[0]

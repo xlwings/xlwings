@@ -3244,6 +3244,14 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
     def plot_by(self):
         return self._local_or_raise("plot_by", "plot_by")
 
@@ -3415,6 +3423,188 @@ class Chart(base_classes.Chart):
         raise NotImplementedError(
             "Chart.to_pdf() is not supported on this engine, which has no PDF export."
         )
+
+
+class ChartAxis(base_classes.ChartAxis):
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartAxis.api isn't available on this engine: there is no native "
+            "axis object, only queued actions."
+        )
+
+    def _state_key(self, attribute):
+        return f"{self.axis_type}_axis_{attribute}"
+
+    def _local_or_raise(self, attribute):
+        return self.parent._local_or_raise(
+            self._state_key(attribute),
+            f"primary {self.axis_type} axis {attribute}",
+        )
+
+    def _queue(self, values):
+        args = [self.axis_type, values]
+        if self.parent._pending is not None:
+            self.parent._pending_actions.append(("setChartAxis", args))
+        else:
+            self.parent.append_json_action(
+                func="setChartAxis", args=[self.parent.index - 1, *args]
+            )
+
+    def _sync_read_error(self, getter):
+        return NotImplementedError(
+            "Reading chart axis attributes synchronously isn't supported on this "
+            f"engine. Use 'await chart.{self.axis_type}_axis.{getter}()' to fetch "
+            "the value."
+        )
+
+    @property
+    def title(self):
+        if self.parent.api.get(self._state_key("visible")) is False:
+            return None
+        try:
+            return self._local_or_raise("title")
+        except NotImplementedError:
+            raise self._sync_read_error("get_title") from None
+
+    @title.setter
+    def title(self, value):
+        self.set(title=value)
+
+    @property
+    def minimum_scale(self):
+        try:
+            return self._local_or_raise("minimum_scale")
+        except NotImplementedError:
+            raise self._sync_read_error("get_minimum_scale") from None
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self.set(minimum_scale=value)
+
+    @property
+    def maximum_scale(self):
+        try:
+            return self._local_or_raise("maximum_scale")
+        except NotImplementedError:
+            raise self._sync_read_error("get_maximum_scale") from None
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self.set(maximum_scale=value)
+
+    @property
+    def major_unit(self):
+        try:
+            return self._local_or_raise("major_unit")
+        except NotImplementedError:
+            raise self._sync_read_error("get_major_unit") from None
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self.set(major_unit=value)
+
+    @property
+    def number_format(self):
+        try:
+            return self._local_or_raise("number_format")
+        except NotImplementedError:
+            raise self._sync_read_error("get_number_format") from None
+
+    @number_format.setter
+    def number_format(self, value):
+        self.set(number_format=value)
+
+    @property
+    def visible(self):
+        try:
+            return self._local_or_raise("visible")
+        except NotImplementedError:
+            raise self._sync_read_error("get_visible") from None
+
+    @visible.setter
+    def visible(self, value):
+        self.set(visible=value)
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        values = {}
+        for attribute, value in (
+            ("title", title),
+            ("minimum_scale", minimum_scale),
+            ("maximum_scale", maximum_scale),
+            ("major_unit", major_unit),
+            ("number_format", number_format),
+            ("visible", visible),
+        ):
+            if value is base_classes._UNSET:
+                continue
+            values[attribute] = value
+            key = self._state_key(attribute)
+            if (
+                attribute in {"minimum_scale", "maximum_scale", "major_unit"}
+                and value is None
+            ):
+                # None restores Excel's automatic value, whose resolved numeric
+                # result isn't known until a synchronized read.
+                self.parent.api.pop(key, None)
+            else:
+                self.parent.api[key] = value
+        if title is not base_classes._UNSET and title is not None:
+            self.parent.api[self._state_key("visible")] = True
+        if visible is False:
+            self.parent.api[self._state_key("visible")] = False
+        if values:
+            self._queue(values)
+
+    async def _get_axis_data(self, key):
+        if self.parent._pending is not None:
+            raise XlwingsError(
+                "Chart axis reads require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getChartAxisData(
+            self.parent.parent.name,
+            self.parent.index - 1,
+            self.axis_type,
+            to_js([key]),
+        )
+        return _normalize_jsnull(data_js.to_py())[key]
+
+    async def get_title(self):
+        return await self._get_axis_data("title")
+
+    async def get_minimum_scale(self):
+        return await self._get_axis_data("minimum_scale")
+
+    async def get_maximum_scale(self):
+        return await self._get_axis_data("maximum_scale")
+
+    async def get_major_unit(self):
+        return await self._get_axis_data("major_unit")
+
+    async def get_number_format(self):
+        return await self._get_axis_data("number_format")
+
+    async def get_visible(self):
+        return await self._get_axis_data("visible")
 
 
 class ChartLegend(base_classes.ChartLegend):

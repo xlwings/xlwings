@@ -94,6 +94,7 @@ api/border
 api/borders
 api/characters
 api/chart
+api/chart_axis
 api/chart_legend
 api/charts
 api/conditional_format

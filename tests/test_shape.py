@@ -353,6 +353,67 @@ class TestChartFormatting(TestBase):
         chart.title = "After"
         self.assertEqual(sht.charts["Renamed"].title, "After")
 
+    def test_axes(self):
+        sht, chart = self._chart()
+        chart.category_axis.title = "Category"
+        chart.value_axis.set(
+            title="Revenue",
+            minimum_scale=0,
+            maximum_scale=100,
+            major_unit=20,
+            number_format="0.00",
+            visible=True,
+        )
+
+        self.assertEqual(sht.charts[0].category_axis.title, "Category")
+        self.assertEqual(sht.charts[0].value_axis.title, "Revenue")
+        self.assertEqual(sht.charts[0].value_axis.minimum_scale, 0)
+        self.assertEqual(sht.charts[0].value_axis.maximum_scale, 100)
+        self.assertEqual(sht.charts[0].value_axis.major_unit, 20)
+        self.assertEqual(sht.charts[0].value_axis.number_format, "0.00")
+        self.assertTrue(sht.charts[0].value_axis.visible)
+
+        chart.value_axis.minimum_scale = None
+        chart.value_axis.maximum_scale = None
+        chart.value_axis.major_unit = None
+        self.assertIsInstance(chart.value_axis.minimum_scale, (int, float))
+        self.assertIsInstance(chart.value_axis.maximum_scale, (int, float))
+        self.assertIsInstance(chart.value_axis.major_unit, (int, float))
+
+        chart.category_axis.title = None
+        self.assertIsNone(chart.category_axis.title)
+        chart.category_axis.visible = False
+        self.assertFalse(chart.category_axis.visible)
+        self.assertIsNone(chart.category_axis.title)
+        chart.category_axis.visible = True
+        self.assertTrue(chart.category_axis.visible)
+
+    def test_axis_retained_after_rename(self):
+        sht, chart = self._chart()
+        axis = chart.value_axis
+        chart.name = "Renamed"
+        axis.title = "Revenue"
+        self.assertEqual(sht.charts["Renamed"].value_axis.title, "Revenue")
+
+    def test_axis_validation(self):
+        _, chart = self._chart()
+        for kwargs in [
+            {"title": 1},
+            {"minimum_scale": float("nan")},
+            {"maximum_scale": float("inf")},
+            {"major_unit": 0},
+            {"number_format": None},
+            {"visible": 1},
+        ]:
+            with self.assertRaises(ValueError):
+                chart.value_axis.set(**kwargs)
+
+    @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
+    def test_axes_report_the_apple_script_limitation_on_mac(self):
+        _, chart = self._chart()
+        with self.assertRaisesRegex(NotImplementedError, "AppleScript"):
+            chart.value_axis.title
+
     def test_plot_by(self):
         sht, chart = self._chart()
         chart.set_source_data(sht.range("A1:C3"), plot_by="rows")

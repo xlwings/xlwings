@@ -2962,6 +2962,14 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
     def plot_by(self):
         return plot_by_k2s[self.xl.plot_by.get()]
 
@@ -3060,6 +3068,82 @@ class Chart(base_classes.Chart):
 
     def to_pdf(self, path, quality=None):
         raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
+
+
+class ChartAxis(base_classes.ChartAxis):
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    def _unsupported(self):
+        raise NotImplementedError(
+            "ChartAxis isn't supported on macOS because Excel's AppleScript "
+            "axis references can't be read or formatted."
+        )
+
+    @property
+    def api(self):
+        self._unsupported()
+
+    @property
+    def title(self):
+        self._unsupported()
+
+    @title.setter
+    def title(self, value):
+        self._unsupported()
+
+    @property
+    def minimum_scale(self):
+        self._unsupported()
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self._unsupported()
+
+    @property
+    def maximum_scale(self):
+        self._unsupported()
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self._unsupported()
+
+    @property
+    def major_unit(self):
+        self._unsupported()
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._unsupported()
+
+    @property
+    def number_format(self):
+        self._unsupported()
+
+    @number_format.setter
+    def number_format(self, value):
+        self._unsupported()
+
+    @property
+    def visible(self):
+        self._unsupported()
+
+    @visible.setter
+    def visible(self, value):
+        self._unsupported()
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        self._unsupported()
 
 
 class ChartLegend(base_classes.ChartLegend):

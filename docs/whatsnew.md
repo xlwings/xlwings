@@ -6,6 +6,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 - Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
 - Added `Range.data_validation` with list, whole-number, decimal, date, time, text-length, and custom-formula validation. xlwings Lite can inspect validation rules on demand with `await Range.get_data_validation()`.
+- Added primary category and value chart axes on Windows and remote engines with titles, scales, major units, number formats, visibility, and asynchronous xlwings Lite getters, see {class}`ChartAxis <xlwings.main.ChartAxis>`.
 
 ## v0.37.4 (Sep 16, 2026)
 

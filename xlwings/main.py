@@ -5194,6 +5194,17 @@ def _chart_style(value: Any) -> int:
     )
 
 
+def _chart_axis_scale(value: Any, name: str, *, positive: bool = False) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, numbers.Real) and not isinstance(value, bool):
+        value = float(value)
+        if math.isfinite(value) and (not positive or value > 0):
+            return value
+    requirement = "a positive finite number" if positive else "a finite number"
+    raise ValueError(f"Invalid {name} {value!r}. Must be {requirement} or None.")
+
+
 class Chart:
     """The chart object is a member of the `charts` collection:
 
@@ -5375,6 +5386,24 @@ class Chart:
         return ChartLegend(impl=self.impl.legend)
 
     @property
+    def category_axis(self) -> ChartAxis:
+        """Returns the chart's primary category axis.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartAxis(impl=self.impl.category_axis)
+
+    @property
+    def value_axis(self) -> ChartAxis:
+        """Returns the chart's primary value axis.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartAxis(impl=self.impl.value_axis)
+
+    @property
     def plot_by(self) -> str:
         """Returns or sets whether the data series come from the rows or from the
         columns of the source data: either `"rows"` or `"columns"`.
@@ -5551,6 +5580,184 @@ class Chart:
         Requires xlwings Lite.
         """
         return await self.impl.get_png()
+
+
+class ChartAxis:
+    """A primary chart axis, accessed through {attr}`Chart.category_axis` or {attr}`Chart.value_axis`.
+
+    Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
+
+    Chart-axis access is supported on Windows, xlwings Lite, and xlwings Server. Excel for Mac's AppleScript interface does not expose usable axis references, so these operations raise `NotImplementedError` on macOS.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native `pywin32` object on Windows."""
+        return self.impl.api
+
+    @property
+    def title(self) -> str | None:
+        """Returns or sets the axis title. Setting it to `None` hides the title; setting it to a string shows the axis and its title."""
+        return self.impl.title
+
+    @title.setter
+    def title(self, value: str | None) -> None:
+        self.set(title=value)
+
+    @property
+    def minimum_scale(self) -> float:
+        """Returns or sets the minimum scale. Set to `None` to restore Excel's automatic scale; reads return the resolved numeric value."""
+        return self.impl.minimum_scale
+
+    @minimum_scale.setter
+    def minimum_scale(self, value: float | None) -> None:
+        self.set(minimum_scale=value)
+
+    @property
+    def maximum_scale(self) -> float:
+        """Returns or sets the maximum scale. Set to `None` to restore Excel's automatic scale; reads return the resolved numeric value."""
+        return self.impl.maximum_scale
+
+    @maximum_scale.setter
+    def maximum_scale(self, value: float | None) -> None:
+        self.set(maximum_scale=value)
+
+    @property
+    def major_unit(self) -> float:
+        """Returns or sets the interval between major tick marks. Set to `None` to restore Excel's automatic interval; reads return the resolved value."""
+        return self.impl.major_unit
+
+    @major_unit.setter
+    def major_unit(self, value: float | None) -> None:
+        self.set(major_unit=value)
+
+    @property
+    def number_format(self) -> str:
+        """Returns or sets the format code for the axis tick labels."""
+        return self.impl.number_format
+
+    @number_format.setter
+    def number_format(self, value: str) -> None:
+        self.set(number_format=value)
+
+    @property
+    def visible(self) -> bool:
+        """Returns or sets whether the axis is shown."""
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value: bool) -> None:
+        self.set(visible=value)
+
+    def set(
+        self,
+        *,
+        title: str | None = _UNSET,
+        minimum_scale: float | None = _UNSET,
+        maximum_scale: float | None = _UNSET,
+        major_unit: float | None = _UNSET,
+        number_format: str = _UNSET,
+        visible: bool = _UNSET,
+    ) -> None:
+        """Sets one or more axis attributes in one operation.
+
+        Only supplied attributes are changed, and all arguments are validated before anything is written. `visible=True` is applied before the other attributes; `visible=False` is applied last so it describes the final state.
+
+        Args:
+            title: Axis title, or `None` to hide it.
+            minimum_scale: Minimum scale, or `None` for automatic scaling.
+            maximum_scale: Maximum scale, or `None` for automatic scaling.
+            major_unit: Positive major-unit interval, or `None` for automatic.
+            number_format: Format code for the tick labels.
+            visible: Whether the axis is shown.
+        """
+        if title is not _UNSET and title is not None and not isinstance(title, str):
+            raise ValueError(
+                f"Invalid title {title!r}. Must be a string or None to hide it."
+            )
+        if minimum_scale is not _UNSET:
+            minimum_scale = _chart_axis_scale(minimum_scale, "minimum_scale")
+        if maximum_scale is not _UNSET:
+            maximum_scale = _chart_axis_scale(maximum_scale, "maximum_scale")
+        if major_unit is not _UNSET:
+            major_unit = _chart_axis_scale(major_unit, "major_unit", positive=True)
+        if number_format is not _UNSET and not isinstance(number_format, str):
+            raise ValueError(
+                f"Invalid number_format {number_format!r}. Must be a string."
+            )
+        if visible is not _UNSET and not isinstance(visible, bool):
+            raise ValueError(f"Invalid visible {visible!r}. Must be True or False.")
+        if all(
+            value is _UNSET
+            for value in (
+                title,
+                minimum_scale,
+                maximum_scale,
+                major_unit,
+                number_format,
+                visible,
+            )
+        ):
+            return
+        self.impl.set(
+            title=title,
+            minimum_scale=minimum_scale,
+            maximum_scale=maximum_scale,
+            major_unit=major_unit,
+            number_format=number_format,
+            visible=visible,
+        )
+
+    async def get_title(self) -> str | None:
+        """Fetches the axis title. Returns `None` if the axis or title is hidden.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_title()
+
+    async def get_minimum_scale(self) -> float:
+        """Fetches the resolved minimum scale.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_minimum_scale()
+
+    async def get_maximum_scale(self) -> float:
+        """Fetches the resolved maximum scale.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_maximum_scale()
+
+    async def get_major_unit(self) -> float:
+        """Fetches the resolved major-unit interval.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_major_unit()
+
+    async def get_number_format(self) -> str:
+        """Fetches the tick-label number format.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_number_format()
+
+    async def get_visible(self) -> bool:
+        """Fetches whether the axis is shown.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_visible()
+
+    def __repr__(self) -> str:
+        return "<ChartAxis>"
 
 
 class ChartLegend:
