@@ -3280,11 +3280,24 @@ class ChartAxis(base_classes.ChartAxis):
 
     @property
     def visible(self):
-        return bool(self.parent.xl.HasAxis(self._xl_axis_type, AxisGroup.xlPrimary))
+        # HasAxis is an indexed COM property. The generated pywin32 wrapper
+        # treats attribute access as a zero-argument property read, even when
+        # called with the two indexes, so invoke the property directly.
+        chart = self.parent.xl._inner
+        dispid = chart._oleobj_.GetIDsOfNames(0, "HasAxis")
+        return bool(
+            chart._oleobj_.Invoke(
+                dispid,
+                0,
+                pythoncom.DISPATCH_PROPERTYGET,
+                1,
+                self._xl_axis_type,
+                AxisGroup.xlPrimary,
+            )
+        )
 
     @visible.setter
     def visible(self, value):
-        # HasAxis is an indexed COM property. Dynamic Dispatch can read it but
         # Python assignment can't express the two indexes, so invoke the
         # property-put directly with its runtime-resolved DISPID.
         chart = self.parent.xl._inner
