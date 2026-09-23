@@ -4,6 +4,8 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.5 (TBD)
 
+- xlwings Lite: added {meth}`Range.get_colors <xlwings.Range.get_colors>` to read per-cell direct fill colors as a two-dimensional RGB/`None` matrix.
+
 - Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
 - xlwings Lite: added `await Sheet.get_used_range(values_only=False)` to fetch the current formatting-aware or values-only used range while preserving the existing `Sheet.used_range` behavior.
 - Added `Range.data_validation` with list, whole-number, decimal, date, time, text-length, and custom-formula validation. xlwings Lite can inspect validation rules on demand with `await Range.get_data_validation()`.
