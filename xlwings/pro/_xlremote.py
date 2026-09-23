@@ -194,6 +194,20 @@ _LEGEND_POSITION_PY2JS = {
     "corner": "Corner",
 }
 _PLOT_BY_PY2JS = {"rows": "Rows", "columns": "Columns"}
+_MARKER_STYLE_PY2JS = {
+    "automatic": "Automatic",
+    "none": "None",
+    "square": "Square",
+    "diamond": "Diamond",
+    "triangle": "Triangle",
+    "x": "X",
+    "star": "Star",
+    "dot": "Dot",
+    "dash": "Dash",
+    "circle": "Circle",
+    "plus": "Plus",
+}
+_MARKER_STYLE_JS2PY = {v: k for k, v in _MARKER_STYLE_PY2JS.items()}
 
 # xlwings' pivot vocabulary mapped to Office.js' Excel.AggregationFunction and
 # Excel.PivotLayoutType values. main.py validates, so plain lookups suffice.
@@ -3252,6 +3266,23 @@ class Chart(base_classes.Chart):
         return ChartAxis(self, "value")
 
     @property
+    def series(self):
+        return ChartSeriesCollection(self)
+
+    async def get_series(self):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart series reads require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_series() is only supported in xlwings Lite")
+        import js
+
+        count = await js.xlwings.getChartSeriesCount(self.parent.name, self.index - 1)
+        return ChartSeriesCollection(self, count=int(count))
+
+    @property
     def plot_by(self):
         return self._local_or_raise("plot_by", "plot_by")
 
@@ -3422,6 +3453,223 @@ class Chart(base_classes.Chart):
     def to_pdf(self, path, quality):
         raise NotImplementedError(
             "Chart.to_pdf() is not supported on this engine, which has no PDF export."
+        )
+
+
+class ChartSeries(base_classes.ChartSeries):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.key = key
+
+    @property
+    def index(self):
+        return self.key
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartSeries.api isn't available on this engine: there is no native "
+            "series object, only queued actions."
+        )
+
+    def _state_key(self, attribute):
+        return f"series_{self.index}_{attribute}"
+
+    def _local_or_raise(self, attribute):
+        try:
+            return self.parent._local_or_raise(
+                self._state_key(attribute), f"series {self.index} {attribute}"
+            )
+        except NotImplementedError:
+            raise NotImplementedError(
+                "Reading chart series attributes synchronously isn't supported "
+                f"on this engine. Use 'await series.get_{attribute}()' to fetch "
+                "the value."
+            ) from None
+
+    @property
+    def name(self):
+        return self._local_or_raise("name")
+
+    @name.setter
+    def name(self, value):
+        self.set(name=value)
+
+    @property
+    def marker_style(self):
+        return self._local_or_raise("marker_style")
+
+    @marker_style.setter
+    def marker_style(self, value):
+        self.set(marker_style=value)
+
+    @property
+    def marker_size(self):
+        return self._local_or_raise("marker_size")
+
+    @marker_size.setter
+    def marker_size(self, value):
+        self.set(marker_size=value)
+
+    @property
+    def marker_foreground_color(self):
+        return self._local_or_raise("marker_foreground_color")
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        self.set(marker_foreground_color=value)
+
+    @property
+    def marker_background_color(self):
+        return self._local_or_raise("marker_background_color")
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        self.set(marker_background_color=value)
+
+    @property
+    def line_color(self):
+        return self._local_or_raise("line_color")
+
+    @line_color.setter
+    def line_color(self, value):
+        self.set(line_color=value)
+
+    @property
+    def fill_color(self):
+        return self._local_or_raise("fill_color")
+
+    @fill_color.setter
+    def fill_color(self, value):
+        self.set(fill_color=value)
+
+    def set(
+        self,
+        *,
+        name=base_classes._UNSET,
+        marker_style=base_classes._UNSET,
+        marker_size=base_classes._UNSET,
+        marker_foreground_color=base_classes._UNSET,
+        marker_background_color=base_classes._UNSET,
+        line_color=base_classes._UNSET,
+        fill_color=base_classes._UNSET,
+    ):
+        values = {}
+        local_values = {}
+        for attribute, value in (
+            ("name", name),
+            ("marker_style", marker_style),
+            ("marker_size", marker_size),
+            ("marker_foreground_color", marker_foreground_color),
+            ("marker_background_color", marker_background_color),
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+        ):
+            if value is base_classes._UNSET:
+                continue
+            local_values[attribute] = value
+            if attribute == "marker_style":
+                values[attribute] = _MARKER_STYLE_PY2JS[value]
+            elif attribute.endswith("_color"):
+                values[attribute] = _color_to_hex(value)
+            else:
+                values[attribute] = value
+        if not values:
+            return
+        for attribute, value in local_values.items():
+            self.parent.api[self._state_key(attribute)] = value
+        self.parent.append_json_action(
+            func="setChartSeries",
+            args=[self.parent.index - 1, self.index - 1, values],
+        )
+
+    async def _get_series_data(self, key):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getChartSeriesData(
+            self.parent.parent.name,
+            self.parent.index - 1,
+            self.index - 1,
+            to_js([key]),
+        )
+        value = _normalize_jsnull(data_js.to_py())[key]
+        if key == "marker_style":
+            return _MARKER_STYLE_JS2PY.get(value, value)
+        if key.endswith("_color"):
+            return utils.hex_to_rgb(value) if value else None
+        return value
+
+    async def get_name(self):
+        return await self._get_series_data("name")
+
+    async def get_marker_style(self):
+        return await self._get_series_data("marker_style")
+
+    async def get_marker_size(self):
+        return await self._get_series_data("marker_size")
+
+    async def get_marker_foreground_color(self):
+        return await self._get_series_data("marker_foreground_color")
+
+    async def get_marker_background_color(self):
+        return await self._get_series_data("marker_background_color")
+
+    async def get_line_color(self):
+        return await self._get_series_data("line_color")
+
+    async def get_fill_color(self):
+        return await self._get_series_data("fill_color")
+
+
+class ChartSeriesCollection(base_classes.ChartSeriesCollection):
+    def __init__(self, parent, count=None):
+        self._parent = parent
+        self._count = count
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartSeriesCollection.api isn't available on this engine."
+        )
+
+    def _loaded_count(self):
+        if self._count is None:
+            raise NotImplementedError(
+                "Inspecting chart series synchronously isn't supported on this "
+                "engine. Use 'await chart.get_series()' to fetch the collection."
+            )
+        return self._count
+
+    def __call__(self, key):
+        count = self._loaded_count()
+        if (
+            not isinstance(key, numbers.Integral)
+            or isinstance(key, bool)
+            or key < 1
+            or key > count
+        ):
+            raise KeyError(key)
+        return ChartSeries(self.parent, int(key))
+
+    def __len__(self):
+        return self._loaded_count()
+
+    def __iter__(self):
+        for key in range(1, self._loaded_count() + 1):
+            yield ChartSeries(self.parent, key)
+
+    def __contains__(self, key):
+        return (
+            isinstance(key, numbers.Integral)
+            and not isinstance(key, bool)
+            and 1 <= key <= self._loaded_count()
         )
 
 

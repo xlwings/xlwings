@@ -23,7 +23,7 @@ except ImportError:
 
 import xlwings as xw
 from xlwings import base_classes
-from xlwings.main import Note
+from xlwings.main import ChartSeries, ChartSeriesCollection, Note
 
 this_dir = Path(__file__).resolve().parent
 
@@ -1219,6 +1219,119 @@ def test_chart_axis_set_validates_before_queueing(kwargs, match):
     with pytest.raises(ValueError, match=match):
         book.sheets[0].charts[0].value_axis.set(**kwargs)
     assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_series_bulk_set_queues_one_action_and_writes_through():
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 1))
+
+    series.set(
+        name="Revenue",
+        marker_style="circle",
+        marker_size=8,
+        marker_foreground_color=(17, 34, 51),
+        marker_background_color="#445566",
+        line_color=0x776655,
+        fill_color=(136, 153, 170),
+    )
+
+    assert [(action["func"], action["args"]) for action in _actions(book)] == [
+        (
+            "setChartSeries",
+            [
+                0,
+                0,
+                {
+                    "name": "Revenue",
+                    "marker_style": "Circle",
+                    "marker_size": 8,
+                    "marker_foreground_color": "#112233",
+                    "marker_background_color": "#445566",
+                    "line_color": "#556677",
+                    "fill_color": "#8899aa",
+                },
+            ],
+        )
+    ]
+    assert series.name == "Revenue"
+    assert series.marker_style == "circle"
+    assert series.marker_size == 8
+    assert series.marker_foreground_color == (17, 34, 51)
+    assert series.marker_background_color == (68, 85, 102)
+    assert series.line_color == (85, 102, 119)
+    assert series.fill_color == (136, 153, 170)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        ({"name": 1}, "Invalid series name"),
+        ({"name": "x" * 256}, "at most 255"),
+        ({"marker_style": "picture"}, "Invalid marker_style"),
+        ({"marker_size": 1}, "Invalid marker_size"),
+        ({"marker_size": 2.0}, "Invalid marker_size"),
+        ({"line_color": "red"}, "Invalid line_color"),
+        ({"fill_color": (0, 1, 256)}, "Invalid fill_color"),
+    ],
+)
+def test_chart_series_set_validates_before_queueing(kwargs, match):
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 1))
+    with pytest.raises(ValueError, match=match):
+        series.set(**kwargs)
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_series_collection_requires_async_load_and_is_integer_indexed():
+    from xlwings.pro._xlremote import ChartSeriesCollection as RemoteCollection
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    with pytest.raises(NotImplementedError, match="get_series"):
+        len(chart.series)
+
+    series = ChartSeriesCollection(impl=RemoteCollection(chart.impl, count=2))
+    assert len(series) == 2
+    assert [item.impl.index for item in series] == [1, 2]
+    assert series[0].impl.index == 1
+    assert series[-1].impl.index == 2
+    with pytest.raises(KeyError):
+        series("Revenue")
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(chart.get_series())
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_series_sync_getters_and_api_raise_before_write():
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 1))
+    for attribute in [
+        "name",
+        "marker_style",
+        "marker_size",
+        "marker_foreground_color",
+        "marker_background_color",
+        "line_color",
+        "fill_color",
+    ]:
+        with pytest.raises(NotImplementedError, match=f"get_{attribute}"):
+            getattr(series, attribute)
+    with pytest.raises(NotImplementedError, match="ChartSeries.api"):
+        series.api
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(series.get_name())
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

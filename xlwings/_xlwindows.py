@@ -3175,6 +3175,10 @@ class Chart(base_classes.Chart):
         return ChartAxis(self, "value")
 
     @property
+    def series(self):
+        return ChartSeriesCollection(self.xl.SeriesCollection())
+
+    @property
     def plot_by(self):
         return plot_by_i2s[self.xl.PlotBy]
 
@@ -3262,6 +3266,117 @@ class Chart(base_classes.Chart):
             self.parent.range("A1").select()
         except:  # noqa: E722
             pass
+
+
+class ChartSeries(base_classes.ChartSeries):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def marker_style(self):
+        return marker_styles_i2s[self.xl.MarkerStyle]
+
+    @marker_style.setter
+    def marker_style(self, value):
+        self.xl.MarkerStyle = marker_styles_s2i[value]
+
+    @property
+    def marker_size(self):
+        return int(self.xl.MarkerSize)
+
+    @marker_size.setter
+    def marker_size(self, value):
+        self.xl.MarkerSize = value
+
+    @staticmethod
+    def _color(value):
+        return None if value is None or value < 0 else int_to_rgb(value)
+
+    @property
+    def marker_foreground_color(self):
+        return self._color(self.xl.MarkerForegroundColor)
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        self.xl.MarkerForegroundColor = rgb_to_int(value)
+
+    @property
+    def marker_background_color(self):
+        return self._color(self.xl.MarkerBackgroundColor)
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        self.xl.MarkerBackgroundColor = rgb_to_int(value)
+
+    @property
+    def line_color(self):
+        line = self.xl.Format.Line
+        return None if not line.Visible else self._color(line.ForeColor.RGB)
+
+    @line_color.setter
+    def line_color(self, value):
+        line = self.xl.Format.Line
+        line.Visible = True
+        line.ForeColor.RGB = rgb_to_int(value)
+
+    @property
+    def fill_color(self):
+        fill = self.xl.Format.Fill
+        return None if not fill.Visible else self._color(fill.ForeColor.RGB)
+
+    @fill_color.setter
+    def fill_color(self, value):
+        fill = self.xl.Format.Fill
+        fill.Visible = True
+        fill.Solid()
+        fill.ForeColor.RGB = rgb_to_int(value)
+
+    def set(
+        self,
+        *,
+        name=base_classes._UNSET,
+        marker_style=base_classes._UNSET,
+        marker_size=base_classes._UNSET,
+        marker_foreground_color=base_classes._UNSET,
+        marker_background_color=base_classes._UNSET,
+        line_color=base_classes._UNSET,
+        fill_color=base_classes._UNSET,
+    ):
+        for attribute, value in (
+            ("name", name),
+            # Excel may propagate series line/fill formatting to markers. Apply
+            # explicit marker overrides afterwards so one bulk set preserves
+            # independently requested colors.
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+            ("marker_style", marker_style),
+            ("marker_size", marker_size),
+            ("marker_foreground_color", marker_foreground_color),
+            ("marker_background_color", marker_background_color),
+        ):
+            if value is not base_classes._UNSET:
+                setattr(self, attribute, value)
+
+
+class ChartSeriesCollection(Collection, base_classes.ChartSeriesCollection):
+    _wrap = ChartSeries
+
+    def __call__(self, key):
+        if not isinstance(key, numbers.Integral) or isinstance(key, bool):
+            raise KeyError(key)
+        return super().__call__(key)
 
 
 class ChartAxis(base_classes.ChartAxis):
@@ -4060,6 +4175,21 @@ legend_positions_s2i = {
     "corner": LegendPosition.xlLegendPositionCorner,
 }
 legend_positions_i2s = {v: k for k, v in legend_positions_s2i.items()}
+
+marker_styles_s2i = {
+    "automatic": constants.MarkerStyle.xlMarkerStyleAutomatic,
+    "none": constants.MarkerStyle.xlMarkerStyleNone,
+    "square": constants.MarkerStyle.xlMarkerStyleSquare,
+    "diamond": constants.MarkerStyle.xlMarkerStyleDiamond,
+    "triangle": constants.MarkerStyle.xlMarkerStyleTriangle,
+    "x": constants.MarkerStyle.xlMarkerStyleX,
+    "star": constants.MarkerStyle.xlMarkerStyleStar,
+    "dot": constants.MarkerStyle.xlMarkerStyleDot,
+    "dash": constants.MarkerStyle.xlMarkerStyleDash,
+    "circle": constants.MarkerStyle.xlMarkerStyleCircle,
+    "plus": constants.MarkerStyle.xlMarkerStylePlus,
+}
+marker_styles_i2s = {v: k for k, v in marker_styles_s2i.items()}
 # only ever read back, e.g. after a user dragged the legend
 legend_positions_i2s[LegendPosition.xlLegendPositionCustom] = "custom"
 

@@ -408,6 +408,47 @@ class TestChartFormatting(TestBase):
             with self.assertRaises(ValueError):
                 chart.value_axis.set(**kwargs)
 
+    def test_series(self):
+        sht, chart = self._chart()
+        self.assertEqual(len(chart.series), 2)
+        with self.assertRaises(KeyError):
+            chart.series("a")
+
+        series = chart.series[0]
+        series.set(
+            name="Revenue",
+            marker_style="circle",
+            marker_size=8,
+            marker_foreground_color=(17, 34, 51),
+            marker_background_color="#445566",
+            line_color=(85, 102, 119),
+        )
+
+        actual = sht.charts[0].series[0]
+        self.assertEqual(actual.name, "Revenue")
+        self.assertEqual(actual.marker_style, "circle")
+        self.assertEqual(actual.marker_size, 8)
+        self.assertEqual(actual.marker_foreground_color, (17, 34, 51))
+        self.assertEqual(actual.marker_background_color, (68, 85, 102))
+        self.assertEqual(actual.line_color, (85, 102, 119))
+
+        # Area fill is meaningful for a column series, not a line series.
+        chart.chart_type = "column_clustered"
+        chart.series[0].fill_color = (136, 153, 170)
+        self.assertEqual(sht.charts[0].series[0].fill_color, (136, 153, 170))
+
+    def test_series_validation(self):
+        _, chart = self._chart()
+        for kwargs in [
+            {"name": 1},
+            {"marker_style": "picture"},
+            {"marker_size": 1},
+            {"marker_size": 2.0},
+            {"line_color": "red"},
+        ]:
+            with self.assertRaises(ValueError):
+                chart.series[0].set(**kwargs)
+
     @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
     def test_axes_report_the_apple_script_limitation_on_mac(self):
         _, chart = self._chart()
