@@ -1340,6 +1340,18 @@ class Sheet(base_classes.Sheet):
             return Range(sheet=self, arg1=(1, 1))
         return Range(sheet=self, arg1=(1, 1), arg2=(nrows, ncols))
 
+    async def get_used_range(self, values_only=False):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Sheet.get_used_range() is only supported in xlwings Lite"
+            )
+        import js
+
+        address = _normalize_jsnull(
+            await js.xlwings.getUsedRangeAddress(self.name, values_only)
+        )
+        return Range(sheet=self, arg1=address) if address else None
+
     @property
     def freeze_panes(self):
         return FreezePanes(self)

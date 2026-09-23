@@ -1891,10 +1891,31 @@ class Sheet:
     def used_range(self) -> Range:
         """Used Range of Sheet.
 
+        In xlwings Lite, this is a values-only snapshot and returns `A1` for an empty worksheet. Use {meth}`get_used_range` for a current formatting-aware result that returns `None` when the worksheet is empty.
+
         ```{versionadded} 0.13.0
         ```
         """
         return Range(impl=self.impl.used_range)
+
+    async def get_used_range(self, values_only: bool = False) -> Range | None:
+        """Returns the used range fetched from the current worksheet state.
+
+        Args:
+            values_only: If `True`, only cells with values count as used. If `False`, cells with values or formatting count as used.
+
+        Returns:
+            The used range, or `None` if the worksheet is empty according to `values_only`.
+
+        Requires xlwings Lite. Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        if not isinstance(values_only, bool):
+            raise TypeError("values_only must be a bool")
+        impl = await self.impl.get_used_range(values_only)
+        return Range(impl=impl) if impl else None
 
     @property
     def visible(self) -> bool:
