@@ -3267,6 +3267,11 @@ class Chart(base_classes.Chart):
 
     @property
     def series(self):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart series require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
         return ChartSeriesCollection(self)
 
     async def get_series(self):
@@ -3598,6 +3603,8 @@ class ChartSeries(base_classes.ChartSeries):
         value = _normalize_jsnull(data_js.to_py())[key]
         if key == "marker_style":
             return _MARKER_STYLE_JS2PY.get(value, value)
+        if key == "marker_size" and value is not None:
+            return int(value)
         if key.endswith("_color"):
             return utils.hex_to_rgb(value) if value else None
         return value

@@ -1311,6 +1311,15 @@ def test_chart_series_collection_requires_async_load_and_is_integer_indexed():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_pending_chart_series_requires_source_data():
+    book = _fresh_book()
+    chart = book.sheets[0].charts.add()
+
+    with pytest.raises(xw.XlwingsError, match="set_source_data"):
+        chart.series
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_series_sync_getters_and_api_raise_before_write():
     from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
 

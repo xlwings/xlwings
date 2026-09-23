@@ -5648,6 +5648,13 @@ class ChartAxis:
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
 
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> chart.value_axis.set(
+    ...     title="Revenue", minimum_scale=0, major_unit=10_000
+    ... )
+    ```
+
     ```{versionadded} 0.37.5
     ```
     """
@@ -5825,6 +5832,12 @@ class ChartSeries:
     {attr}`Chart.series <xlwings.Chart.series>` and {meth}`Chart.get_series <xlwings.Chart.get_series>` return a {class}`ChartSeriesCollection <xlwings.main.ChartSeriesCollection>`. Indexing or iterating that collection returns `ChartSeries` objects.
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch current values from Excel.
+
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> series = chart.series[0]
+    >>> series.set(name="Revenue", marker_style="circle", marker_size=8)
+    ```
 
     ```{versionadded} 0.37.5
     ```

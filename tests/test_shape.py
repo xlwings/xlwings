@@ -395,6 +395,19 @@ class TestChartFormatting(TestBase):
         axis.title = "Revenue"
         self.assertEqual(sht.charts["Renamed"].value_axis.title, "Revenue")
 
+    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
+    def test_axis_bulk_set_formats_hidden_axis_before_hiding(self):
+        _, chart = self._chart()
+        axis = chart.value_axis
+        axis.visible = False
+
+        axis.set(minimum_scale=0, number_format="0.0", visible=False)
+
+        self.assertFalse(axis.visible)
+        axis.visible = True
+        self.assertEqual(axis.minimum_scale, 0)
+        self.assertEqual(axis.number_format, "0.0")
+
     def test_axis_validation(self):
         _, chart = self._chart()
         for kwargs in [

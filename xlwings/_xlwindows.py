@@ -3397,11 +3397,12 @@ class ChartAxis(base_classes.ChartAxis):
     def visible(self):
         # HasAxis is an indexed COM property. The generated pywin32 wrapper
         # treats attribute access as a zero-argument property read, even when
-        # called with the two indexes, so invoke the property directly.
-        chart = self.parent.xl._inner
-        dispid = chart._oleobj_.GetIDsOfNames(0, "HasAxis")
+        # called with the two indexes, so invoke the property directly. Wrap
+        # both low-level calls to retain the normal retry-on-busy behavior.
+        oleobj = self.parent.xl._oleobj_
+        dispid = COMRetryMethodWrapper(oleobj.GetIDsOfNames)(0, "HasAxis")
         return bool(
-            chart._oleobj_.Invoke(
+            COMRetryMethodWrapper(oleobj.Invoke)(
                 dispid,
                 0,
                 pythoncom.DISPATCH_PROPERTYGET,
@@ -3414,10 +3415,11 @@ class ChartAxis(base_classes.ChartAxis):
     @visible.setter
     def visible(self, value):
         # Python assignment can't express the two indexes, so invoke the
-        # property-put directly with its runtime-resolved DISPID.
-        chart = self.parent.xl._inner
-        dispid = chart._oleobj_.GetIDsOfNames(0, "HasAxis")
-        chart._oleobj_.Invoke(
+        # property-put directly with its runtime-resolved DISPID. Wrap both
+        # low-level calls to retain the normal retry-on-busy behavior.
+        oleobj = self.parent.xl._oleobj_
+        dispid = COMRetryMethodWrapper(oleobj.GetIDsOfNames)(0, "HasAxis")
+        COMRetryMethodWrapper(oleobj.Invoke)(
             dispid,
             0,
             pythoncom.DISPATCH_PROPERTYPUT,
@@ -3508,7 +3510,11 @@ class ChartAxis(base_classes.ChartAxis):
         number_format=base_classes._UNSET,
         visible=base_classes._UNSET,
     ):
-        if visible is True:
+        attributes = (title, minimum_scale, maximum_scale, major_unit, number_format)
+        if visible is True or (
+            visible is False
+            and any(value is not base_classes._UNSET for value in attributes)
+        ):
             self.visible = True
         if title is not base_classes._UNSET:
             self.title = title
