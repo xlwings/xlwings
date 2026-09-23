@@ -5644,11 +5644,9 @@ class Chart:
 
 
 class ChartAxis:
-    """A primary chart axis, accessed through {attr}`Chart.category_axis` or {attr}`Chart.value_axis`.
+    """A primary chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` or {attr}`Chart.value_axis <xlwings.Chart.value_axis>`.
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
-
-    Chart-axis access is supported on Windows, xlwings Lite, and xlwings Server. Excel for Mac's AppleScript interface does not expose usable axis references, so these operations raise `NotImplementedError` on macOS.
 
     ```{versionadded} 0.37.5
     ```
@@ -5822,7 +5820,9 @@ class ChartAxis:
 
 
 class ChartSeries:
-    """A chart data series, accessed through {attr}`Chart.series` or {meth}`Chart.get_series`.
+    """A chart data series.
+
+    {attr}`Chart.series <xlwings.Chart.series>` and {meth}`Chart.get_series <xlwings.Chart.get_series>` return a {class}`ChartSeriesCollection <xlwings.main.ChartSeriesCollection>`. Indexing or iterating that collection returns `ChartSeries` objects.
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch current values from Excel.
 
@@ -5964,31 +5964,45 @@ class ChartSeries:
         )
 
     async def get_name(self) -> str:
-        """Fetches the displayed series name. Requires xlwings Lite."""
+        """Fetches the displayed series name.
+
+        Requires xlwings Lite."""
         return await self.impl.get_name()
 
     async def get_marker_style(self) -> ChartMarkerStyle:
-        """Fetches the marker style. Requires xlwings Lite."""
+        """Fetches the marker style.
+
+        Requires xlwings Lite."""
         return await self.impl.get_marker_style()
 
     async def get_marker_size(self) -> int:
-        """Fetches the marker size. Requires xlwings Lite."""
+        """Fetches the marker size.
+
+        Requires xlwings Lite."""
         return await self.impl.get_marker_size()
 
     async def get_marker_foreground_color(self) -> tuple[int, int, int] | None:
-        """Fetches the marker foreground color. Requires xlwings Lite."""
+        """Fetches the marker foreground color.
+
+        Requires xlwings Lite."""
         return await self.impl.get_marker_foreground_color()
 
     async def get_marker_background_color(self) -> tuple[int, int, int] | None:
-        """Fetches the marker background color. Requires xlwings Lite."""
+        """Fetches the marker background color.
+
+        Requires xlwings Lite."""
         return await self.impl.get_marker_background_color()
 
     async def get_line_color(self) -> tuple[int, int, int] | None:
-        """Fetches the series line color. Requires xlwings Lite."""
+        """Fetches the series line color.
+
+        Requires xlwings Lite."""
         return await self.impl.get_line_color()
 
     async def get_fill_color(self) -> tuple[int, int, int] | None:
-        """Fetches the solid series fill color. Requires xlwings Lite and ExcelApi 1.16."""
+        """Fetches the solid series fill color.
+
+        Requires xlwings Lite."""
         return await self.impl.get_fill_color()
 
     def __repr__(self) -> str:
@@ -5999,6 +6013,16 @@ class ChartSeriesCollection(Collection[ChartSeries]):
     """An ordered, integer-indexed collection of chart series.
 
     Series names aren't unique in Excel, so string lookup isn't supported.
+
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> series = chart.series
+    >>> len(series)
+    2
+    >>> series[0].set(name="Revenue", marker_style="circle", marker_size=8)
+    ```
+
+    In xlwings Lite, use `series = await chart.get_series()` instead of `chart.series`.
 
     ```{versionadded} 0.37.5
     ```
