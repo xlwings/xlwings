@@ -2715,6 +2715,30 @@ class Range:
         """
         return await self._impl.get_color()
 
+    async def get_colors(self) -> list[list[tuple[int, int, int] | None]]:
+        """Returns the fill color of every cell as a two-dimensional list.
+
+        Each entry is an RGB tuple, or `None` for no fill color. The result always has the range's row and column dimensions, including `[[color]]` for a single cell; conversion options such as `ndim` and `transpose` do not affect it.
+
+        Reads direct cell fills, excluding colors supplied by conditional formatting or table styles. For patterned fills, returns the background fill color, not the pattern color or rendered appearance.
+
+        A call supports at most 100,000 cells.
+
+        Examples:
+            ```python
+            colors = await sheet["A1:B2"].get_colors()
+            # [[(255, 0, 0), None], [(255, 255, 255), (0, 0, 255)]]
+            ```
+
+        See {meth}`get_color <xlwings.Range.get_color>` for a single range-level fill color.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return await self._impl.get_colors()
+
     async def get_conditional_formats(self) -> ConditionalFormats:
         """Fetch the ordered conditional-format rules on demand.
 

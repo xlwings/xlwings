@@ -1902,6 +1902,13 @@ class Range(base_classes.Range):
         color = await self._get_range_data("color")
         return utils.hex_to_rgb(color) if color else None
 
+    async def get_colors(self):
+        colors = await self._get_range_data("colors")
+        return [
+            [utils.hex_to_rgb(color) if color is not None else None for color in row]
+            for row in colors
+        ]
+
     async def get_wrap_text(self):
         return await self._get_range_data("wrap_text")
 
