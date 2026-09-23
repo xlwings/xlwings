@@ -1597,6 +1597,12 @@ class Range(base_classes.Range):
             else:
                 self.xl.Interior.Color = rgb_to_int(color_or_rgb)
 
+    def set_colors(self, colors):
+        for row_index, row in enumerate(colors):
+            for column_index, color in enumerate(row):
+                if color is not ...:
+                    self(row_index + 1, column_index + 1).color = color
+
     @property
     def name(self):
         if self.xl is not None:

@@ -102,3 +102,73 @@ def test_colors_require_lite_on_remote():
 def test_colors_require_lite_on_other_engines():
     with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
         asyncio.run(xw.Range(impl=base_classes.Range()).get_colors())
+
+
+def test_set_colors_queues_one_shape_preserving_action():
+    book = make_book()
+    rng = book.sheets[0]["B3:D4"]
+
+    assert rng.set_colors([[(0, 128, 0), ..., None], ["#FFFFFF", 255, ...]]) is None
+
+    (action,) = book.impl.json()["actions"]
+    assert action["func"] == "setRangeColors"
+    assert action["args"] == [
+        [["#008000", "keep", None], ["#ffffff", "#ff0000", "keep"]]
+    ]
+    assert action["values"] is None
+    assert (action["start_row"], action["start_column"]) == (2, 1)
+    assert (action["row_count"], action["column_count"]) == (2, 3)
+
+
+def test_set_colors_single_cell_and_all_unchanged():
+    book = make_book()
+    rng = book.sheets[0]["A1"]
+    rng.set_colors([[...]])
+    assert book.impl.json()["actions"] == []
+    rng.set_colors([[None]])
+    assert book.impl.json()["actions"][0]["args"] == [[[None]]]
+
+
+def test_set_colors_preserves_remote_null_selection_no_op():
+    book = make_book()
+    rng = xw.Range(impl=R.Range(sheet=book.sheets[0].impl, arg1=None))
+    assert rng.shape == (1, 1)
+    assert rng.set_colors([]) is None
+    assert rng.set_colors([[(255, 0, 0)]]) is None
+    assert book.impl.json()["actions"] == []
+
+
+def test_set_colors_accepts_rgb_lists_and_excel_packed_integers():
+    book = make_book()
+    book.sheets[0]["A1:C1"].set_colors([[[0, 128, 0], 0x0000FF, 0xFF0000]])
+    assert book.impl.json()["actions"][0]["args"] == [
+        [["#008000", "#ff0000", "#0000ff"]]
+    ]
+
+
+@pytest.mark.parametrize(
+    "colors",
+    [
+        (255, 0, 0),
+        [["#ff0000"]],
+        [["#ff0000", None], [None, None]],
+        [["red", None]],
+        [["#ff0000", "red"]],
+        [[(256, 0, 0), None]],
+        [[(True, 0, 0), None]],
+        [[True, None]],
+        [[-1, None]],
+    ],
+)
+def test_set_colors_rejects_invalid_input_without_queuing(colors):
+    book = make_book()
+    with pytest.raises(ValueError):
+        book.sheets[0]["A1:B1"].set_colors(colors)
+    assert book.impl.json()["actions"] == []
+
+
+def test_set_colors_rejects_large_range_without_queuing():
+    book = make_book()
+    with pytest.raises(ValueError, match="10,000"):
+        book.sheets[0]["A1:A10001"].set_colors([])
+    assert book.impl.json()["actions"] == []

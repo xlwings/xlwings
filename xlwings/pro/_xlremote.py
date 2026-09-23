@@ -1735,6 +1735,16 @@ class Range(base_classes.Range):
     def color(self, value):
         self.append_json_action(func="setRangeColor", args=_color_to_hex(value))
 
+    def set_colors(self, colors):
+        matrix = [
+            ["keep" if color is ... else _color_to_hex(color) for color in row]
+            for row in colors
+        ]
+        self.append_json_action(
+            func="setRangeColors",
+            args=[matrix],
+        )
+
     @property
     def formula(self):
         # Formulas aren't part of the payload that the client sends with every

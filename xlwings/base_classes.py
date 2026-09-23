@@ -898,6 +898,9 @@ class Range:
             "Range.get_colors() is only supported in xlwings Lite"
         )
 
+    def set_colors(self, colors):
+        raise NotImplementedError("Range.set_colors() is not supported by this engine")
+
     async def get_conditional_formats(self):
         raise NotImplementedError(
             "get_conditional_formats() is only supported in xlwings Lite"
