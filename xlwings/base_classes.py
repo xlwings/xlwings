@@ -284,8 +284,22 @@ BORDER_GRID_SIDES = BORDER_SIDES[:6]
 # main.Chart validates them so engines only ever see the canonical names.
 ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
 ChartPlotBy = Literal["rows", "columns"]
+ChartMarkerStyle = Literal[
+    "automatic",
+    "none",
+    "square",
+    "diamond",
+    "triangle",
+    "x",
+    "star",
+    "dot",
+    "dash",
+    "circle",
+    "plus",
+]
 CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
 CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
+CHART_MARKER_STYLES: tuple[str, ...] = get_args(ChartMarkerStyle)
 
 # The pivot table vocabulary. PivotFunction lists Excel's "Summarize Values By"
 # options, named after the worksheet functions: note that "count" counts
@@ -1956,6 +1970,21 @@ class Chart:
         raise NotImplementedError()
 
     @property
+    def category_axis(self):
+        raise NotImplementedError()
+
+    @property
+    def value_axis(self):
+        raise NotImplementedError()
+
+    @property
+    def series(self):
+        raise NotImplementedError()
+
+    async def get_series(self):
+        raise NotImplementedError("get_series() is only supported in xlwings Lite")
+
+    @property
     def plot_by(self):
         raise NotImplementedError()
 
@@ -2014,6 +2043,202 @@ class Chart:
 
     async def get_png(self):
         raise NotImplementedError("get_png() is only supported in xlwings Lite")
+
+
+class ChartAxis:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def title(self):
+        raise NotImplementedError()
+
+    @title.setter
+    def title(self, value):
+        raise NotImplementedError()
+
+    @property
+    def minimum_scale(self):
+        raise NotImplementedError()
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        raise NotImplementedError()
+
+    @property
+    def maximum_scale(self):
+        raise NotImplementedError()
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        raise NotImplementedError()
+
+    @property
+    def major_unit(self):
+        raise NotImplementedError()
+
+    @major_unit.setter
+    def major_unit(self, value):
+        raise NotImplementedError()
+
+    @property
+    def number_format(self):
+        raise NotImplementedError()
+
+    @number_format.setter
+    def number_format(self, value):
+        raise NotImplementedError()
+
+    @property
+    def visible(self):
+        raise NotImplementedError()
+
+    @visible.setter
+    def visible(self, value):
+        raise NotImplementedError()
+
+    def set(
+        self,
+        *,
+        title=_UNSET,
+        minimum_scale=_UNSET,
+        maximum_scale=_UNSET,
+        major_unit=_UNSET,
+        number_format=_UNSET,
+        visible=_UNSET,
+    ):
+        raise NotImplementedError()
+
+    async def get_title(self):
+        raise NotImplementedError("get_title() is only supported in xlwings Lite")
+
+    async def get_minimum_scale(self):
+        raise NotImplementedError(
+            "get_minimum_scale() is only supported in xlwings Lite"
+        )
+
+    async def get_maximum_scale(self):
+        raise NotImplementedError(
+            "get_maximum_scale() is only supported in xlwings Lite"
+        )
+
+    async def get_major_unit(self):
+        raise NotImplementedError("get_major_unit() is only supported in xlwings Lite")
+
+    async def get_number_format(self):
+        raise NotImplementedError(
+            "get_number_format() is only supported in xlwings Lite"
+        )
+
+    async def get_visible(self):
+        raise NotImplementedError("get_visible() is only supported in xlwings Lite")
+
+
+class ChartSeries:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def marker_style(self):
+        raise NotImplementedError()
+
+    @marker_style.setter
+    def marker_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def marker_size(self):
+        raise NotImplementedError()
+
+    @marker_size.setter
+    def marker_size(self, value):
+        raise NotImplementedError()
+
+    @property
+    def marker_foreground_color(self):
+        raise NotImplementedError()
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        raise NotImplementedError()
+
+    @property
+    def marker_background_color(self):
+        raise NotImplementedError()
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        raise NotImplementedError()
+
+    @property
+    def line_color(self):
+        raise NotImplementedError()
+
+    @line_color.setter
+    def line_color(self, value):
+        raise NotImplementedError()
+
+    @property
+    def fill_color(self):
+        raise NotImplementedError()
+
+    @fill_color.setter
+    def fill_color(self, value):
+        raise NotImplementedError()
+
+    def set(
+        self,
+        *,
+        name=_UNSET,
+        marker_style=_UNSET,
+        marker_size=_UNSET,
+        marker_foreground_color=_UNSET,
+        marker_background_color=_UNSET,
+        line_color=_UNSET,
+        fill_color=_UNSET,
+    ):
+        raise NotImplementedError()
+
+    async def get_name(self):
+        raise NotImplementedError("get_name() is only supported in xlwings Lite")
+
+    async def get_marker_style(self):
+        raise NotImplementedError(
+            "get_marker_style() is only supported in xlwings Lite"
+        )
+
+    async def get_marker_size(self):
+        raise NotImplementedError("get_marker_size() is only supported in xlwings Lite")
+
+    async def get_marker_foreground_color(self):
+        raise NotImplementedError(
+            "get_marker_foreground_color() is only supported in xlwings Lite"
+        )
+
+    async def get_marker_background_color(self):
+        raise NotImplementedError(
+            "get_marker_background_color() is only supported in xlwings Lite"
+        )
+
+    async def get_line_color(self):
+        raise NotImplementedError("get_line_color() is only supported in xlwings Lite")
+
+    async def get_fill_color(self):
+        raise NotImplementedError("get_fill_color() is only supported in xlwings Lite")
+
+
+class ChartSeriesCollection(Collection):
+    pass
 
 
 class ChartLegend:

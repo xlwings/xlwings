@@ -56,6 +56,8 @@ import xlwings
 
 from . import base_classes, constants, utils
 from .constants import (
+    AxisGroup,
+    AxisType,
     ColorIndex,
     ConsolidationFunction,
     DeleteShiftDirection,
@@ -3165,6 +3167,18 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
+    def series(self):
+        return ChartSeriesCollection(self.xl.SeriesCollection())
+
+    @property
     def plot_by(self):
         return plot_by_i2s[self.xl.PlotBy]
 
@@ -3252,6 +3266,268 @@ class Chart(base_classes.Chart):
             self.parent.range("A1").select()
         except:  # noqa: E722
             pass
+
+
+class ChartSeries(base_classes.ChartSeries):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def marker_style(self):
+        return marker_styles_i2s[self.xl.MarkerStyle]
+
+    @marker_style.setter
+    def marker_style(self, value):
+        self.xl.MarkerStyle = marker_styles_s2i[value]
+
+    @property
+    def marker_size(self):
+        return int(self.xl.MarkerSize)
+
+    @marker_size.setter
+    def marker_size(self, value):
+        self.xl.MarkerSize = value
+
+    @staticmethod
+    def _color(value):
+        return None if value is None or value < 0 else int_to_rgb(value)
+
+    @property
+    def marker_foreground_color(self):
+        return self._color(self.xl.MarkerForegroundColor)
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        self.xl.MarkerForegroundColor = rgb_to_int(value)
+
+    @property
+    def marker_background_color(self):
+        return self._color(self.xl.MarkerBackgroundColor)
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        self.xl.MarkerBackgroundColor = rgb_to_int(value)
+
+    @property
+    def line_color(self):
+        line = self.xl.Format.Line
+        return None if not line.Visible else self._color(line.ForeColor.RGB)
+
+    @line_color.setter
+    def line_color(self, value):
+        line = self.xl.Format.Line
+        line.Visible = True
+        line.ForeColor.RGB = rgb_to_int(value)
+
+    @property
+    def fill_color(self):
+        fill = self.xl.Format.Fill
+        return None if not fill.Visible else self._color(fill.ForeColor.RGB)
+
+    @fill_color.setter
+    def fill_color(self, value):
+        fill = self.xl.Format.Fill
+        fill.Visible = True
+        fill.Solid()
+        fill.ForeColor.RGB = rgb_to_int(value)
+
+    def set(
+        self,
+        *,
+        name=base_classes._UNSET,
+        marker_style=base_classes._UNSET,
+        marker_size=base_classes._UNSET,
+        marker_foreground_color=base_classes._UNSET,
+        marker_background_color=base_classes._UNSET,
+        line_color=base_classes._UNSET,
+        fill_color=base_classes._UNSET,
+    ):
+        for attribute, value in (
+            ("name", name),
+            # Excel may propagate series line/fill formatting to markers. Apply
+            # explicit marker overrides afterwards so one bulk set preserves
+            # independently requested colors.
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+            ("marker_style", marker_style),
+            ("marker_size", marker_size),
+            ("marker_foreground_color", marker_foreground_color),
+            ("marker_background_color", marker_background_color),
+        ):
+            if value is not base_classes._UNSET:
+                setattr(self, attribute, value)
+
+
+class ChartSeriesCollection(Collection, base_classes.ChartSeriesCollection):
+    _wrap = ChartSeries
+
+    def __call__(self, key):
+        if not isinstance(key, numbers.Integral) or isinstance(key, bool):
+            raise KeyError(key)
+        return super().__call__(key)
+
+
+class ChartAxis(base_classes.ChartAxis):
+    _axis_types = {
+        "category": AxisType.xlCategory,
+        "value": AxisType.xlValue,
+    }
+
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    @property
+    def _xl_axis_type(self):
+        return self._axis_types[self.axis_type]
+
+    @property
+    def visible(self):
+        # HasAxis is an indexed COM property. The generated pywin32 wrapper
+        # treats attribute access as a zero-argument property read, even when
+        # called with the two indexes, so invoke the property directly. Wrap
+        # both low-level calls to retain the normal retry-on-busy behavior.
+        oleobj = self.parent.xl._oleobj_
+        dispid = COMRetryMethodWrapper(oleobj.GetIDsOfNames)(0, "HasAxis")
+        return bool(
+            COMRetryMethodWrapper(oleobj.Invoke)(
+                dispid,
+                0,
+                pythoncom.DISPATCH_PROPERTYGET,
+                1,
+                self._xl_axis_type,
+                AxisGroup.xlPrimary,
+            )
+        )
+
+    @visible.setter
+    def visible(self, value):
+        # Python assignment can't express the two indexes, so invoke the
+        # property-put directly with its runtime-resolved DISPID. Wrap both
+        # low-level calls to retain the normal retry-on-busy behavior.
+        oleobj = self.parent.xl._oleobj_
+        dispid = COMRetryMethodWrapper(oleobj.GetIDsOfNames)(0, "HasAxis")
+        COMRetryMethodWrapper(oleobj.Invoke)(
+            dispid,
+            0,
+            pythoncom.DISPATCH_PROPERTYPUT,
+            0,
+            self._xl_axis_type,
+            AxisGroup.xlPrimary,
+            bool(value),
+        )
+
+    def _axis(self):
+        if not self.visible:
+            raise xlwings.XlwingsError(
+                f"The chart has no visible primary {self.axis_type} axis."
+            )
+        return self.parent.xl.Axes(self._xl_axis_type, AxisGroup.xlPrimary)
+
+    @property
+    def api(self):
+        return self._axis() if self.visible else None
+
+    @property
+    def title(self):
+        if not self.visible:
+            return None
+        axis = self._axis()
+        return axis.AxisTitle.Text if axis.HasTitle else None
+
+    @title.setter
+    def title(self, value):
+        if value is None:
+            if self.visible:
+                self._axis().HasTitle = False
+            return
+        self.visible = True
+        axis = self._axis()
+        axis.HasTitle = True
+        axis.AxisTitle.Text = value
+
+    def _get_scale(self, attribute):
+        return float(getattr(self._axis(), attribute))
+
+    def _set_scale(self, attribute, auto_attribute, value):
+        axis = self._axis()
+        if value is None:
+            setattr(axis, auto_attribute, True)
+        else:
+            setattr(axis, attribute, value)
+
+    @property
+    def minimum_scale(self):
+        return self._get_scale("MinimumScale")
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self._set_scale("MinimumScale", "MinimumScaleIsAuto", value)
+
+    @property
+    def maximum_scale(self):
+        return self._get_scale("MaximumScale")
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self._set_scale("MaximumScale", "MaximumScaleIsAuto", value)
+
+    @property
+    def major_unit(self):
+        return self._get_scale("MajorUnit")
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._set_scale("MajorUnit", "MajorUnitIsAuto", value)
+
+    @property
+    def number_format(self):
+        return self._axis().TickLabels.NumberFormat
+
+    @number_format.setter
+    def number_format(self, value):
+        self._axis().TickLabels.NumberFormat = value
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        attributes = (title, minimum_scale, maximum_scale, major_unit, number_format)
+        if visible is True or (
+            visible is False
+            and any(value is not base_classes._UNSET for value in attributes)
+        ):
+            self.visible = True
+        if title is not base_classes._UNSET:
+            self.title = title
+        if minimum_scale is not base_classes._UNSET:
+            self.minimum_scale = minimum_scale
+        if maximum_scale is not base_classes._UNSET:
+            self.maximum_scale = maximum_scale
+        if major_unit is not base_classes._UNSET:
+            self.major_unit = major_unit
+        if number_format is not base_classes._UNSET:
+            self.number_format = number_format
+        if visible is False:
+            self.visible = False
 
 
 class ChartLegend(base_classes.ChartLegend):
@@ -3905,6 +4181,21 @@ legend_positions_s2i = {
     "corner": LegendPosition.xlLegendPositionCorner,
 }
 legend_positions_i2s = {v: k for k, v in legend_positions_s2i.items()}
+
+marker_styles_s2i = {
+    "automatic": constants.MarkerStyle.xlMarkerStyleAutomatic,
+    "none": constants.MarkerStyle.xlMarkerStyleNone,
+    "square": constants.MarkerStyle.xlMarkerStyleSquare,
+    "diamond": constants.MarkerStyle.xlMarkerStyleDiamond,
+    "triangle": constants.MarkerStyle.xlMarkerStyleTriangle,
+    "x": constants.MarkerStyle.xlMarkerStyleX,
+    "star": constants.MarkerStyle.xlMarkerStyleStar,
+    "dot": constants.MarkerStyle.xlMarkerStyleDot,
+    "dash": constants.MarkerStyle.xlMarkerStyleDash,
+    "circle": constants.MarkerStyle.xlMarkerStyleCircle,
+    "plus": constants.MarkerStyle.xlMarkerStylePlus,
+}
+marker_styles_i2s = {v: k for k, v in marker_styles_s2i.items()}
 # only ever read back, e.g. after a user dragged the legend
 legend_positions_i2s[LegendPosition.xlLegendPositionCustom] = "custom"
 

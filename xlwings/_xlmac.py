@@ -2962,6 +2962,18 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
+    def series(self):
+        return ChartSeriesCollection(self)
+
+    @property
     def plot_by(self):
         return plot_by_k2s[self.xl.plot_by.get()]
 
@@ -3060,6 +3072,202 @@ class Chart(base_classes.Chart):
 
     def to_pdf(self, path, quality=None):
         raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
+
+
+class ChartSeries(base_classes.ChartSeries):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.key = key
+
+    @property
+    def xl(self):
+        return self.parent.xl.series_collection[self.key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+
+    @property
+    def marker_style(self):
+        return marker_styles_k2s[self.xl.marker_style.get()]
+
+    @marker_style.setter
+    def marker_style(self, value):
+        self.xl.marker_style.set(marker_styles_s2k[value])
+
+    @property
+    def marker_size(self):
+        return self.xl.marker_size.get()
+
+    @marker_size.setter
+    def marker_size(self, value):
+        self.xl.marker_size.set(value)
+
+    @staticmethod
+    def _color(value):
+        if value is None or value == kw.missing_value:
+            return None
+        return tuple(value)
+
+    @property
+    def marker_foreground_color(self):
+        return self._color(self.xl.marker_foreground_color.get())
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        self.xl.marker_foreground_color.set(value)
+
+    @property
+    def marker_background_color(self):
+        return self._color(self.xl.marker_background_color.get())
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        self.xl.marker_background_color.set(value)
+
+    @property
+    def line_color(self):
+        line = self.xl.chart_format.line_format
+        return self._color(line.fore_color.get()) if line.visible.get() else None
+
+    @line_color.setter
+    def line_color(self, value):
+        line = self.xl.chart_format.line_format
+        line.visible.set(True)
+        line.fore_color.set(value)
+
+    @property
+    def fill_color(self):
+        fill = self.xl.chart_format.fill_format
+        return self._color(fill.fore_color.get()) if fill.visible.get() else None
+
+    @fill_color.setter
+    def fill_color(self, value):
+        fill = self.xl.chart_format.fill_format
+        fill.visible.set(True)
+        fill.solid()
+        fill.fore_color.set(value)
+
+    def set(
+        self,
+        *,
+        name=base_classes._UNSET,
+        marker_style=base_classes._UNSET,
+        marker_size=base_classes._UNSET,
+        marker_foreground_color=base_classes._UNSET,
+        marker_background_color=base_classes._UNSET,
+        line_color=base_classes._UNSET,
+        fill_color=base_classes._UNSET,
+    ):
+        for attribute, value in (
+            ("name", name),
+            # Excel may propagate series line/fill formatting to markers. Apply
+            # explicit marker overrides afterwards so one bulk set preserves
+            # independently requested colors.
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+            ("marker_style", marker_style),
+            ("marker_size", marker_size),
+            ("marker_foreground_color", marker_foreground_color),
+            ("marker_background_color", marker_background_color),
+        ):
+            if value is not base_classes._UNSET:
+                setattr(self, attribute, value)
+
+
+class ChartSeriesCollection(Collection, base_classes.ChartSeriesCollection):
+    _attr = "series_collection"
+    _kw = kw.series
+    _wrap = ChartSeries
+
+    def __call__(self, key):
+        if not isinstance(key, numbers.Integral) or isinstance(key, bool):
+            raise KeyError(key)
+        return super().__call__(key)
+
+
+class ChartAxis(base_classes.ChartAxis):
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    def _unsupported(self):
+        raise NotImplementedError(
+            "ChartAxis isn't supported on macOS because Excel's AppleScript "
+            "axis references can't be read or formatted."
+        )
+
+    @property
+    def api(self):
+        self._unsupported()
+
+    @property
+    def title(self):
+        self._unsupported()
+
+    @title.setter
+    def title(self, value):
+        self._unsupported()
+
+    @property
+    def minimum_scale(self):
+        self._unsupported()
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self._unsupported()
+
+    @property
+    def maximum_scale(self):
+        self._unsupported()
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self._unsupported()
+
+    @property
+    def major_unit(self):
+        self._unsupported()
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._unsupported()
+
+    @property
+    def number_format(self):
+        self._unsupported()
+
+    @number_format.setter
+    def number_format(self, value):
+        self._unsupported()
+
+    @property
+    def visible(self):
+        self._unsupported()
+
+    @visible.setter
+    def visible(self, value):
+        self._unsupported()
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        self._unsupported()
 
 
 class ChartLegend(base_classes.ChartLegend):
@@ -4138,6 +4346,21 @@ legend_positions_k2s = {
     kw.legend_position_corner: "corner",
 }
 legend_positions_s2k = {v: k for k, v in legend_positions_k2s.items()}
+
+marker_styles_s2k = {
+    "automatic": kw.marker_style_automatic,
+    "none": kw.marker_style_none,
+    "square": kw.marker_style_square,
+    "diamond": kw.marker_style_diamond,
+    "triangle": kw.marker_style_triangle,
+    "x": kw.marker_style_x,
+    "star": kw.marker_style_star,
+    "dot": kw.marker_style_dot,
+    "dash": kw.marker_style_dash,
+    "circle": kw.marker_style_circle,
+    "plus": kw.marker_style_plus,
+}
+marker_styles_k2s = {v: k for k, v in marker_styles_s2k.items()}
 
 # Note the differing keyword prefixes: horizontal_align_* vs vertical_alignment_*
 horizontal_alignments_s2k = {

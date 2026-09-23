@@ -353,6 +353,121 @@ class TestChartFormatting(TestBase):
         chart.title = "After"
         self.assertEqual(sht.charts["Renamed"].title, "After")
 
+    def test_axes(self):
+        sht, chart = self._chart()
+        chart.category_axis.title = "Category"
+        chart.value_axis.set(
+            title="Revenue",
+            minimum_scale=0,
+            maximum_scale=100,
+            major_unit=20,
+            number_format="0.00",
+            visible=True,
+        )
+
+        self.assertEqual(sht.charts[0].category_axis.title, "Category")
+        self.assertEqual(sht.charts[0].value_axis.title, "Revenue")
+        self.assertEqual(sht.charts[0].value_axis.minimum_scale, 0)
+        self.assertEqual(sht.charts[0].value_axis.maximum_scale, 100)
+        self.assertEqual(sht.charts[0].value_axis.major_unit, 20)
+        self.assertEqual(sht.charts[0].value_axis.number_format, "0.00")
+        self.assertTrue(sht.charts[0].value_axis.visible)
+
+        chart.value_axis.minimum_scale = None
+        chart.value_axis.maximum_scale = None
+        chart.value_axis.major_unit = None
+        self.assertIsInstance(chart.value_axis.minimum_scale, (int, float))
+        self.assertIsInstance(chart.value_axis.maximum_scale, (int, float))
+        self.assertIsInstance(chart.value_axis.major_unit, (int, float))
+
+        chart.category_axis.title = None
+        self.assertIsNone(chart.category_axis.title)
+        chart.category_axis.visible = False
+        self.assertFalse(chart.category_axis.visible)
+        self.assertIsNone(chart.category_axis.title)
+        chart.category_axis.visible = True
+        self.assertTrue(chart.category_axis.visible)
+
+    def test_axis_retained_after_rename(self):
+        sht, chart = self._chart()
+        axis = chart.value_axis
+        chart.name = "Renamed"
+        axis.title = "Revenue"
+        self.assertEqual(sht.charts["Renamed"].value_axis.title, "Revenue")
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
+    def test_axis_bulk_set_formats_hidden_axis_before_hiding(self):
+        _, chart = self._chart()
+        axis = chart.value_axis
+        axis.visible = False
+
+        axis.set(minimum_scale=0, number_format="0.0", visible=False)
+
+        self.assertFalse(axis.visible)
+        axis.visible = True
+        self.assertEqual(axis.minimum_scale, 0)
+        self.assertEqual(axis.number_format, "0.0")
+
+    def test_axis_validation(self):
+        _, chart = self._chart()
+        for kwargs in [
+            {"title": 1},
+            {"minimum_scale": float("nan")},
+            {"maximum_scale": float("inf")},
+            {"major_unit": 0},
+            {"number_format": None},
+            {"visible": 1},
+        ]:
+            with self.assertRaises(ValueError):
+                chart.value_axis.set(**kwargs)
+
+    def test_series(self):
+        sht, chart = self._chart()
+        self.assertEqual(len(chart.series), 2)
+        with self.assertRaises(KeyError):
+            chart.series("a")
+
+        series = chart.series[0]
+        series.set(
+            name="Revenue",
+            marker_style="circle",
+            marker_size=8,
+            marker_foreground_color=(17, 34, 51),
+            marker_background_color="#445566",
+            line_color=(85, 102, 119),
+        )
+
+        actual = sht.charts[0].series[0]
+        self.assertEqual(actual.name, "Revenue")
+        self.assertEqual(actual.marker_style, "circle")
+        self.assertEqual(actual.marker_size, 8)
+        self.assertEqual(actual.marker_foreground_color, (17, 34, 51))
+        self.assertEqual(actual.marker_background_color, (68, 85, 102))
+        self.assertEqual(actual.line_color, (85, 102, 119))
+
+        # Area fill is meaningful for a column series, not a line series.
+        chart.chart_type = "column_clustered"
+        chart.series[0].fill_color = (136, 153, 170)
+        self.assertEqual(sht.charts[0].series[0].fill_color, (136, 153, 170))
+
+    def test_series_validation(self):
+        _, chart = self._chart()
+        for kwargs in [
+            {"name": 1},
+            {"marker_style": "picture"},
+            {"marker_size": 1},
+            {"marker_size": 2.0},
+            {"line_color": "red"},
+        ]:
+            with self.assertRaises(ValueError):
+                chart.series[0].set(**kwargs)
+
+    @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
+    def test_axes_report_the_apple_script_limitation_on_mac(self):
+        _, chart = self._chart()
+        with self.assertRaisesRegex(NotImplementedError, "AppleScript"):
+            chart.value_axis.title
+
     def test_plot_by(self):
         sht, chart = self._chart()
         chart.set_source_data(sht.range("A1:C3"), plot_by="rows")

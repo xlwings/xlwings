@@ -194,6 +194,20 @@ _LEGEND_POSITION_PY2JS = {
     "corner": "Corner",
 }
 _PLOT_BY_PY2JS = {"rows": "Rows", "columns": "Columns"}
+_MARKER_STYLE_PY2JS = {
+    "automatic": "Automatic",
+    "none": "None",
+    "square": "Square",
+    "diamond": "Diamond",
+    "triangle": "Triangle",
+    "x": "X",
+    "star": "Star",
+    "dot": "Dot",
+    "dash": "Dash",
+    "circle": "Circle",
+    "plus": "Plus",
+}
+_MARKER_STYLE_JS2PY = {v: k for k, v in _MARKER_STYLE_PY2JS.items()}
 
 # xlwings' pivot vocabulary mapped to Office.js' Excel.AggregationFunction and
 # Excel.PivotLayoutType values. main.py validates, so plain lookups suffice.
@@ -3256,6 +3270,36 @@ class Chart(base_classes.Chart):
         return ChartLegend(self)
 
     @property
+    def category_axis(self):
+        return ChartAxis(self, "category")
+
+    @property
+    def value_axis(self):
+        return ChartAxis(self, "value")
+
+    @property
+    def series(self):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart series require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
+        return ChartSeriesCollection(self)
+
+    async def get_series(self):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart series reads require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_series() is only supported in xlwings Lite")
+        import js
+
+        count = await js.xlwings.getChartSeriesCount(self.parent.name, self.index - 1)
+        return ChartSeriesCollection(self, count=int(count))
+
+    @property
     def plot_by(self):
         return self._local_or_raise("plot_by", "plot_by")
 
@@ -3427,6 +3471,407 @@ class Chart(base_classes.Chart):
         raise NotImplementedError(
             "Chart.to_pdf() is not supported on this engine, which has no PDF export."
         )
+
+
+class ChartSeries(base_classes.ChartSeries):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.key = key
+
+    @property
+    def index(self):
+        return self.key
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartSeries.api isn't available on this engine: there is no native "
+            "series object, only queued actions."
+        )
+
+    def _state_key(self, attribute):
+        return f"series_{self.index}_{attribute}"
+
+    def _local_or_raise(self, attribute):
+        try:
+            return self.parent._local_or_raise(
+                self._state_key(attribute), f"series {self.index} {attribute}"
+            )
+        except NotImplementedError:
+            raise NotImplementedError(
+                "Reading chart series attributes synchronously isn't supported "
+                f"on this engine. Use 'await series.get_{attribute}()' to fetch "
+                "the value."
+            ) from None
+
+    @property
+    def name(self):
+        return self._local_or_raise("name")
+
+    @name.setter
+    def name(self, value):
+        self.set(name=value)
+
+    @property
+    def marker_style(self):
+        return self._local_or_raise("marker_style")
+
+    @marker_style.setter
+    def marker_style(self, value):
+        self.set(marker_style=value)
+
+    @property
+    def marker_size(self):
+        return self._local_or_raise("marker_size")
+
+    @marker_size.setter
+    def marker_size(self, value):
+        self.set(marker_size=value)
+
+    @property
+    def marker_foreground_color(self):
+        return self._local_or_raise("marker_foreground_color")
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value):
+        self.set(marker_foreground_color=value)
+
+    @property
+    def marker_background_color(self):
+        return self._local_or_raise("marker_background_color")
+
+    @marker_background_color.setter
+    def marker_background_color(self, value):
+        self.set(marker_background_color=value)
+
+    @property
+    def line_color(self):
+        return self._local_or_raise("line_color")
+
+    @line_color.setter
+    def line_color(self, value):
+        self.set(line_color=value)
+
+    @property
+    def fill_color(self):
+        return self._local_or_raise("fill_color")
+
+    @fill_color.setter
+    def fill_color(self, value):
+        self.set(fill_color=value)
+
+    def set(
+        self,
+        *,
+        name=base_classes._UNSET,
+        marker_style=base_classes._UNSET,
+        marker_size=base_classes._UNSET,
+        marker_foreground_color=base_classes._UNSET,
+        marker_background_color=base_classes._UNSET,
+        line_color=base_classes._UNSET,
+        fill_color=base_classes._UNSET,
+    ):
+        values = {}
+        local_values = {}
+        for attribute, value in (
+            ("name", name),
+            ("marker_style", marker_style),
+            ("marker_size", marker_size),
+            ("marker_foreground_color", marker_foreground_color),
+            ("marker_background_color", marker_background_color),
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+        ):
+            if value is base_classes._UNSET:
+                continue
+            local_values[attribute] = value
+            if attribute == "marker_style":
+                values[attribute] = _MARKER_STYLE_PY2JS[value]
+            elif attribute.endswith("_color"):
+                values[attribute] = _color_to_hex(value)
+            else:
+                values[attribute] = value
+        if not values:
+            return
+        for attribute, value in local_values.items():
+            self.parent.api[self._state_key(attribute)] = value
+        self.parent.append_json_action(
+            func="setChartSeries",
+            args=[self.parent.index - 1, self.index - 1, values],
+        )
+
+    async def _get_series_data(self, key):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getChartSeriesData(
+            self.parent.parent.name,
+            self.parent.index - 1,
+            self.index - 1,
+            to_js([key]),
+        )
+        value = _normalize_jsnull(data_js.to_py())[key]
+        if key == "marker_style":
+            return _MARKER_STYLE_JS2PY.get(value, value)
+        if key == "marker_size" and value is not None:
+            return int(value)
+        if key.endswith("_color"):
+            return utils.hex_to_rgb(value) if value else None
+        return value
+
+    async def get_name(self):
+        return await self._get_series_data("name")
+
+    async def get_marker_style(self):
+        return await self._get_series_data("marker_style")
+
+    async def get_marker_size(self):
+        return await self._get_series_data("marker_size")
+
+    async def get_marker_foreground_color(self):
+        return await self._get_series_data("marker_foreground_color")
+
+    async def get_marker_background_color(self):
+        return await self._get_series_data("marker_background_color")
+
+    async def get_line_color(self):
+        return await self._get_series_data("line_color")
+
+    async def get_fill_color(self):
+        return await self._get_series_data("fill_color")
+
+
+class ChartSeriesCollection(base_classes.ChartSeriesCollection):
+    def __init__(self, parent, count=None):
+        self._parent = parent
+        self._count = count
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartSeriesCollection.api isn't available on this engine."
+        )
+
+    def _loaded_count(self):
+        if self._count is None:
+            raise NotImplementedError(
+                "Inspecting chart series synchronously isn't supported on this "
+                "engine. Use 'await chart.get_series()' to fetch the collection."
+            )
+        return self._count
+
+    def __call__(self, key):
+        count = self._loaded_count()
+        if (
+            not isinstance(key, numbers.Integral)
+            or isinstance(key, bool)
+            or key < 1
+            or key > count
+        ):
+            raise KeyError(key)
+        return ChartSeries(self.parent, int(key))
+
+    def __len__(self):
+        return self._loaded_count()
+
+    def __iter__(self):
+        for key in range(1, self._loaded_count() + 1):
+            yield ChartSeries(self.parent, key)
+
+    def __contains__(self, key):
+        return (
+            isinstance(key, numbers.Integral)
+            and not isinstance(key, bool)
+            and 1 <= key <= self._loaded_count()
+        )
+
+
+class ChartAxis(base_classes.ChartAxis):
+    def __init__(self, parent, axis_type):
+        self.parent = parent
+        self.axis_type = axis_type
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "ChartAxis.api isn't available on this engine: there is no native "
+            "axis object, only queued actions."
+        )
+
+    def _state_key(self, attribute):
+        return f"{self.axis_type}_axis_{attribute}"
+
+    def _local_or_raise(self, attribute):
+        return self.parent._local_or_raise(
+            self._state_key(attribute),
+            f"primary {self.axis_type} axis {attribute}",
+        )
+
+    def _queue(self, values):
+        args = [self.axis_type, values]
+        if self.parent._pending is not None:
+            self.parent._pending_actions.append(("setChartAxis", args))
+        else:
+            self.parent.append_json_action(
+                func="setChartAxis", args=[self.parent.index - 1, *args]
+            )
+
+    def _sync_read_error(self, getter):
+        return NotImplementedError(
+            "Reading chart axis attributes synchronously isn't supported on this "
+            f"engine. Use 'await chart.{self.axis_type}_axis.{getter}()' to fetch "
+            "the value."
+        )
+
+    @property
+    def title(self):
+        if self.parent.api.get(self._state_key("visible")) is False:
+            return None
+        try:
+            return self._local_or_raise("title")
+        except NotImplementedError:
+            raise self._sync_read_error("get_title") from None
+
+    @title.setter
+    def title(self, value):
+        self.set(title=value)
+
+    @property
+    def minimum_scale(self):
+        try:
+            return self._local_or_raise("minimum_scale")
+        except NotImplementedError:
+            raise self._sync_read_error("get_minimum_scale") from None
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self.set(minimum_scale=value)
+
+    @property
+    def maximum_scale(self):
+        try:
+            return self._local_or_raise("maximum_scale")
+        except NotImplementedError:
+            raise self._sync_read_error("get_maximum_scale") from None
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self.set(maximum_scale=value)
+
+    @property
+    def major_unit(self):
+        try:
+            return self._local_or_raise("major_unit")
+        except NotImplementedError:
+            raise self._sync_read_error("get_major_unit") from None
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self.set(major_unit=value)
+
+    @property
+    def number_format(self):
+        try:
+            return self._local_or_raise("number_format")
+        except NotImplementedError:
+            raise self._sync_read_error("get_number_format") from None
+
+    @number_format.setter
+    def number_format(self, value):
+        self.set(number_format=value)
+
+    @property
+    def visible(self):
+        try:
+            return self._local_or_raise("visible")
+        except NotImplementedError:
+            raise self._sync_read_error("get_visible") from None
+
+    @visible.setter
+    def visible(self, value):
+        self.set(visible=value)
+
+    def set(
+        self,
+        *,
+        title=base_classes._UNSET,
+        minimum_scale=base_classes._UNSET,
+        maximum_scale=base_classes._UNSET,
+        major_unit=base_classes._UNSET,
+        number_format=base_classes._UNSET,
+        visible=base_classes._UNSET,
+    ):
+        values = {}
+        for attribute, value in (
+            ("title", title),
+            ("minimum_scale", minimum_scale),
+            ("maximum_scale", maximum_scale),
+            ("major_unit", major_unit),
+            ("number_format", number_format),
+            ("visible", visible),
+        ):
+            if value is base_classes._UNSET:
+                continue
+            values[attribute] = value
+            key = self._state_key(attribute)
+            if (
+                attribute in {"minimum_scale", "maximum_scale", "major_unit"}
+                and value is None
+            ):
+                # None restores Excel's automatic value, whose resolved numeric
+                # result isn't known until a synchronized read.
+                self.parent.api.pop(key, None)
+            else:
+                self.parent.api[key] = value
+        if title is not base_classes._UNSET and title is not None:
+            self.parent.api[self._state_key("visible")] = True
+        if visible is False:
+            self.parent.api[self._state_key("visible")] = False
+        if values:
+            self._queue(values)
+
+    async def _get_axis_data(self, key):
+        if self.parent._pending is not None:
+            raise XlwingsError(
+                "Chart axis reads require source data. Call Chart.set_source_data() "
+                "and await book.flush() first."
+            )
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getChartAxisData(
+            self.parent.parent.name,
+            self.parent.index - 1,
+            self.axis_type,
+            to_js([key]),
+        )
+        return _normalize_jsnull(data_js.to_py())[key]
+
+    async def get_title(self):
+        return await self._get_axis_data("title")
+
+    async def get_minimum_scale(self):
+        return await self._get_axis_data("minimum_scale")
+
+    async def get_maximum_scale(self):
+        return await self._get_axis_data("maximum_scale")
+
+    async def get_major_unit(self):
+        return await self._get_axis_data("major_unit")
+
+    async def get_number_format(self):
+        return await self._get_axis_data("number_format")
+
+    async def get_visible(self):
+        return await self._get_axis_data("visible")
 
 
 class ChartLegend(base_classes.ChartLegend):

@@ -46,6 +46,7 @@ from .base_classes import (
     BORDER_GRID_SIDES,
     BORDER_SIDES,
     CHART_LEGEND_POSITIONS,
+    CHART_MARKER_STYLES,
     CHART_PLOT_BY,
     CHART_TYPES,
     CONDITIONAL_FORMAT_ICON_SETS,
@@ -65,6 +66,7 @@ from .base_classes import (
     BorderSide,
     BorderWeight,
     ChartLegendPosition,
+    ChartMarkerStyle,
     ChartPlotBy,
     ConditionalFormatCriterionType,
     ConditionalFormatIconSet,
@@ -5209,6 +5211,52 @@ def _chart_style(value: Any) -> int:
     )
 
 
+def _chart_axis_scale(value: Any, name: str, *, positive: bool = False) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, numbers.Real) and not isinstance(value, bool):
+        value = float(value)
+        if math.isfinite(value) and (not positive or value > 0):
+            return value
+    requirement = "a positive finite number" if positive else "a finite number"
+    raise ValueError(f"Invalid {name} {value!r}. Must be {requirement} or None.")
+
+
+def _chart_marker_style(value: Any) -> ChartMarkerStyle:
+    if isinstance(value, str) and value in CHART_MARKER_STYLES:
+        return cast(ChartMarkerStyle, value)
+    raise ValueError(
+        f"Invalid marker_style {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_MARKER_STYLES)}."
+    )
+
+
+def _chart_marker_size(value: Any) -> int:
+    if isinstance(value, numbers.Integral) and not isinstance(value, bool):
+        value = int(value)
+        if 2 <= value <= 72:
+            return value
+    raise ValueError(f"Invalid marker_size {value!r}. Must be an integer from 2 to 72.")
+
+
+def _chart_series_name(value: Any) -> str:
+    if isinstance(value, str) and len(value) <= 255:
+        return value
+    raise ValueError(
+        f"Invalid series name {value!r}. Must be a string of at most 255 characters."
+    )
+
+
+def _chart_series_color(value: Any, name: str) -> tuple[int, int, int]:
+    try:
+        return _border_color(value)
+    except ValueError:
+        raise ValueError(
+            f"Invalid {name} {value!r}. Must be an RGB tuple, hex string, or "
+            "Excel color integer."
+        ) from None
+
+
 class Chart:
     """The chart object is a member of the `charts` collection:
 
@@ -5390,6 +5438,48 @@ class Chart:
         return ChartLegend(impl=self.impl.legend)
 
     @property
+    def category_axis(self) -> ChartAxis:
+        """Returns the chart's primary category axis.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartAxis(impl=self.impl.category_axis)
+
+    @property
+    def value_axis(self) -> ChartAxis:
+        """Returns the chart's primary value axis.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartAxis(impl=self.impl.value_axis)
+
+    @property
+    def series(self) -> ChartSeriesCollection:
+        """Returns the chart's ordered series collection.
+
+        In xlwings Lite, use {meth}`get_series` before inspecting or indexing
+        the collection.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartSeriesCollection(impl=self.impl.series)
+
+    async def get_series(self) -> ChartSeriesCollection:
+        """Fetches the chart's current ordered series collection.
+
+        Requires xlwings Lite. A newly created chart must first be dispatched
+        with `await book.flush()` so Excel can create its series from the source
+        data.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return ChartSeriesCollection(impl=await self.impl.get_series())
+
+    @property
     def plot_by(self) -> str:
         """Returns or sets whether the data series come from the rows or from the
         columns of the source data: either `"rows"` or `"columns"`.
@@ -5566,6 +5656,407 @@ class Chart:
         Requires xlwings Lite.
         """
         return await self.impl.get_png()
+
+
+class ChartAxis:
+    """A primary chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` or {attr}`Chart.value_axis <xlwings.Chart.value_axis>`.
+
+    Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
+
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> chart.value_axis.set(
+    ...     title="Revenue", minimum_scale=0, major_unit=10_000
+    ... )
+    ```
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native `pywin32` object on Windows."""
+        return self.impl.api
+
+    @property
+    def title(self) -> str | None:
+        """Returns or sets the axis title. Setting it to `None` hides the title; setting it to a string shows the axis and its title."""
+        return self.impl.title
+
+    @title.setter
+    def title(self, value: str | None) -> None:
+        self.set(title=value)
+
+    @property
+    def minimum_scale(self) -> float:
+        """Returns or sets the minimum scale. Set to `None` to restore Excel's automatic scale; reads return the resolved numeric value."""
+        return self.impl.minimum_scale
+
+    @minimum_scale.setter
+    def minimum_scale(self, value: float | None) -> None:
+        self.set(minimum_scale=value)
+
+    @property
+    def maximum_scale(self) -> float:
+        """Returns or sets the maximum scale. Set to `None` to restore Excel's automatic scale; reads return the resolved numeric value."""
+        return self.impl.maximum_scale
+
+    @maximum_scale.setter
+    def maximum_scale(self, value: float | None) -> None:
+        self.set(maximum_scale=value)
+
+    @property
+    def major_unit(self) -> float:
+        """Returns or sets the interval between major tick marks. Set to `None` to restore Excel's automatic interval; reads return the resolved value."""
+        return self.impl.major_unit
+
+    @major_unit.setter
+    def major_unit(self, value: float | None) -> None:
+        self.set(major_unit=value)
+
+    @property
+    def number_format(self) -> str:
+        """Returns or sets the format code for the axis tick labels."""
+        return self.impl.number_format
+
+    @number_format.setter
+    def number_format(self, value: str) -> None:
+        self.set(number_format=value)
+
+    @property
+    def visible(self) -> bool:
+        """Returns or sets whether the axis is shown."""
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value: bool) -> None:
+        self.set(visible=value)
+
+    def set(
+        self,
+        *,
+        title: str | None = _UNSET,
+        minimum_scale: float | None = _UNSET,
+        maximum_scale: float | None = _UNSET,
+        major_unit: float | None = _UNSET,
+        number_format: str = _UNSET,
+        visible: bool = _UNSET,
+    ) -> None:
+        """Sets one or more axis attributes in one operation.
+
+        Only supplied attributes are changed, and all arguments are validated before anything is written. `visible=True` is applied before the other attributes; `visible=False` is applied last so it describes the final state.
+
+        Args:
+            title: Axis title, or `None` to hide it.
+            minimum_scale: Minimum scale, or `None` for automatic scaling.
+            maximum_scale: Maximum scale, or `None` for automatic scaling.
+            major_unit: Positive major-unit interval, or `None` for automatic.
+            number_format: Format code for the tick labels.
+            visible: Whether the axis is shown.
+        """
+        if title is not _UNSET and title is not None and not isinstance(title, str):
+            raise ValueError(
+                f"Invalid title {title!r}. Must be a string or None to hide it."
+            )
+        if minimum_scale is not _UNSET:
+            minimum_scale = _chart_axis_scale(minimum_scale, "minimum_scale")
+        if maximum_scale is not _UNSET:
+            maximum_scale = _chart_axis_scale(maximum_scale, "maximum_scale")
+        if major_unit is not _UNSET:
+            major_unit = _chart_axis_scale(major_unit, "major_unit", positive=True)
+        if number_format is not _UNSET and not isinstance(number_format, str):
+            raise ValueError(
+                f"Invalid number_format {number_format!r}. Must be a string."
+            )
+        if visible is not _UNSET and not isinstance(visible, bool):
+            raise ValueError(f"Invalid visible {visible!r}. Must be True or False.")
+        if all(
+            value is _UNSET
+            for value in (
+                title,
+                minimum_scale,
+                maximum_scale,
+                major_unit,
+                number_format,
+                visible,
+            )
+        ):
+            return
+        self.impl.set(
+            title=title,
+            minimum_scale=minimum_scale,
+            maximum_scale=maximum_scale,
+            major_unit=major_unit,
+            number_format=number_format,
+            visible=visible,
+        )
+
+    async def get_title(self) -> str | None:
+        """Fetches the axis title. Returns `None` if the axis or title is hidden.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_title()
+
+    async def get_minimum_scale(self) -> float:
+        """Fetches the resolved minimum scale.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_minimum_scale()
+
+    async def get_maximum_scale(self) -> float:
+        """Fetches the resolved maximum scale.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_maximum_scale()
+
+    async def get_major_unit(self) -> float:
+        """Fetches the resolved major-unit interval.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_major_unit()
+
+    async def get_number_format(self) -> str:
+        """Fetches the tick-label number format.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_number_format()
+
+    async def get_visible(self) -> bool:
+        """Fetches whether the axis is shown.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_visible()
+
+    def __repr__(self) -> str:
+        return "<ChartAxis>"
+
+
+class ChartSeries:
+    """A chart data series.
+
+    {attr}`Chart.series <xlwings.Chart.series>` and {meth}`Chart.get_series <xlwings.Chart.get_series>` return a {class}`ChartSeriesCollection <xlwings.main.ChartSeriesCollection>`. Indexing or iterating that collection returns `ChartSeries` objects.
+
+    Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch current values from Excel.
+
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> series = chart.series[0]
+    >>> series.set(name="Revenue", marker_style="circle", marker_size=8)
+    ```
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native `pywin32` or `appscript` series object."""
+        return self.impl.api
+
+    @property
+    def name(self) -> str:
+        """Returns or sets the displayed series name."""
+        return self.impl.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.set(name=value)
+
+    @property
+    def marker_style(self) -> ChartMarkerStyle:
+        """Returns or sets the marker style."""
+        return self.impl.marker_style
+
+    @marker_style.setter
+    def marker_style(self, value: ChartMarkerStyle) -> None:
+        self.set(marker_style=value)
+
+    @property
+    def marker_size(self) -> int:
+        """Returns or sets the marker size in points, from 2 through 72."""
+        return self.impl.marker_size
+
+    @marker_size.setter
+    def marker_size(self, value: int) -> None:
+        self.set(marker_size=value)
+
+    @property
+    def marker_foreground_color(self) -> tuple[int, int, int] | None:
+        """Returns or sets the marker foreground color."""
+        return self.impl.marker_foreground_color
+
+    @marker_foreground_color.setter
+    def marker_foreground_color(self, value: tuple[int, int, int] | str | int) -> None:
+        self.set(marker_foreground_color=value)
+
+    @property
+    def marker_background_color(self) -> tuple[int, int, int] | None:
+        """Returns or sets the marker background color."""
+        return self.impl.marker_background_color
+
+    @marker_background_color.setter
+    def marker_background_color(self, value: tuple[int, int, int] | str | int) -> None:
+        self.set(marker_background_color=value)
+
+    @property
+    def line_color(self) -> tuple[int, int, int] | None:
+        """Returns or sets the series line color."""
+        return self.impl.line_color
+
+    @line_color.setter
+    def line_color(self, value: tuple[int, int, int] | str | int) -> None:
+        self.set(line_color=value)
+
+    @property
+    def fill_color(self) -> tuple[int, int, int] | None:
+        """Returns or sets the solid series fill color."""
+        return self.impl.fill_color
+
+    @fill_color.setter
+    def fill_color(self, value: tuple[int, int, int] | str | int) -> None:
+        self.set(fill_color=value)
+
+    def set(
+        self,
+        *,
+        name: str = _UNSET,
+        marker_style: ChartMarkerStyle = _UNSET,
+        marker_size: int = _UNSET,
+        marker_foreground_color: tuple[int, int, int] | str | int = _UNSET,
+        marker_background_color: tuple[int, int, int] | str | int = _UNSET,
+        line_color: tuple[int, int, int] | str | int = _UNSET,
+        fill_color: tuple[int, int, int] | str | int = _UNSET,
+    ) -> None:
+        """Sets one or more series attributes in one operation.
+
+        Only supplied attributes are changed, and all arguments are validated
+        before anything is written.
+        """
+        if name is not _UNSET:
+            name = _chart_series_name(name)
+        if marker_style is not _UNSET:
+            marker_style = _chart_marker_style(marker_style)
+        if marker_size is not _UNSET:
+            marker_size = _chart_marker_size(marker_size)
+        for attribute in (
+            "marker_foreground_color",
+            "marker_background_color",
+            "line_color",
+            "fill_color",
+        ):
+            value = locals()[attribute]
+            if value is not _UNSET:
+                normalized = _chart_series_color(value, attribute)
+                if attribute == "marker_foreground_color":
+                    marker_foreground_color = normalized
+                elif attribute == "marker_background_color":
+                    marker_background_color = normalized
+                elif attribute == "line_color":
+                    line_color = normalized
+                else:
+                    fill_color = normalized
+        if all(
+            value is _UNSET
+            for value in (
+                name,
+                marker_style,
+                marker_size,
+                marker_foreground_color,
+                marker_background_color,
+                line_color,
+                fill_color,
+            )
+        ):
+            return
+        self.impl.set(
+            name=name,
+            marker_style=marker_style,
+            marker_size=marker_size,
+            marker_foreground_color=marker_foreground_color,
+            marker_background_color=marker_background_color,
+            line_color=line_color,
+            fill_color=fill_color,
+        )
+
+    async def get_name(self) -> str:
+        """Fetches the displayed series name.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_name()
+
+    async def get_marker_style(self) -> ChartMarkerStyle:
+        """Fetches the marker style.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_marker_style()
+
+    async def get_marker_size(self) -> int:
+        """Fetches the marker size.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_marker_size()
+
+    async def get_marker_foreground_color(self) -> tuple[int, int, int] | None:
+        """Fetches the marker foreground color.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_marker_foreground_color()
+
+    async def get_marker_background_color(self) -> tuple[int, int, int] | None:
+        """Fetches the marker background color.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_marker_background_color()
+
+    async def get_line_color(self) -> tuple[int, int, int] | None:
+        """Fetches the series line color.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_line_color()
+
+    async def get_fill_color(self) -> tuple[int, int, int] | None:
+        """Fetches the solid series fill color.
+
+        Requires xlwings Lite."""
+        return await self.impl.get_fill_color()
+
+    def __repr__(self) -> str:
+        return "<ChartSeries>"
+
+
+class ChartSeriesCollection(Collection[ChartSeries]):
+    """An ordered, integer-indexed collection of chart series.
+
+    Series names aren't unique in Excel, so string lookup isn't supported.
+
+    ```pycon
+    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> series = chart.series
+    >>> len(series)
+    2
+    >>> series[0].set(name="Revenue", marker_style="circle", marker_size=8)
+    ```
+
+    In xlwings Lite, use `series = await chart.get_series()` instead of `chart.series`.
+
+    ```{versionadded} 0.37.5
+    ```
+    """
+
+    _wrap = ChartSeries
 
 
 class ChartLegend:
