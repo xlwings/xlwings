@@ -1735,9 +1735,6 @@ class Sheet:
 
             name: The sheet name of the copy
 
-        Returns:
-            The copied sheet
-
         Examples:
             ```python
             # Create two books and add a value to the first sheet of the first book
@@ -1899,13 +1896,10 @@ class Sheet:
         return Range(impl=self.impl.used_range)
 
     async def get_used_range(self, values_only: bool = False) -> Range | None:
-        """Returns the used range fetched from the current worksheet state.
+        """Returns the used range fetched from the current worksheet state, or `None` if the worksheet is empty according to `values_only`.
 
         Args:
             values_only: If `True`, only cells with values count as used. If `False`, cells with values or formatting count as used.
-
-        Returns:
-            The used range, or `None` if the worksheet is empty according to `values_only`.
 
         Requires xlwings Lite. Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
 
@@ -8348,7 +8342,7 @@ class Sheets(Collection[Sheet]):
         before: Sheet | None = None,
         after: Sheet | None = None,
     ) -> Sheet:
-        """Creates a new Sheet and makes it the active sheet.
+        """Creates a new Sheet and makes it the active sheet. Returns the added sheet.
 
         Args:
             name: Name of the new sheet. If None, will default to Excel's default name.
@@ -8356,10 +8350,6 @@ class Sheets(Collection[Sheet]):
                 added.
             after: An object that specifies the sheet after which the new sheet is
                 added.
-
-        Returns:
-            Added sheet object
-
         """
         if name is not None:
             if name.lower() in (s.name.lower() for s in self):
