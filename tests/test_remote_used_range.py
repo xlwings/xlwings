@@ -7,6 +7,10 @@ deriving the extent from the shape of the `values` payload --- which is always
 anchored at A1, so the real top-left corner is lost in that case.
 """
 
+import asyncio
+import sys
+from types import ModuleType
+
 import pytest
 
 import xlwings as xw
@@ -40,6 +44,25 @@ def _book(values, lazy=False, used_range_address=_MISSING):
         _book_json(values, used_range_address), lazy=lazy
     )
     return xw.Book(impl=impl)
+
+
+class _UsedRangeJs:
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.calls = []
+
+    async def getUsedRangeAddress(self, sheet_name, values_only):
+        self.calls.append((sheet_name, values_only))
+        return self.responses.pop(0)
+
+
+def _install_used_range_js(monkeypatch, *responses):
+    client = _UsedRangeJs(responses)
+    js = ModuleType("js")
+    js.xlwings = client
+    monkeypatch.setitem(sys.modules, "js", js)
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    return client
 
 
 # --- with used_range_address in the payload (current clients) ---
@@ -145,3 +168,54 @@ def test_used_range_works_on_lazy_book_once_values_loaded():
     book = _book([[1, 2]], lazy=True)
     R._mark_sheet_values_loaded(book.sheets[0].impl.api)
     assert book.sheets[0].used_range.address == "$A$1:$B$1"
+
+
+def test_get_used_range_requires_lite():
+    book = _book([[1]], used_range_address="A1")
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(book.sheets[0].get_used_range())
+
+
+@pytest.mark.anyio
+async def test_get_used_range_defaults_to_formatting_aware(monkeypatch):
+    client = _install_used_range_js(monkeypatch, "B2:H20")
+    book = _book([[1]], lazy=True, used_range_address="A1")
+
+    used = await book.sheets[0].get_used_range()
+
+    assert used is not None
+    assert used.address == "$B$2:$H$20"
+    assert used.sheet.name == "S1"
+    assert client.calls == [("S1", False)]
+
+
+@pytest.mark.anyio
+async def test_get_used_range_can_request_values_only(monkeypatch):
+    client = _install_used_range_js(monkeypatch, "C5:D8")
+    book = _book([[1]], lazy=True, used_range_address="A1")
+
+    used = await book.sheets[0].get_used_range(values_only=True)
+
+    assert used is not None
+    assert used.address == "$C$5:$D$8"
+    assert client.calls == [("S1", True)]
+
+
+@pytest.mark.anyio
+async def test_get_used_range_returns_none_for_empty_sheet(monkeypatch):
+    client = _install_used_range_js(monkeypatch, None)
+    book = _book([[]], lazy=True, used_range_address=None)
+
+    assert await book.sheets[0].get_used_range() is None
+    assert client.calls == [("S1", False)]
+
+
+@pytest.mark.anyio
+async def test_get_used_range_rejects_non_boolean_values(monkeypatch):
+    client = _install_used_range_js(monkeypatch)
+    book = _book([[1]], lazy=True, used_range_address="A1")
+
+    with pytest.raises(TypeError, match="values_only must be a bool"):
+        await book.sheets[0].get_used_range(values_only=1)
+
+    assert client.calls == []

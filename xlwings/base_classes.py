@@ -768,6 +768,11 @@ class Sheet:
     def used_range(self):
         raise NotImplementedError()
 
+    async def get_used_range(self, values_only=False):
+        raise NotImplementedError(
+            "Sheet.get_used_range() is only supported in xlwings Lite"
+        )
+
     @property
     def visible(self):
         raise NotImplementedError()
