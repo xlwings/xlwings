@@ -677,7 +677,7 @@ class Sheet(base_classes.Sheet):
     @property
     def notes(self):
         try:
-            addresses = self.xl.cells.special_cells(
+            addresses = self.xl.used_range.special_cells(
                 type=kw.cell_type_comments
             ).get_address()
         except appscript.reference.CommandError:
