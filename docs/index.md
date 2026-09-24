@@ -106,6 +106,7 @@ api/font
 api/name
 api/names
 api/note
+api/notes
 api/page_setup
 api/picture
 api/pictures

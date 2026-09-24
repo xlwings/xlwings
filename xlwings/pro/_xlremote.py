@@ -1149,6 +1149,15 @@ class Sheet(base_classes.Sheet):
     def book(self):
         return self.sheets.book
 
+    @property
+    def notes(self):
+        if self.api.get("notes_supported") is False:
+            raise NotImplementedError("Notes require ExcelApi 1.18")
+        return [
+            Note(Range(sheet=self, arg1=entry["address"]))
+            for entry in self.api.get("notes", [])
+        ]
+
     def range(self, arg1, arg2=None):
         return Range(sheet=self, arg1=arg1, arg2=arg2)
 
@@ -1835,10 +1844,20 @@ class Range(base_classes.Range):
         # The payload carries the sheet's notes keyed by address, so this
         # knows whether one exists without a fetch -- as the sync property
         # requires. Returns None when there's no note, like the other engines.
-        for note in self.sheet.api.get("notes", []):
+        for note in self.sheet.api.get("notes") or []:
             if _address_key(note["address"]) == _address_key(self.address):
                 return Note(self)
         return None
+
+    def add_note(self, text):
+        if self.sheet.book.api["client"] != "Office.js":
+            raise NotImplementedError("Adding notes requires an Office.js client")
+        notes = self.sheet.api.get("notes")
+        if notes is None or self.sheet.api.get("notes_supported") is False:
+            raise NotImplementedError("Notes require ExcelApi 1.18")
+        self.append_json_action(func="addNote", args=[self.address, text])
+        notes.append({"address": self.address})
+        return Note(self)
 
     @property
     def hyperlink(self):
@@ -4727,7 +4746,7 @@ class Note(base_classes.Note):
     @property
     def _entry(self):
         """This note's entry in the sheet's notes payload, keyed by address."""
-        for note in self.range.sheet.api.get("notes", []):
+        for note in self.range.sheet.api.get("notes") or []:
             if _address_key(note["address"]) == _address_key(self.range.address):
                 return note
         return None
@@ -4751,6 +4770,41 @@ class Note(base_classes.Note):
             await js.xlwings.getNoteText(self.range.sheet.name, self.range.address)
         )
 
+    @property
+    def author(self):
+        raise NotImplementedError(
+            "Reading a note's author synchronously isn't supported on this "
+            "engine. Use 'await mynote.get_author()'."
+        )
+
+    async def get_author(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_author() is only supported in xlwings Lite")
+        import js
+
+        return _normalize_jsnull(
+            await js.xlwings.getNoteAuthor(self.range.sheet.name, self.range.address)
+        )
+
+    @property
+    def location(self):
+        raise NotImplementedError(
+            "Reading a note's location synchronously isn't supported on this "
+            "engine. Use 'await mynote.get_location()'."
+        )
+
+    async def get_location(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_location() is only supported in xlwings Lite"
+            )
+        import js
+
+        address = _normalize_jsnull(
+            await js.xlwings.getNoteLocation(self.range.sheet.name, self.range.address)
+        )
+        return Range(sheet=self.range.sheet, arg1=address) if address else None
+
     @text.setter
     def text(self, value):
         self.range.append_json_action(
@@ -4758,7 +4812,7 @@ class Note(base_classes.Note):
         )
 
     def delete(self):
-        notes = self.range.sheet.api.get("notes", [])
+        notes = self.range.sheet.api.get("notes") or []
         entry = self._entry
         if entry is not None:
             notes.remove(entry)

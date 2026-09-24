@@ -725,6 +725,10 @@ class Sheet:
         raise NotImplementedError()
 
     @property
+    def notes(self):
+        raise NotImplementedError()
+
+    @property
     def index(self):
         raise NotImplementedError()
 
@@ -1172,6 +1176,9 @@ class Range:
 
     @property
     def note(self):
+        raise NotImplementedError()
+
+    def add_note(self, text):
         raise NotImplementedError()
 
     def copy_picture(self, appearance, format):
@@ -1694,6 +1701,22 @@ class Note:
 
     async def get_text(self):
         raise NotImplementedError("Note.get_text() is only supported in xlwings Lite")
+
+    @property
+    def author(self):
+        raise NotImplementedError()
+
+    async def get_author(self):
+        raise NotImplementedError("Note.get_author() is only supported in xlwings Lite")
+
+    @property
+    def location(self):
+        raise NotImplementedError()
+
+    async def get_location(self):
+        raise NotImplementedError(
+            "Note.get_location() is only supported in xlwings Lite"
+        )
 
     def delete(self):
         raise NotImplementedError()

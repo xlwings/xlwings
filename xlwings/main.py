@@ -1214,6 +1214,11 @@ class Book:
         return Sheets(impl=self.impl.sheets)
 
     @property
+    def notes(self) -> Notes:
+        """Notes in this workbook. xlwings Lite includes the worksheets loaded for this script."""
+        return Notes(self)
+
+    @property
     def app(self) -> App:
         """Returns an app object that represents the creator of the book.
 
@@ -1547,6 +1552,11 @@ class Sheet:
     def book(self) -> Book:
         """Returns the Book of the specified Sheet. Read-only."""
         return Book(impl=self.impl.book)
+
+    @property
+    def notes(self) -> Notes:
+        """Notes on this worksheet, indexed by cell address or position."""
+        return Notes(self)
 
     @property
     def index(self) -> int:
@@ -3412,6 +3422,21 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
+    def add_note(self, text: str) -> Note:
+        """Add a note to this single cell and return it.
+
+        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note.
+        """
+        if not isinstance(text, str):
+            raise TypeError("Note text must be a string")
+        if not text:
+            raise ValueError("Note text must not be empty")
+        if self.shape != (1, 1):
+            raise ValueError("A note can only be added to a single cell")
+        if self.note is not None:
+            raise ValueError("This cell already has a note")
+        return Note(impl=self.impl.add_note(text))
+
     def copy_picture(self, appearance: str = "screen", format: str = "picture") -> None:
         """Copies the range to the clipboard as picture.
 
@@ -4191,21 +4216,19 @@ class Shapes(Collection[Shape]):
 
 
 class PageSetup:
-    def __init__(self, impl: Any) -> None:
-        """Represents a PageSetup object.
+    """Represents a PageSetup object.
 
-        ```{versionadded} 0.24.2
-        ```
-        """
+    ```{versionadded} 0.24.2
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
-
-        ```{versionadded} 0.24.2
-        ```
         """
         return self.impl.api
 
@@ -4220,9 +4243,6 @@ class PageSetup:
             '$A$1:$B$3'
             >>> mysheet.page_setup.print_area = None  # clear the print_area
             ```
-
-        ```{versionadded} 0.24.2
-        ```
         """
         return self.impl.print_area
 
@@ -4848,14 +4868,91 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         self.impl.clear()
 
 
-class Note:
-    def __init__(self, impl: Any) -> None:
-        """Represents a cell Note.
-        Before the introduction of threaded comments, a Note was called a Comment.
+class Notes:
+    """A collection of notes on one worksheet (`sheet.notes`) or across all worksheets in a workbook (`book.notes`).
 
-        ```{versionadded} 0.24.2
+    Iterate over `sheet.notes` to inspect one worksheet, or `book.notes` to inspect every worksheet. If you already know the cell, access its note directly with `sheet["A1"].note`. Collections also support zero-based indexing and lookup by cell address (`sheet.notes`) or a single-cell {class}`Range <xlwings.Range>` (`book.notes`).
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        sheet = book.sheets[0]
+        other_sheet = book.sheets.add(after=sheet)
+        sheet["A1"].add_note("Review")
+        other_sheet["B2"].add_note("Check")
+
+        for note in sheet.notes:
+            print(note.location.address, note.text)
+        for note in book.notes:
+            print(note.location.sheet.name, note.location.address, note.text)
         ```
-        """
+    """
+
+    def __init__(self, parent: Book | Sheet) -> None:
+        self.parent = parent
+
+    def __iter__(self) -> Iterator[Note]:
+        if isinstance(self.parent, Book):
+            for sheet in self.parent.sheets:
+                yield from sheet.notes
+        else:
+            for impl in self.parent.impl.notes:
+                yield Note(impl=impl)
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    @property
+    def count(self) -> int:
+        """Number of notes in this collection."""
+        return len(self)
+
+    def __getitem__(self, key: int | str | Range) -> Note:
+        if isinstance(key, int):
+            notes = list(self)
+            return notes[key]
+        if isinstance(key, Range):
+            cell = key
+            if cell.shape != (1, 1) or cell.sheet.book != (
+                self.parent if isinstance(self.parent, Book) else self.parent.book
+            ):
+                raise ValueError("The cell must belong to this workbook")
+            if isinstance(self.parent, Sheet) and cell.sheet != self.parent:
+                raise ValueError("The cell must belong to this worksheet")
+        elif isinstance(key, str) and isinstance(self.parent, Sheet):
+            cell = self.parent.range(key)
+        else:
+            raise TypeError("Use a cell Range for workbook lookup")
+        if cell.shape != (1, 1):
+            raise ValueError("A note location must be a single cell")
+        note = cell.note
+        if note is None:
+            raise KeyError(key)
+        return note
+
+
+class Note:
+    """Represents a cell Note.
+
+    Before the introduction of threaded comments, a Note was called a Comment.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        cell = book.sheets[0]["A1"]
+        note = cell.add_note("Review this value")
+        print(note.text)
+        ```
+
+    ```{versionadded} 0.24.2
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
@@ -4902,8 +4999,50 @@ class Note:
         """Fetch the note's text on demand.
 
         Requires xlwings Lite.
+
+        ```{versionadded} 0.37.0
+        ```
         """
         return await self.impl.get_text()
+
+    @property
+    def author(self) -> str:
+        """The note's author. In xlwings Lite, use `await get_author()`.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return self.impl.author
+
+    async def get_author(self) -> str | None:
+        """Read the note's author from Excel; return `None` if the note is gone.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return await self.impl.get_author()
+
+    @property
+    def location(self) -> Range:
+        """The cell containing this note. In xlwings Lite, use `await get_location()`.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        return Range(impl=self.impl.location)
+
+    async def get_location(self) -> Range | None:
+        """Read the note's cell from Excel; return `None` if it is gone.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        impl = await self.impl.get_location()
+        return Range(impl=impl) if impl is not None else None
 
 
 class Table:
@@ -7387,9 +7526,7 @@ class Names:
     def add(self, name: str, refers_to: str) -> Name:
         """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
-        Full support for named constants and formulas requires Excel desktop or xlwings
-        Lite or Server. Google Sheets supports named
-        ranges only; Office Scripts only returns named ranges in its snapshot.
+        Full support for named constants and formulas requires Excel desktop, xlwings Lite, or xlwings Server. Google Sheets supports named ranges only; Office Scripts only returns named ranges in its snapshot.
 
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and

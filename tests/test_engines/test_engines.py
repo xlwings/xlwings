@@ -1621,6 +1621,10 @@ def test_range_note(book):
 def test_note_text_sync_points_at_async(book):
     with pytest.raises(NotImplementedError, match=r"get_text\(\)"):
         book.sheets[0]["A1"].note.text
+    with pytest.raises(NotImplementedError, match=r"get_author\(\)"):
+        book.sheets[0]["A1"].note.author
+    with pytest.raises(NotImplementedError, match=r"get_location\(\)"):
+        book.sheets[0]["A1"].note.location
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
@@ -1653,6 +1657,59 @@ def test_note_delete():
     assert action["args"] == ["$A$1"]
     # gone locally too, so Range.note reports None right away
     assert book.sheets[0]["A1"].note is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_note_creation_and_collections():
+    payload = json.loads(json.dumps(data))
+    payload["client"] = "Office.js"
+    payload["sheets"][0]["notes_supported"] = True
+    payload["sheets"][1]["notes"] = [{"address": "C3"}]
+    payload["sheets"][1]["notes_supported"] = True
+    book = xw.Book(json=payload)
+    sheet = book.sheets[0]
+    assert sheet.notes.count == 1
+    assert sheet.notes["A1"] is not None
+    assert book.notes[sheet["A1"]] is not None
+    assert len(book.notes) == 2
+    assert book.notes[book.sheets[1]["C3"]] is not None
+    with pytest.raises(KeyError):
+        sheet.notes["B2"]
+    note = sheet["B2"].add_note("Review")
+    assert note is not None
+    assert sheet["B2"].note is not None
+    assert len(sheet.notes) == 2
+    assert len(book.notes) == 3
+    assert book.notes[sheet["B2"]] is not None
+    action = book.json()["actions"][-1]
+    assert (action["func"], action["args"], action["sheet_position"]) == (
+        "addNote",
+        ["$B$2", "Review"],
+        0,
+    )
+    with pytest.raises(ValueError, match="already"):
+        sheet["B2"].add_note("again")
+    with pytest.raises(ValueError, match="single cell"):
+        sheet["B2:C3"].add_note("x")
+    with pytest.raises(TypeError, match="string"):
+        sheet["C3"].add_note(42)
+    with pytest.raises(ValueError, match="empty"):
+        sheet["C3"].add_note("")
+    note.delete()
+    assert len(sheet.notes) == 1
+    assert len(book.notes) == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_notes_reject_unsupported_office_host():
+    payload = json.loads(json.dumps(data))
+    payload["client"] = "Office.js"
+    payload["sheets"][0]["notes_supported"] = False
+    book = xw.Book(json=payload)
+    with pytest.raises(NotImplementedError, match="1.18"):
+        list(book.notes)
+    with pytest.raises(NotImplementedError, match="1.18"):
+        book.sheets[0]["B2"].add_note("x")
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

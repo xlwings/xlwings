@@ -942,6 +942,46 @@ class TestNotes(unittest.TestCase):
         self.assertIsNone(sheet["A1"].note)
         sheet.book.close()
 
+    def test_add_note_and_collections(self):
+        book = xw.Book()
+        try:
+            first_sheet = book.sheets[0]
+            second_sheet = book.sheets.add(after=first_sheet)
+            first_cell = first_sheet["A1"]
+            second_cell = second_sheet["C3"]
+
+            self.assertIsNone(first_cell.note)
+            self.assertEqual(first_sheet.notes.count, 0)
+            first_note = first_cell.add_note("Review this cell")
+            second_note = second_cell.add_note("Check this cell")
+
+            self.assertEqual(first_note.text, "Review this cell")
+            self.assertIsInstance(first_note.author, str)
+            self.assertEqual(first_note.location.address, first_cell.address)
+            self.assertEqual(first_sheet.notes.count, 1)
+            self.assertEqual(second_sheet.notes.count, 1)
+            self.assertEqual(book.notes.count, 2)
+            self.assertEqual(first_sheet.notes["A1"].text, first_note.text)
+            self.assertEqual(book.notes[first_cell].text, first_note.text)
+            self.assertEqual(book.notes[second_cell].text, second_note.text)
+            self.assertEqual(
+                {note.location.address for note in first_sheet.notes},
+                {first_cell.address},
+            )
+
+            with self.assertRaises(ValueError):
+                first_cell.add_note("Duplicate")
+            first_note.text = "Updated note"
+            self.assertEqual(first_cell.note.text, "Updated note")
+            first_note.delete()
+            self.assertIsNone(first_cell.note)
+            self.assertEqual(first_sheet.notes.count, 0)
+            self.assertEqual(book.notes.count, 1)
+            with self.assertRaises(KeyError):
+                first_sheet.notes["A1"]
+        finally:
+            book.close()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1014,6 +1014,10 @@ class Sheet(base_classes.Sheet):
         return Book(xl=self.xl.Parent)
 
     @property
+    def notes(self):
+        return [Note(xl=comment) for comment in self.xl.Comments]
+
+    @property
     def index(self):
         return self.xl.Index
 
@@ -1699,6 +1703,9 @@ class Range(base_classes.Range):
     @property
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
+
+    def add_note(self, text):
+        return Note(xl=self.xl.AddComment(text))
 
     @property
     def conditional_formats(self):
@@ -2445,6 +2452,14 @@ class Note(base_classes.Note):
     @property
     def text(self):
         return self.xl.Text()
+
+    @property
+    def author(self):
+        return self.xl.Author
+
+    @property
+    def location(self):
+        return Range(xl=self.xl.Parent)
 
     @text.setter
     def text(self, value):
