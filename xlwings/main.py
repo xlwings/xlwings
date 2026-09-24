@@ -4876,20 +4876,27 @@ class ConditionalFormats(Collection[ConditionalFormat]):
 class Notes:
     """A collection of notes on one worksheet (`sheet.notes`) or across all worksheets in a workbook (`book.notes`).
 
-    Iterate over notes or select one by zero-based index. For `sheet.notes`, look up a note by cell address. For `book.notes`, pass a single-cell {class}`Range <xlwings.Range>` to identify both the worksheet and cell.
+    Iterate over `sheet.notes` to inspect one worksheet, or `book.notes` to inspect every worksheet. If you already know the cell, access its note directly with `sheet["A1"].note`. Collections also support zero-based indexing and lookup by cell address (`sheet.notes`) or a single-cell {class}`Range <xlwings.Range>` (`book.notes`).
 
     Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
 
     Examples:
+        In desktop Excel:
+
         ```python
         import xlwings as xw
 
         book = xw.Book()
         sheet = book.sheets[0]
+        other_sheet = book.sheets.add(after=sheet)
         sheet["A1"].add_note("Review")
-        notes_on_sheet = list(sheet.notes)
-        note = sheet.notes["A1"]
-        same_note = book.notes[sheet["A1"]]
+        other_sheet["B2"].add_note("Check")
+
+        for note in sheet.notes:
+            print(note.location.address, note.text)
+        for note in book.notes:
+            print(note.location.sheet.name, note.location.address, note.text)
+
         book.close()
         ```
     """
