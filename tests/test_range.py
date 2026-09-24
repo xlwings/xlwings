@@ -983,5 +983,31 @@ class TestNotes(unittest.TestCase):
             book.close()
 
 
+@unittest.skipUnless(sys.platform.startswith("win"), "Windows COM threaded comments")
+class TestThreadedComments(unittest.TestCase):
+    def test_comment_crud_and_replies(self):
+        book = xw.Book()
+        try:
+            cell = book.sheets[0]["A1"]
+            cell.value = "Preserved"
+            self.assertIsNone(cell.comment)
+            comment = cell.add_comment("Review")
+            self.assertEqual(comment.text, "Review")
+            self.assertIsInstance(comment.author, str)
+            self.assertEqual(comment.location.address, cell.address)
+            self.assertEqual(book.comments.count, 1)
+            self.assertEqual(book.sheets[0].comments["A1"].text, "Review")
+            comment.text = "Updated"
+            comment.add_reply("Done")
+            self.assertEqual(comment.replies[0].text, "Done")
+            with self.assertRaises(NotImplementedError):
+                comment.resolve()
+            comment.delete()
+            self.assertIsNone(cell.comment)
+            self.assertEqual(cell.value, "Preserved")
+        finally:
+            book.close()
+
+
 if __name__ == "__main__":
     unittest.main()
