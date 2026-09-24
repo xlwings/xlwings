@@ -4945,13 +4945,25 @@ class Notes:
 
 
 class Note:
-    def __init__(self, impl: Any) -> None:
-        """Represents a cell Note.
-        Before the introduction of threaded comments, a Note was called a Comment.
+    """Represents a cell Note.
 
-        ```{versionadded} 0.24.2
+    Before the introduction of threaded comments, a Note was called a Comment.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        cell = book.sheets[0]["A1"]
+        note = cell.add_note("Review this value")
+        print(note.text)
         ```
-        """
+
+    ```{versionadded} 0.24.2
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
