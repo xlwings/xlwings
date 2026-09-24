@@ -2748,15 +2748,13 @@ class Range:
     ) -> None:
         """Set direct fill colors cell by cell without changing cell contents.
 
-        `colors` must be a two-dimensional matrix exactly matching the range's shape, including `[[color]]` for one cell. An RGB tuple or list, `#RRGGBB` hex string, or Excel integer color sets a fill. Integer colors use Excel's packed byte order: `0x0000FF` is red and `0xFF0000` is blue. `None` removes the fill; `...` leaves that cell's existing fill unchanged. Conversion options do not change the required matrix shape.
+        `colors` must be a two-dimensional matrix exactly matching the range's shape, including `[[color]]` for one cell. An RGB tuple or list or a `#RRGGBB` hex string. `None` removes the fill; `...` leaves that cell's existing fill unchanged. Conversion options do not change the required matrix shape.
 
-        The entire input is validated before any changes are queued. A call supports at most 10,000 cells because Office.js serializes an object for every cell in the write, unlike the smaller `get_colors()` read response; split larger ranges into smaller ones. On xlwings Lite and Server, changes are queued until dispatched. A host failure may leave some cells changed.
+        Examples:
 
-        Supported on Windows, macOS, and Office.js. Office.js requires ExcelApi 1.9.
-
-        ```python
-        sheet["A1:C1"].set_colors([[(0, 128, 0), ..., None]])
-        ```
+            ```python
+            sheet["A1:C1"].set_colors([[(0, 128, 0), ..., None]])
+            ```
 
         ```{versionadded} 0.37.5
         ```
