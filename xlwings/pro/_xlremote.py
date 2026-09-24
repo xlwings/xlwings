@@ -1619,6 +1619,12 @@ class Range(base_classes.Range):
             func="rangeClear",
         )
 
+    def sort(self, keys, ascending, has_headers):
+        self.append_json_action(
+            func="rangeSort",
+            args=[keys, ascending, has_headers],
+        )
+
     def clear_formats(self):
         self.append_json_action(
             func="rangeClearFormats",

@@ -1099,6 +1099,29 @@ class Range(base_classes.Range):
             self.xl.clear_range()
             self.sheet.book.app.screen_updating = alerts_state
 
+    def sort(self, keys, ascending, has_headers):
+        sort = self.sheet.xl.sort_object
+        fields = sort.sortfieldset
+        fields.clear_sortfieldset()
+        first_data_row = self.row + int(has_headers)
+        last_row = self.row + self.shape[0] - 1
+        for key, direction in zip(keys, ascending):
+            column = utils.col_name(self.column + key - 1)
+            key_range = self.sheet.xl.cells[
+                f"{column}{first_data_row}:{column}{last_row}"
+            ]
+            fields.add_sortfield(
+                key=key_range,
+                sorton=kw.sort_on_cell_value,
+                order=kw.sort_ascending if direction else kw.sort_descending,
+            )
+        sort.set_sort_range(rng=self.xl)
+        sort.sort_header.set(kw.header_yes if has_headers else kw.header_no)
+        # AppleScript names the key orientation: column keys sort complete rows.
+        sort.sort_orientation.set(kw.sort_columns)
+        sort.match_case.set(False)
+        sort.apply_sort()
+
     def end(self, direction):
         direction = directions_s2k.get(direction, direction)
         return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
