@@ -1215,7 +1215,7 @@ class Book:
 
     @property
     def notes(self) -> Notes:
-        """Notes in this workbook. Lite includes the worksheets loaded for this script."""
+        """Notes in this workbook. xlwings Lite includes the worksheets loaded for this script."""
         return Notes(self)
 
     @property
@@ -3425,7 +3425,7 @@ class Range:
     def add_note(self, text: str) -> Note:
         """Add a note to this single cell and return it.
 
-        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note. In Lite, the write is queued.
+        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note. In xlwings Lite, the write is queued.
         """
         if not isinstance(text, str):
             raise TypeError("Note text must be a string")
@@ -4878,7 +4878,7 @@ class Notes:
 
     Iterate over `sheet.notes` to inspect one worksheet, or `book.notes` to inspect every worksheet. If you already know the cell, access its note directly with `sheet["A1"].note`. Collections also support zero-based indexing and lookup by cell address (`sheet.notes`) or a single-cell {class}`Range <xlwings.Range>` (`book.notes`).
 
-    Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
+    xlwings Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
 
     Examples:
         In desktop Excel:
@@ -5003,20 +5003,20 @@ class Note:
 
     @property
     def author(self) -> str:
-        """The note's author. In Lite, use `await get_author()`."""
+        """The note's author. In xlwings Lite, use `await get_author()`."""
         return self.impl.author
 
     async def get_author(self) -> str | None:
-        """Read the author from Excel in Lite; return `None` if the note is gone."""
+        """Read the author from Excel in xlwings Lite; return `None` if the note is gone."""
         return await self.impl.get_author()
 
     @property
     def location(self) -> Range:
-        """The cell containing this note. In Lite, use `await get_location()`."""
+        """The cell containing this note. In xlwings Lite, use `await get_location()`."""
         return Range(impl=self.impl.location)
 
     async def get_location(self) -> Range | None:
-        """Read the note's cell from Excel in Lite; return `None` if it is gone."""
+        """Read the note's cell from Excel in xlwings Lite; return `None` if it is gone."""
         impl = await self.impl.get_location()
         return Range(impl=impl) if impl is not None else None
 
@@ -7502,9 +7502,7 @@ class Names:
     def add(self, name: str, refers_to: str) -> Name:
         """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
-        Full support for named constants and formulas requires Excel desktop or xlwings
-        Lite or Server. Google Sheets supports named
-        ranges only; Office Scripts only returns named ranges in its snapshot.
+        Full support for named constants and formulas requires Excel desktop, xlwings Lite, or xlwings Server. Google Sheets supports named ranges only; Office Scripts only returns named ranges in its snapshot.
 
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and

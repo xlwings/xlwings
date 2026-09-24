@@ -122,8 +122,8 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.35.3 (May 6, 2026)
 
-- {bdg-info}`Enhancement` xlwings Server/Lite: Support `typing.Literal` for custom functions args ("enums") to show a dropdown in Excel formulas ({issue}`2695`).
-- {bdg-warning}`Bug Fix` xlwings Server/Lite: Fix type hints for `@script` decorator's `include/exclude` args ({issue}`2696`).
+- {bdg-info}`Enhancement` xlwings Server and xlwings Lite: Support `typing.Literal` for custom functions args ("enums") to show a dropdown in Excel formulas ({issue}`2695`).
+- {bdg-warning}`Bug Fix` xlwings Server and xlwings Lite: Fix type hints for `@script` decorator's `include/exclude` args ({issue}`2696`).
 
 ## v0.35.2 (Apr 27, 2026)
 

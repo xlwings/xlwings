@@ -2,6 +2,7 @@
 
 ## Documentation
 
+- Always call the product "xlwings Lite" in prose, UI text, prompts, and comments. Do not shorten its name to "Lite". Keep other proper names, such as "Vega-Lite", intact.
 - Write all documentation and Python docstrings using MyST Markdown.
 - Never use reStructuredText syntax in documentation prose or Python docstrings, including double-backtick inline literals, roles such as `:attr:` and `:meth:`, or directives such as `.. note::` and `.. py:method::`.
 - Use single backticks for inline code, MyST roles such as `{attr}` and `{meth}`, and fenced MyST directives such as the `note` directive instead.
