@@ -371,7 +371,9 @@ async def test_note_get_text_normalizes_jsnull(fake_pyodide, monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_note_metadata_reads(fake_pyodide, monkeypatch):
+async def test_note_metadata_getters_normalize_jsnull(fake_pyodide, monkeypatch):
+    """Missing note metadata returns Python None rather than Pyodide's JsNull."""
+
     async def get_note_author(sheet_name, address):
         assert (sheet_name, address) == ("S", "$A$1")
         return "Pat"
