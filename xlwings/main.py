@@ -1214,6 +1214,11 @@ class Book:
         return Sheets(impl=self.impl.sheets)
 
     @property
+    def notes(self) -> Notes:
+        """Notes in this workbook. Lite includes the worksheets loaded for this script."""
+        return Notes(self)
+
+    @property
     def app(self) -> App:
         """Returns an app object that represents the creator of the book.
 
@@ -1547,6 +1552,11 @@ class Sheet:
     def book(self) -> Book:
         """Returns the Book of the specified Sheet. Read-only."""
         return Book(impl=self.impl.book)
+
+    @property
+    def notes(self) -> Notes:
+        """Notes on this worksheet, indexed by cell address or position."""
+        return Notes(self)
 
     @property
     def index(self) -> int:
@@ -3412,6 +3422,21 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
+    def add_note(self, text: str) -> Note:
+        """Add a note to this single cell and return it.
+
+        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note. In Lite, the write is queued.
+        """
+        if not isinstance(text, str):
+            raise TypeError("Note text must be a string")
+        if not text:
+            raise ValueError("Note text must not be empty")
+        if self.shape != (1, 1):
+            raise ValueError("A note can only be added to a single cell")
+        if self.note is not None:
+            raise ValueError("This cell already has a note")
+        return Note(impl=self.impl.add_note(text))
+
     def copy_picture(self, appearance: str = "screen", format: str = "picture") -> None:
         """Copies the range to the clipboard as picture.
 
@@ -4848,6 +4873,63 @@ class ConditionalFormats(Collection[ConditionalFormat]):
         self.impl.clear()
 
 
+class Notes:
+    """A worksheet's or workbook's cell notes.
+
+    Iterate over notes, use a zero-based integer index, or look up a worksheet note by address. For workbook lookup, pass a single-cell {class}`Range <xlwings.Range>` so the worksheet is unambiguous.
+
+    ```python
+    notes = list(sheet.notes)
+    note = sheet.notes["A1"]
+    note = book.notes[sheet["A1"]]
+    ```
+
+    Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
+    """
+
+    def __init__(self, parent: Book | Sheet) -> None:
+        self.parent = parent
+
+    def __iter__(self) -> Iterator[Note]:
+        if isinstance(self.parent, Book):
+            for sheet in self.parent.sheets:
+                yield from sheet.notes
+        else:
+            for impl in self.parent.impl.notes:
+                yield Note(impl=impl)
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    @property
+    def count(self) -> int:
+        """Number of notes in this collection."""
+        return len(self)
+
+    def __getitem__(self, key: int | str | Range) -> Note:
+        if isinstance(key, int):
+            notes = list(self)
+            return notes[key]
+        if isinstance(key, Range):
+            cell = key
+            if cell.shape != (1, 1) or cell.sheet.book != (
+                self.parent if isinstance(self.parent, Book) else self.parent.book
+            ):
+                raise ValueError("The cell must belong to this workbook")
+            if isinstance(self.parent, Sheet) and cell.sheet != self.parent:
+                raise ValueError("The cell must belong to this worksheet")
+        elif isinstance(key, str) and isinstance(self.parent, Sheet):
+            cell = self.parent.range(key)
+        else:
+            raise TypeError("Use a cell Range for workbook lookup")
+        if cell.shape != (1, 1):
+            raise ValueError("A note location must be a single cell")
+        note = cell.note
+        if note is None:
+            raise KeyError(key)
+        return note
+
+
 class Note:
     def __init__(self, impl: Any) -> None:
         """Represents a cell Note.
@@ -4904,6 +4986,25 @@ class Note:
         Requires xlwings Lite.
         """
         return await self.impl.get_text()
+
+    @property
+    def author(self) -> str:
+        """The note's author. In Lite, use `await get_author()`."""
+        return self.impl.author
+
+    async def get_author(self) -> str | None:
+        """Read the author from Excel in Lite; return `None` if the note is gone."""
+        return await self.impl.get_author()
+
+    @property
+    def location(self) -> Range:
+        """The cell containing this note. In Lite, use `await get_location()`."""
+        return Range(impl=self.impl.location)
+
+    async def get_location(self) -> Range | None:
+        """Read the note's cell from Excel in Lite; return `None` if it is gone."""
+        impl = await self.impl.get_location()
+        return Range(impl=impl) if impl is not None else None
 
 
 class Table:

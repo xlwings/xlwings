@@ -371,6 +371,42 @@ async def test_note_get_text_normalizes_jsnull(fake_pyodide, monkeypatch):
 
 
 @pytest.mark.anyio
+async def test_note_metadata_reads(fake_pyodide, monkeypatch):
+    async def get_note_author(sheet_name, address):
+        assert (sheet_name, address) == ("S", "$A$1")
+        return "Pat"
+
+    async def get_note_location(sheet_name, address):
+        assert (sheet_name, address) == ("S", "$A$1")
+        return "B3"
+
+    js = ModuleType("js")
+    js.xlwings = ModuleType("js.xlwings")
+    js.xlwings.getNoteAuthor = get_note_author
+    js.xlwings.getNoteLocation = get_note_location
+    monkeypatch.setitem(sys.modules, "js", js)
+    monkeypatch.setattr(sys, "platform", "emscripten")
+
+    payload = _book_json_minimal()
+    payload["sheets"][0]["notes"] = [{"address": "A1"}]
+    book = xw.Book(json=payload)
+    try:
+        note = book.sheets[0]["A1"].note
+        assert await note.get_author() == "Pat"
+        assert (await note.get_location()).address == "$B$3"
+
+        async def missing(*_):
+            return fake_pyodide
+
+        js.xlwings.getNoteAuthor = missing
+        js.xlwings.getNoteLocation = missing
+        assert await note.get_author() is None
+        assert await note.get_location() is None
+    finally:
+        book.close()
+
+
+@pytest.mark.anyio
 async def test_get_selection_returns_none_for_jsnull_address(fake_pyodide, monkeypatch):
     """Reproduces the shape-selection crash: a non-cell selection yields
     ``address: null`` -> ``JsNull``. After normalization the ``is None`` guard

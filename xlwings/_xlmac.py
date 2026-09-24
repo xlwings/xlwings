@@ -675,6 +675,24 @@ class Sheet(base_classes.Sheet):
         return self.workbook
 
     @property
+    def notes(self):
+        try:
+            addresses = self.xl.cells.special_cells(
+                type=kw.cell_type_comments
+            ).get_address()
+        except appscript.reference.CommandError:
+            return []
+        notes = []
+        for area_address in addresses.split(","):
+            area = self.range(area_address)
+            for row in range(area.row, area.row + area.shape[0]):
+                for column in range(area.column, area.column + area.shape[1]):
+                    note = self.range((row, column)).note
+                    if note is not None:
+                        notes.append(note)
+        return notes
+
+    @property
     def index(self):
         return self.xl.entry_index.get()
 
@@ -1423,12 +1441,18 @@ class Range(base_classes.Range):
         try:
             # No easy way to check whether there's a comment like on Windows
             return (
-                Note(parent=self, xl=self.xl.Excel_comment)
+                Note(
+                    parent=self.sheet.range((self.row, self.column)),
+                    xl=self.xl.Excel_comment,
+                )
                 if self.xl.Excel_comment.Excel_comment_text()
                 else None
             )
         except appscript.reference.CommandError:
             return None
+
+    def add_note(self, text):
+        return Note(parent=self, xl=self.xl.add_comment(comment_text=text))
 
     @property
     def conditional_formats(self):
@@ -2073,12 +2097,21 @@ class Note(base_classes.Note):
         self.parent = parent
         self.xl = xl
 
+    @property
     def api(self):
         return self.xl
 
     @property
     def text(self):
         return self.xl.Excel_comment_text()
+
+    @property
+    def author(self):
+        return self.xl.author.get()
+
+    @property
+    def location(self):
+        return self.parent
 
     @text.setter
     def text(self, value):
