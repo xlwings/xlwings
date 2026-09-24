@@ -4874,9 +4874,9 @@ class ConditionalFormats(Collection[ConditionalFormat]):
 
 
 class Notes:
-    """A worksheet's or workbook's cell notes.
+    """A collection of notes on one worksheet (`sheet.notes`) or across all worksheets in a workbook (`book.notes`).
 
-    Iterate over notes, use a zero-based integer index, or look up a worksheet note by address. For workbook lookup, pass a single-cell {class}`Range <xlwings.Range>` so the worksheet is unambiguous.
+    Iterate over notes or select one by zero-based index. For `sheet.notes`, look up a note by cell address. For `book.notes`, pass a single-cell {class}`Range <xlwings.Range>` to identify both the worksheet and cell.
 
     ```python
     notes = list(sheet.notes)
