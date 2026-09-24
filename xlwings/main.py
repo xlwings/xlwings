@@ -5103,6 +5103,34 @@ class Comments:
     """Threaded comments on a worksheet or in a workbook.
 
     Desktop collections can be iterated directly. In xlwings Lite, obtain the collection with `await sheet.get_comments()` or `await book.get_comments()`.
+
+    Examples:
+        On Windows:
+
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        sheet = book.sheets[0]
+        sheet["A1"].add_comment("Review")
+        for comment in book.comments:
+            print(comment.location.address, comment.text)
+        print(sheet.comments["A1"].text)
+        ```
+
+        In an xlwings Lite notebook:
+
+        ```python
+        import xlwings as xw
+
+        book = await xw.books.get_active()
+        sheet = book.sheets[0]
+        sheet["A1"].add_comment("Review")
+        await book.flush()
+        comments = await sheet.get_comments()
+        print(await comments["A1"].get_text())
+        print((await book.get_comments()).count)
+        ```
     """
 
     def __init__(
@@ -5160,7 +5188,34 @@ class Comments:
 
 
 class Comment:
-    """A modern threaded comment attached to one cell, distinct from a `Note`."""
+    """A modern threaded comment attached to one cell, distinct from a `Note`.
+
+    Examples:
+        On Windows:
+
+        ```python
+        import xlwings as xw
+
+        cell = xw.Book().sheets[0]["A1"]
+        comment = cell.add_comment("Review this value")
+        comment.text = "Review the updated value"
+        print(comment.author, comment.text)
+        comment.delete()
+        ```
+
+        In an xlwings Lite notebook:
+
+        ```python
+        import xlwings as xw
+
+        book = await xw.books.get_active()
+        comment = book.sheets[0]["A1"].add_comment("Review this value")
+        comment.add_reply("Checked")
+        comment.resolve()
+        await book.flush()
+        print(await comment.get_text(), await comment.get_resolved())
+        ```
+    """
 
     def __init__(self, impl: Any) -> None:
         self.impl = impl
@@ -5249,7 +5304,32 @@ class Comment:
 
 
 class CommentReply:
-    """A plain-text reply to a threaded comment."""
+    """A plain-text reply to a threaded comment.
+
+    Examples:
+        On Windows:
+
+        ```python
+        import xlwings as xw
+
+        comment = xw.Book().sheets[0]["A1"].add_comment("Review")
+        comment.add_reply("Checked")
+        print(comment.replies[0].text)
+        ```
+
+        In an xlwings Lite notebook:
+
+        ```python
+        import xlwings as xw
+
+        book = await xw.books.get_active()
+        comment = book.sheets[0]["A1"].add_comment("Review")
+        comment.add_reply("Checked")
+        await book.flush()
+        for reply in await comment.get_replies():
+            print(await reply.get_text())
+        ```
+    """
 
     def __init__(self, impl: Any) -> None:
         self.impl = impl
