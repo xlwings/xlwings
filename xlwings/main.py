@@ -3425,7 +3425,7 @@ class Range:
     def add_note(self, text: str) -> Note:
         """Add a note to this single cell and return it.
 
-        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note. In xlwings Lite, the write is queued.
+        Raises `TypeError` for non-text content and `ValueError` for empty text, a multi-cell range, or a cell that already has a note.
         """
         if not isinstance(text, str):
             raise TypeError("Note text must be a string")
