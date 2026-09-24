@@ -1224,7 +1224,10 @@ class Book:
         return Comments(self)
 
     async def get_comments(self) -> Comments:
-        """Fetch the workbook's threaded comments. Requires xlwings Lite."""
+        """Fetch the workbook's threaded comments.
+
+        Requires xlwings Lite.
+        """
         return Comments(
             self, [Comment(impl=item) for item in await self.impl.get_comments()]
         )
@@ -1575,7 +1578,10 @@ class Sheet:
         return Comments(self)
 
     async def get_comments(self) -> Comments:
-        """Fetch this worksheet's threaded comments. Requires xlwings Lite."""
+        """Fetch this worksheet's threaded comments.
+
+        Requires xlwings Lite.
+        """
         return Comments(
             self, [Comment(impl=item) for item in await self.impl.get_comments()]
         )
@@ -1936,7 +1942,9 @@ class Sheet:
         Args:
             values_only: If `True`, only cells with values count as used. If `False`, cells with values or formatting count as used.
 
-        Requires xlwings Lite. Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
+        Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -3468,7 +3476,10 @@ class Range:
         return Comment(impl=impl) if impl is not None else None
 
     async def get_comment(self) -> Comment | None:
-        """Fetch the cell's threaded comment, or `None`. Requires xlwings Lite."""
+        """Fetch the cell's threaded comment, or `None`.
+
+        Requires xlwings Lite.
+        """
         if self.shape != (1, 1):
             raise ValueError("A comment location must be a single cell")
         impl = await self.impl.get_comment()
@@ -3737,7 +3748,9 @@ class AutoFilter:
     async def get_criteria(self) -> list[AutoFilterCriteria]:
         """Returns the criteria for all fields from Excel.
 
-        The list contains one entry per field, including entries whose type is `"none"`. Unsupported native criteria are reported as `"unknown"`. Requires xlwings Lite.
+        The list contains one entry per field, including entries whose type is `"none"`. Unsupported native criteria are reported as `"unknown"`.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -5102,11 +5115,9 @@ def _validate_comment_text(text: str) -> None:
 class Comments:
     """Threaded comments on a worksheet or in a workbook.
 
-    Desktop collections can be iterated directly. In xlwings Lite, obtain the collection with `await sheet.get_comments()` or `await book.get_comments()`.
+    In xlwings Lite, obtain the collection with `await sheet.get_comments()` or `await book.get_comments()`.
 
     Examples:
-        On Windows:
-
         ```python
         import xlwings as xw
 
@@ -5177,8 +5188,6 @@ class Comment:
     """A modern threaded comment attached to one cell, distinct from a `Note`.
 
     Examples:
-        On Windows:
-
         ```python
         import xlwings as xw
 
@@ -5209,7 +5218,10 @@ class Comment:
         self.impl.text = value
 
     async def get_text(self) -> str | None:
-        """Read the comment text, or `None` if it was deleted. Requires xlwings Lite."""
+        """Read the comment text, or `None` if it was deleted.
+
+        Requires xlwings Lite.
+        """
         return await self.impl.get_text()
 
     @property
@@ -5218,7 +5230,10 @@ class Comment:
         return self.impl.author
 
     async def get_author(self) -> str | None:
-        """Read the author's name. Requires xlwings Lite."""
+        """Read the author's name.
+
+        Requires xlwings Lite.
+        """
         return await self.impl.get_author()
 
     @property
@@ -5227,7 +5242,10 @@ class Comment:
         return self.impl.creation_date
 
     async def get_creation_date(self) -> dt.datetime | None:
-        """Read the creation date. Requires xlwings Lite."""
+        """Read the creation date.
+
+        Requires xlwings Lite.
+        """
         return await self.impl.get_creation_date()
 
     @property
@@ -5236,7 +5254,10 @@ class Comment:
         return self.impl.resolved
 
     async def get_resolved(self) -> bool | None:
-        """Read the resolution state. Requires ExcelApi 1.11 in xlwings Lite."""
+        """Read the resolution state.
+
+        Requires xlwings Lite.
+        """
         return await self.impl.get_resolved()
 
     @property
@@ -5245,7 +5266,10 @@ class Comment:
         return Range(impl=self.impl.location)
 
     async def get_location(self) -> Range | None:
-        """Read the comment's cell. Requires xlwings Lite."""
+        """Read the comment's cell.
+
+        Requires xlwings Lite.
+        """
         impl = await self.impl.get_location()
         return Range(impl=impl) if impl is not None else None
 
@@ -5255,7 +5279,10 @@ class Comment:
         return [CommentReply(impl=impl) for impl in self.impl.replies]
 
     async def get_replies(self) -> list[CommentReply]:
-        """Fetch replies. Requires xlwings Lite."""
+        """Fetch replies.
+
+        Requires xlwings Lite.
+        """
         return [CommentReply(impl=impl) for impl in await self.impl.get_replies()]
 
     def add_reply(self, text: str) -> None:
@@ -5264,11 +5291,11 @@ class Comment:
         self.impl.add_reply(text)
 
     def resolve(self) -> None:
-        """Resolve this thread. Supported by xlwings Lite with ExcelApi 1.11."""
+        """Resolve this thread."""
         self.impl.set_resolved(True)
 
     def reopen(self) -> None:
-        """Reopen this thread. Supported by xlwings Lite with ExcelApi 1.11."""
+        """Reopen this thread."""
         self.impl.set_resolved(False)
 
     def delete(self) -> None:
@@ -5280,8 +5307,6 @@ class CommentReply:
     """A plain-text reply to a threaded comment.
 
     Examples:
-        On Windows:
-
         ```python
         import xlwings as xw
 
@@ -5300,7 +5325,10 @@ class CommentReply:
         return self.impl.text
 
     async def get_text(self) -> str | None:
-        """Read the reply text, or `None` if it was deleted. Requires xlwings Lite."""
+        """Read the reply text, or `None` if it was deleted.
+
+        Requires xlwings Lite.
+        """
         return await self.impl.get_text()
 
 
@@ -5979,9 +6007,9 @@ class Chart:
     async def get_series(self) -> ChartSeriesCollection:
         """Fetches the chart's current ordered series collection.
 
-        Requires xlwings Lite. A newly created chart must first be dispatched
-        with `await book.flush()` so Excel can create its series from the source
-        data.
+        A newly created chart must first be dispatched with `await book.flush()` so Excel can create its series from the source data.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -6503,43 +6531,50 @@ class ChartSeries:
     async def get_name(self) -> str:
         """Fetches the displayed series name.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_name()
 
     async def get_marker_style(self) -> ChartMarkerStyle:
         """Fetches the marker style.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_style()
 
     async def get_marker_size(self) -> int:
         """Fetches the marker size.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_size()
 
     async def get_marker_foreground_color(self) -> tuple[int, int, int] | None:
         """Fetches the marker foreground color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_foreground_color()
 
     async def get_marker_background_color(self) -> tuple[int, int, int] | None:
         """Fetches the marker background color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_background_color()
 
     async def get_line_color(self) -> tuple[int, int, int] | None:
         """Fetches the series line color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_line_color()
 
     async def get_fill_color(self) -> tuple[int, int, int] | None:
         """Fetches the solid series fill color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_fill_color()
 
     def __repr__(self) -> str:
