@@ -5026,7 +5026,9 @@ class Note:
         return self.impl.author
 
     async def get_author(self) -> str | None:
-        """Read the author from Excel in xlwings Lite; return `None` if the note is gone.
+        """Read the note's author from Excel; return `None` if the note is gone.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -5043,7 +5045,9 @@ class Note:
         return Range(impl=self.impl.location)
 
     async def get_location(self) -> Range | None:
-        """Read the note's cell from Excel in xlwings Lite; return `None` if it is gone.
+        """Read the note's cell from Excel; return `None` if it is gone.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
