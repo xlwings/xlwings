@@ -4998,25 +4998,44 @@ class Note:
         """Fetch the note's text on demand.
 
         Requires xlwings Lite.
+
+        ```{versionadded} 0.37.0
+        ```
         """
         return await self.impl.get_text()
 
     @property
     def author(self) -> str:
-        """The note's author. In xlwings Lite, use `await get_author()`."""
+        """The note's author. In xlwings Lite, use `await get_author()`.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
         return self.impl.author
 
     async def get_author(self) -> str | None:
-        """Read the author from Excel in xlwings Lite; return `None` if the note is gone."""
+        """Read the author from Excel in xlwings Lite; return `None` if the note is gone.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
         return await self.impl.get_author()
 
     @property
     def location(self) -> Range:
-        """The cell containing this note. In xlwings Lite, use `await get_location()`."""
+        """The cell containing this note. In xlwings Lite, use `await get_location()`.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
         return Range(impl=self.impl.location)
 
     async def get_location(self) -> Range | None:
-        """Read the note's cell from Excel in xlwings Lite; return `None` if it is gone."""
+        """Read the note's cell from Excel in xlwings Lite; return `None` if it is gone.
+
+        ```{versionadded} 0.37.5
+        ```
+        """
         impl = await self.impl.get_location()
         return Range(impl=impl) if impl is not None else None
 
