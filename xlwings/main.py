@@ -22,6 +22,7 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
+from types import EllipsisType
 from typing import (
     Any,
     ClassVar,
@@ -2738,6 +2739,92 @@ class Range:
         ```
         """
         return await self._impl.get_colors()
+
+    def set_colors(
+        self,
+        colors: Sequence[
+            Sequence[tuple[int, int, int] | list[int] | int | str | None | EllipsisType]
+        ],
+    ) -> None:
+        """Set direct fill colors cell by cell without changing cell contents.
+
+        `colors` must be a two-dimensional matrix exactly matching the range's shape, including `[[color]]` for one cell. An RGB tuple or list or a `#RRGGBB` hex string. `None` removes the fill; `...` leaves that cell's existing fill unchanged. Conversion options do not change the required matrix shape.
+
+        Examples:
+
+            ```python
+            sheet["A1:C1"].set_colors([[(0, 128, 0), ..., None]])
+            ```
+
+        ```{versionadded} 0.37.5
+        ```
+        """
+        # The remote engine represents a non-cell selection (such as a Shape)
+        # with arg1=None. Other range mutations no-op through append_json_action.
+        if getattr(self._impl, "arg1", ...) is None:
+            return
+        rows, columns = self.shape
+        if rows * columns > 10_000:
+            raise ValueError(
+                "Range.set_colors() supports at most 10,000 cells per call"
+            )
+        if (
+            not isinstance(colors, Sequence)
+            or isinstance(colors, (str, bytes))
+            or len(colors) != rows
+        ):
+            raise ValueError(f"Expected {rows} rows of colors")
+
+        normalized = []
+        has_changes = False
+        for row_index, row in enumerate(colors):
+            if (
+                not isinstance(row, Sequence)
+                or isinstance(row, (str, bytes))
+                or len(row) != columns
+            ):
+                raise ValueError(f"Expected {columns} colors in row {row_index + 1}")
+            normalized_row = []
+            for column_index, color in enumerate(row):
+                if color is ...:
+                    normalized_row.append(...)
+                    continue
+                has_changes = True
+                if color is None:
+                    normalized_row.append(None)
+                    continue
+                if isinstance(color, str):
+                    if re.fullmatch(r"#?[0-9a-fA-F]{6}", color) is None:
+                        raise ValueError(
+                            f"Invalid color at ({row_index + 1}, {column_index + 1})"
+                        )
+                    normalized_row.append(utils.hex_to_rgb(color))
+                elif isinstance(color, int) and not isinstance(color, bool):
+                    if not 0 <= color <= 0xFFFFFF:
+                        raise ValueError(
+                            f"Invalid color at ({row_index + 1}, {column_index + 1})"
+                        )
+                    normalized_row.append(utils.int_to_rgb(color))
+                elif (
+                    isinstance(color, (tuple, list))
+                    and len(color) == 3
+                    and all(
+                        isinstance(component, int)
+                        and not isinstance(component, bool)
+                        and 0 <= component <= 255
+                        for component in color
+                    )
+                ):
+                    normalized_row.append(tuple(color))
+                else:
+                    raise ValueError(
+                        f"Invalid color at ({row_index + 1}, {column_index + 1})"
+                    )
+            normalized.append(normalized_row)
+
+        if not has_changes:
+            return
+        self._impl.set_colors(normalized)
 
     async def get_conditional_formats(self) -> ConditionalFormats:
         """Fetch the ordered conditional-format rules on demand.
