@@ -4878,13 +4878,20 @@ class Notes:
 
     Iterate over notes or select one by zero-based index. For `sheet.notes`, look up a note by cell address. For `book.notes`, pass a single-cell {class}`Range <xlwings.Range>` to identify both the worksheet and cell.
 
-    ```python
-    notes = list(sheet.notes)
-    note = sheet.notes["A1"]
-    note = book.notes[sheet["A1"]]
-    ```
-
     Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        sheet = book.sheets[0]
+        sheet["A1"].add_note("Review")
+        notes_on_sheet = list(sheet.notes)
+        note = sheet.notes["A1"]
+        same_note = book.notes[sheet["A1"]]
+        book.close()
+        ```
     """
 
     def __init__(self, parent: Book | Sheet) -> None:
