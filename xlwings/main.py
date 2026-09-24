@@ -4216,21 +4216,19 @@ class Shapes(Collection[Shape]):
 
 
 class PageSetup:
-    def __init__(self, impl: Any) -> None:
-        """Represents a PageSetup object.
+    """Represents a PageSetup object.
 
-        ```{versionadded} 0.24.2
-        ```
-        """
+    ```{versionadded} 0.24.2
+    ```
+    """
+
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
-
-        ```{versionadded} 0.24.2
-        ```
         """
         return self.impl.api
 
@@ -4245,9 +4243,6 @@ class PageSetup:
             '$A$1:$B$3'
             >>> mysheet.page_setup.print_area = None  # clear the print_area
             ```
-
-        ```{versionadded} 0.24.2
-        ```
         """
         return self.impl.print_area
 
@@ -4878,11 +4873,7 @@ class Notes:
 
     Iterate over `sheet.notes` to inspect one worksheet, or `book.notes` to inspect every worksheet. If you already know the cell, access its note directly with `sheet["A1"].note`. Collections also support zero-based indexing and lookup by cell address (`sheet.notes`) or a single-cell {class}`Range <xlwings.Range>` (`book.notes`).
 
-    xlwings Lite enumerates the addresses loaded with the book. Use `await book.load()` to refresh them after changes made outside the current script.
-
     Examples:
-        In desktop Excel:
-
         ```python
         import xlwings as xw
 
@@ -4896,8 +4887,6 @@ class Notes:
             print(note.location.address, note.text)
         for note in book.notes:
             print(note.location.sheet.name, note.location.address, note.text)
-
-        book.close()
         ```
     """
 
