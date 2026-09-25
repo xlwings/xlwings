@@ -2347,6 +2347,24 @@ class Range:
             match_case: Whether matching is case-sensitive.
 
         In xlwings Lite, pending writes must be flushed before searching if the search needs to see their results.
+
+        Examples:
+            In desktop Python:
+
+            ```python
+            import xlwings as xw
+
+            sheet = xw.Book().sheets[0]
+            sheet["A1:A3"].value = [["North"], ["South"], ["North"]]
+            found = sheet["A1:A3"].find("South", whole=True)
+            print(found.address if found else None)  # $A$2
+            ```
+
+            In xlwings Lite, await the same search:
+
+            ```python
+            found = await sheet["A1:A3"].find("South", whole=True)
+            ```
         """
         if not isinstance(text, str):
             raise TypeError("text must be a string")
@@ -2381,6 +2399,18 @@ class Range:
         """Replace matching text within this range.
 
         An empty replacement string is allowed; an empty search string is not.
+
+        Examples:
+            In desktop Python:
+
+            ```python
+            import xlwings as xw
+
+            sheet = xw.Book().sheets[0]
+            sheet["A1:A2"].value = [["Draft"], ["Draft report"]]
+            sheet["A1:A2"].replace_all("Draft", "Final")
+            print(sheet["A2"].value)  # Final report
+            ```
         """
         if not isinstance(old, str) or not isinstance(new, str):
             raise TypeError("old and new must be strings")
