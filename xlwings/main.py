@@ -2263,7 +2263,7 @@ class Range:
             ascending: One direction for every key, or one boolean per key.
             has_headers: Whether to keep the first row in place as a header.
 
-        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported. In xlwings Lite, the sort is queued until the next sync.
+        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported.
 
         Examples:
             ```python
