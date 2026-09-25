@@ -1128,6 +1128,41 @@ class Range(base_classes.Range):
         sort.match_case.set(False)
         sort.apply_sort()
 
+    def find(self, text, whole, direction, order, match_case):
+        if self.xl is None:
+            return None
+        after_row = self.row + (self.shape[0] - 1 if direction == "forward" else 0)
+        after_column = self.column + (
+            self.shape[1] - 1 if direction == "forward" else 0
+        )
+        after = self.sheet.xl.rows[after_row].columns[after_column]
+        found = self.xl.find(
+            what=text,
+            after_=after,
+            look_in=kw.values,
+            look_at=kw.whole if whole else kw.part,
+            search_order=kw.by_rows if order == "rows" else kw.by_columns,
+            search_direction=(
+                kw.search_next if direction == "forward" else kw.search_previous
+            ),
+            match_case=match_case,
+            match_byte=False,
+        )
+        if found is None or found == kw.missing_value:
+            return None
+        return Range(self.sheet, found.get_address())
+
+    def replace_all(self, old, new, whole, match_case):
+        if self.xl is not None:
+            self.xl.replace(
+                what=old,
+                replacement=new,
+                look_at=kw.whole if whole else kw.part,
+                search_order=kw.by_rows,
+                match_case=match_case,
+                match_byte=False,
+            )
+
     def end(self, direction):
         direction = directions_s2k.get(direction, direction)
         return Range(self.sheet, self.xl.get_end(direction=direction).get_address())

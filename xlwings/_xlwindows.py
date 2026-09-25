@@ -1388,6 +1388,48 @@ class Range(base_classes.Range):
         sort.Orientation = constants.Constants.xlTopToBottom
         sort.Apply()
 
+    def find(self, text, whole, direction, order, match_case):
+        if self.xl is None:
+            return None
+        after = (
+            self.xl.Cells(self.shape[0], self.shape[1])
+            if direction == "forward"
+            else self.xl.Cells(1, 1)
+        )
+        found = self.xl.Find(
+            What=text,
+            After=after,
+            LookIn=constants.FindLookIn.xlValues,
+            LookAt=constants.LookAt.xlWhole if whole else constants.LookAt.xlPart,
+            SearchOrder=(
+                constants.SearchOrder.xlByRows
+                if order == "rows"
+                else constants.SearchOrder.xlByColumns
+            ),
+            SearchDirection=(
+                constants.SearchDirection.xlNext
+                if direction == "forward"
+                else constants.SearchDirection.xlPrevious
+            ),
+            MatchCase=match_case,
+            MatchByte=False,
+            SearchFormat=False,
+        )
+        return Range(found) if found is not None else None
+
+    def replace_all(self, old, new, whole, match_case):
+        if self.xl is not None:
+            self.xl.Replace(
+                What=old,
+                Replacement=new,
+                LookAt=constants.LookAt.xlWhole if whole else constants.LookAt.xlPart,
+                SearchOrder=constants.SearchOrder.xlByRows,
+                MatchCase=match_case,
+                MatchByte=False,
+                SearchFormat=False,
+                ReplaceFormat=False,
+            )
+
     @property
     def formula(self):
         if self.xl is not None:
