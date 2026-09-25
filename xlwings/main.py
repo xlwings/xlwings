@@ -2336,7 +2336,7 @@ class Range:
             columns: One-based column positions within this range used to identify duplicates.
             has_headers: Keep the first row as a header.
 
-        Only cells inside this range are shifted. Ranges intersecting an Excel table are not supported. On macOS this method raises `NotImplementedError` because Excel's AppleScript command cannot specify the columns or header state. In xlwings Lite the change is queued until the next synchronization.
+        Only cells inside this range are shifted. Ranges intersecting an Excel table are not supported. On macOS this method isn't supported and raises `NotImplementedError`.
         """
         if isinstance(columns, bool):
             raise TypeError("columns must be one-based column positions")
