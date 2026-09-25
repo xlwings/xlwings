@@ -1661,6 +1661,29 @@ class Range(base_classes.Range):
             args=[keys, ascending, has_headers],
         )
 
+    async def find(self, text, whole, direction, order, match_case):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Range.find() requires xlwings Lite on this engine"
+            )
+        import js
+
+        address = await js.xlwings.findRange(
+            self.sheet.name,
+            self.address,
+            text,
+            whole,
+            direction,
+            order,
+            match_case,
+        )
+        return Range(self.sheet, address) if address else None
+
+    def replace_all(self, old, new, whole, match_case):
+        self.append_json_action(
+            func="rangeReplaceAll", args=[old, new, whole, match_case]
+        )
+
     def clear_formats(self):
         self.append_json_action(
             func="rangeClearFormats",

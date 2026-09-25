@@ -832,6 +832,12 @@ class Range:
     def sort(self, keys, ascending, has_headers):
         raise NotImplementedError()
 
+    def find(self, text, whole, direction, order, match_case):
+        raise NotImplementedError()
+
+    def replace_all(self, old, new, whole, match_case):
+        raise NotImplementedError()
+
     @property
     def autofilter(self):
         raise NotImplementedError()

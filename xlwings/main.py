@@ -12,6 +12,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 from __future__ import annotations
 
 import datetime as dt
+import inspect
 import math
 import numbers
 import os
@@ -25,6 +26,7 @@ from pathlib import Path
 from types import EllipsisType
 from typing import (
     Any,
+    Awaitable,
     ClassVar,
     Generator,
     Generic,
@@ -2323,6 +2325,101 @@ class Range:
                 )
 
         self.impl.sort(normalized_keys, normalized_ascending, has_headers)
+
+    def find(
+        self,
+        text: str,
+        *,
+        whole: bool = False,
+        direction: str = "forward",
+        order: str = "rows",
+        match_case: bool = False,
+    ) -> Range | None | Awaitable[Range | None]:
+        """Find the first matching cell in this range, or return `None`.
+
+        Classic xlwings returns the result directly. In xlwings Lite, await the result because Excel must be queried asynchronously. The search starts at the first cell in the requested traversal direction and is restricted to this range.
+
+        Args:
+            text: Text to find. An empty string is not allowed.
+            whole: Match the entire cell rather than part of it.
+            direction: `"forward"` or `"backward"`.
+            order: Search by `"rows"` or `"columns"`.
+            match_case: Whether matching is case-sensitive.
+
+        In xlwings Lite, pending writes must be flushed before searching if the search needs to see their results.
+
+        Examples:
+            In desktop Python:
+
+            ```python
+            import xlwings as xw
+
+            sheet = xw.Book().sheets[0]
+            sheet["A1:A3"].value = [["North"], ["South"], ["North"]]
+            found = sheet["A1:A3"].find("South", whole=True)
+            print(found.address if found else None)  # $A$2
+            ```
+
+            In xlwings Lite, await the same search:
+
+            ```python
+            found = await sheet["A1:A3"].find("South", whole=True)
+            ```
+        """
+        if not isinstance(text, str):
+            raise TypeError("text must be a string")
+        if not text:
+            raise ValueError("text must not be empty")
+        for name, value in (("whole", whole), ("match_case", match_case)):
+            if not isinstance(value, bool):
+                raise TypeError(f"{name} must be a boolean")
+        if direction not in ("forward", "backward"):
+            raise ValueError("direction must be 'forward' or 'backward'")
+        if order not in ("rows", "columns"):
+            raise ValueError("order must be 'rows' or 'columns'")
+
+        found = self.impl.find(text, whole, direction, order, match_case)
+        if inspect.isawaitable(found):
+
+            async def await_found() -> Range | None:
+                impl = await found
+                return Range(impl=impl) if impl is not None else None
+
+            return await_found()
+        return Range(impl=found) if found is not None else None
+
+    def replace_all(
+        self,
+        old: str,
+        new: str,
+        *,
+        whole: bool = False,
+        match_case: bool = False,
+    ) -> None:
+        """Replace matching text within this range.
+
+        An empty replacement string is allowed; an empty search string is not.
+
+        Examples:
+            In desktop Python:
+
+            ```python
+            import xlwings as xw
+
+            sheet = xw.Book().sheets[0]
+            sheet["A1:A2"].value = [["Draft"], ["Draft report"]]
+            sheet["A1:A2"].replace_all("Draft", "Final")
+            print(sheet["A2"].value)  # Final report
+            ```
+        """
+        if not isinstance(old, str) or not isinstance(new, str):
+            raise TypeError("old and new must be strings")
+        if not old:
+            raise ValueError("old must not be empty")
+        for name, value in (("whole", whole), ("match_case", match_case)):
+            if not isinstance(value, bool):
+                raise TypeError(f"{name} must be a boolean")
+        self.impl.replace_all(old, new, whole, match_case)
 
     @property
     def has_array(self) -> bool:

@@ -4,6 +4,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.5 (TBD)
 
+- Added {meth}`Range.find <xlwings.Range.find>` and {meth}`Range.replace_all <xlwings.Range.replace_all>` for scoped Excel searches and replacements. `find()` returns directly on Windows and macOS and is awaited in xlwings Lite; replacements are queued in xlwings Lite.
 - Added a separate {class}`Comment <xlwings.Comment>` model for plain-text threaded comments, replies, and metadata. xlwings Lite reads comments asynchronously and can resolve or reopen threads with ExcelApi 1.11.
 - xlwings Lite: added {meth}`Range.get_colors <xlwings.Range.get_colors>` to read per-cell direct fill colors as a two-dimensional RGB/`None` matrix.
 - Added {meth}`Range.set_colors <xlwings.Range.set_colors>` for shape-validated bulk direct-fill writes. Use an RGB tuple or list, hex string, or Excel packed integer to set a cell, `None` to clear it, or `...` to leave it unchanged; xlwings Lite requires ExcelApi 1.9.

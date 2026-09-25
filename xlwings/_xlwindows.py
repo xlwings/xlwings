@@ -26,6 +26,7 @@ os.chdir(cwd)
 import ctypes
 import datetime as dt
 import numbers
+import re
 import types
 from ctypes import PyDLL, byref, oledll, py_object, windll
 from pathlib import Path
@@ -1387,6 +1388,81 @@ class Range(base_classes.Range):
         sort.MatchCase = False
         sort.Orientation = constants.Constants.xlTopToBottom
         sort.Apply()
+
+    def find(self, text, whole, direction, order, match_case):
+        if self.xl is None:
+            return None
+        if self.shape == (1, 1):
+            # Excel searches beyond the receiver when Find is sent to one cell.
+            # Search two cells, starting after the neighbor, then reject a
+            # match outside the requested cell.
+            neighbor_column = self.column + (1 if self.column < 16384 else -1)
+            worksheet = self.xl.Worksheet
+            search_range = worksheet.Range(
+                worksheet.Cells(self.row, min(self.column, neighbor_column)),
+                worksheet.Cells(self.row, max(self.column, neighbor_column)),
+            )
+            after = worksheet.Cells(self.row, neighbor_column)
+        else:
+            search_range = self.xl
+            after = (
+                self.xl.Cells(self.shape[0], self.shape[1])
+                if direction == "forward"
+                else self.xl.Cells(1, 1)
+            )
+        found = search_range.Find(
+            What=text,
+            After=after,
+            LookIn=constants.FindLookIn.xlValues,
+            LookAt=constants.LookAt.xlWhole if whole else constants.LookAt.xlPart,
+            SearchOrder=(
+                constants.SearchOrder.xlByRows
+                if order == "rows"
+                else constants.SearchOrder.xlByColumns
+            ),
+            SearchDirection=(
+                constants.SearchDirection.xlNext
+                if direction == "forward"
+                else constants.SearchDirection.xlPrevious
+            ),
+            MatchCase=match_case,
+            MatchByte=False,
+            SearchFormat=False,
+        )
+        if found is None:
+            return None
+        if self.shape == (1, 1) and (
+            found.Row != self.row or found.Column != self.column
+        ):
+            return None
+        return Range(found)
+
+    def replace_all(self, old, new, whole, match_case):
+        if self.xl is not None:
+            if self.shape == (1, 1):
+                # Excel's Replace searches beyond a one-cell receiver.
+                original = self.xl.Formula
+                if not isinstance(original, str):
+                    return
+                flags = 0 if match_case else re.IGNORECASE
+                pattern = re.compile(re.escape(old), flags)
+                if whole:
+                    replacement = new if pattern.fullmatch(original) else original
+                else:
+                    replacement = pattern.sub(lambda _: new, original)
+                if replacement != original:
+                    self.xl.Formula = replacement or None
+                return
+            self.xl.Replace(
+                What=old,
+                Replacement=new,
+                LookAt=constants.LookAt.xlWhole if whole else constants.LookAt.xlPart,
+                SearchOrder=constants.SearchOrder.xlByRows,
+                MatchCase=match_case,
+                MatchByte=False,
+                SearchFormat=False,
+                ReplaceFormat=False,
+            )
 
     @property
     def formula(self):
