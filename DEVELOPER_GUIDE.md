@@ -136,10 +136,10 @@ For running the xlwings pro related tests, you'll need to use the `noncommercial
 
 To run the UDF tests, open `udf_tests.xlsm` in the `tests/udfs` directory and follow the instructions at the top of the file. The other files work accordingly.
 
-Run a unittest:
+Run a single module:
 
 ```
-python -m unittest tests.test_range
+uv run pytest tests/test_range_sort.py
 ```
 
 ## Docs
@@ -147,26 +147,7 @@ python -m unittest tests.test_range
 ### Build locally
 
 ```
-pip install -r docs/requirements.txt
-pip install sphinx-autobuild
-```
-
-```
-sphinx-autobuild docs docs/_build/html --watch ./xlwings
-```
-
-without autobuild:
-
-```
-cd docs
-make html
-```
-
-To double-check the Sphinx warnings, it's best to run it as follows:
-
-```
-cd docs
-clear && make clean html
+make docs
 ```
 
 ### Build doc translations locally
