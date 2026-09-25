@@ -318,6 +318,11 @@ def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
                     xlf["ret"]["options"].update(annotations[0])
 
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
+        f.__xlfunc__["cache"] = check_bool("cache", default=False, **kwargs)
+        if f.__xlfunc__["cache"] and inspect.isasyncgenfunction(f):
+            raise XlwingsError("Streaming custom functions cannot use cache=True.")
+        if f.__xlfunc__["cache"] and f.__xlfunc__["volatile"]:
+            raise XlwingsError("Volatile custom functions cannot use cache=True.")
         # The Excel-facing function name (case-preserved); the metadata id and
         # the dispatch key remain the Python function name
         f.__xlfunc__["excel_name"] = _validate_excel_name(kwargs.get("name"))

@@ -3,6 +3,7 @@ from types import ModuleType
 
 import pytest
 
+from xlwings import XlwingsError
 from xlwings.server import (
     custom_functions_call,
     custom_functions_meta,
@@ -55,6 +56,40 @@ def mean(values):
     metadata = custom_functions_meta(module)
 
     assert metadata["functions"][0]["name"] == "STATISTICS.MEAN"
+
+
+def test_cache_option_is_kept_out_of_office_metadata(monkeypatch):
+    module = make_module(
+        monkeypatch,
+        "cached_custom_function",
+        """
+from xlwings.server import func
+
+@func(cache=True)
+def history(ticker, refresh_token):
+    return ticker
+""",
+    )
+
+    assert module.history.__xlfunc__["cache"] is True
+    assert "cache" not in custom_functions_meta(module)["functions"][0]["options"]
+
+
+@pytest.mark.parametrize(
+    "decorator,definition",
+    [
+        ("@func(cache=1)", "def history():\n    return 1"),
+        ("@func(cache=True, volatile=True)", "def history():\n    return 1"),
+        ("@func(cache=True)", "async def history():\n    yield 1"),
+    ],
+)
+def test_invalid_cache_options(monkeypatch, decorator, definition):
+    with pytest.raises(XlwingsError, match="cache"):
+        make_module(
+            monkeypatch,
+            "invalid_cached_custom_function",
+            f"from xlwings.server import func\n{decorator}\n{definition}\n",
+        )
 
 
 def test_namespace_comes_from_defining_module(monkeypatch):
