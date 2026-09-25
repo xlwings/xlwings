@@ -31,6 +31,7 @@ from typing import (
     Generator,
     Generic,
     Iterator,
+    Literal,
     Mapping,
     Sequence,
     TypeVar,
@@ -2376,7 +2377,9 @@ class Range:
         self.impl.remove_duplicates(normalized, has_headers)
 
     def get_special_cells(
-        self, cell_type: str, value_type: str | None = None
+        self,
+        cell_type: Literal["blanks", "constants", "formulas", "visible"],
+        value_type: Literal["numbers", "text", "logical", "errors"] | None = None,
     ) -> list[Range] | Awaitable[list[Range]]:
         """Return the rectangular areas of matching cells within this range.
 
