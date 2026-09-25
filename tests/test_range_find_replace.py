@@ -141,7 +141,8 @@ def test_mac_find_and_replace_use_native_commands():
     selected = _xlmac.Range.__new__(_xlmac.Range)
     selected._coords = (2, 3, 4, 3)
     selected.xl = MagicMock()
-    selected.sheet = SimpleNamespace(xl=MagicMock())
+    app = SimpleNamespace(display_alerts=True)
+    selected.sheet = SimpleNamespace(xl=MagicMock(), book=SimpleNamespace(app=app))
     selected.xl.find.return_value.get_address.return_value = "$E$5"
 
     result = selected.find("needle", True, "forward", "columns", True)
@@ -161,6 +162,7 @@ def test_mac_find_and_replace_use_native_commands():
         match_case=True,
         match_byte=False,
     )
+    assert app.display_alerts is True
 
     selected.xl.find.return_value = _xlmac.kw.missing_value
     assert selected.find("absent", False, "forward", "rows", False) is None

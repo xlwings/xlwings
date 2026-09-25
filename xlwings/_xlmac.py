@@ -1131,37 +1131,79 @@ class Range(base_classes.Range):
     def find(self, text, whole, direction, order, match_case):
         if self.xl is None:
             return None
-        after_row = self.row + (self.shape[0] - 1 if direction == "forward" else 0)
-        after_column = self.column + (
-            self.shape[1] - 1 if direction == "forward" else 0
-        )
-        after = self.sheet.xl.rows[after_row].columns[after_column]
-        found = self.xl.find(
-            what=text,
-            after_=after,
-            look_in=kw.values,
-            look_at=kw.whole if whole else kw.part,
-            search_order=kw.by_rows if order == "rows" else kw.by_columns,
-            search_direction=(
-                kw.search_next if direction == "forward" else kw.search_previous
-            ),
-            match_case=match_case,
-            match_byte=False,
-        )
-        if found is None or found == kw.missing_value:
-            return None
-        return Range(self.sheet, found.get_address())
-
-    def replace_all(self, old, new, whole, match_case):
-        if self.xl is not None:
-            self.xl.replace(
-                what=old,
-                replacement=new,
+        if self.shape == (1, 1):
+            # Excel searches the entire sheet when Find is sent to one cell.
+            # Search two cells, starting after the neighbor, then reject a
+            # match outside the requested cell.
+            neighbor_column = self.column + (1 if self.column < 16384 else -1)
+            search_range = Range(
+                self.sheet,
+                (self.row, min(self.column, neighbor_column), 1, 2),
+            ).xl
+            after = self.sheet.xl.rows[self.row].columns[neighbor_column]
+        else:
+            search_range = self.xl
+            after_row = self.row + (self.shape[0] - 1 if direction == "forward" else 0)
+            after_column = self.column + (
+                self.shape[1] - 1 if direction == "forward" else 0
+            )
+            after = self.sheet.xl.rows[after_row].columns[after_column]
+        try:
+            found = search_range.find(
+                what=text,
+                after_=after,
+                look_in=kw.values,
                 look_at=kw.whole if whole else kw.part,
-                search_order=kw.by_rows,
+                search_order=kw.by_rows if order == "rows" else kw.by_columns,
+                search_direction=(
+                    kw.search_next if direction == "forward" else kw.search_previous
+                ),
                 match_case=match_case,
                 match_byte=False,
             )
+        except CommandError as exc:
+            # Excel for Mac raises a parameter error when Find has no match.
+            if exc.errornumber == -50:
+                return None
+            raise
+        if found is None or found == kw.missing_value:
+            return None
+        found_address = found.get_address()
+        if self.shape == (1, 1) and found_address != self.address:
+            return None
+        return Range(self.sheet, found_address)
+
+    def replace_all(self, old, new, whole, match_case):
+        if self.xl is not None:
+            if self.shape == (1, 1):
+                # Excel's native Replace searches the whole sheet when the
+                # receiver is one cell, so update only the requested cell.
+                original = self.xl.formula.get()
+                if not isinstance(original, str):
+                    return
+                flags = 0 if match_case else re.IGNORECASE
+                pattern = re.compile(re.escape(old), flags)
+                if whole:
+                    replacement = new if pattern.fullmatch(original) else original
+                else:
+                    replacement = pattern.sub(lambda _: new, original)
+                if replacement != original:
+                    self.xl.formula.set(replacement or None)
+                return
+            app = self.sheet.book.app
+            alerts_state = app.display_alerts
+            app.display_alerts = False
+            try:
+                self.xl.replace(
+                    what=old,
+                    replacement=new,
+                    look_at=kw.whole if whole else kw.part,
+                    search_order=kw.by_rows,
+                    match_case=match_case,
+                    match_byte=False,
+                )
+            finally:
+                app.display_alerts = alerts_state
 
     def end(self, direction):
         direction = directions_s2k.get(direction, direction)
@@ -2142,9 +2184,7 @@ class Characters(base_classes.Characters):
                 xl=self.xl[
                     item.start + 1
                     if item.start
-                    else None : item.stop
-                    if item.stop
-                    else len(self.text)
+                    else None : (item.stop if item.stop else len(self.text))
                 ],
             )
         else:

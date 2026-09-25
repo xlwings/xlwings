@@ -2337,7 +2337,7 @@ class Range:
     ) -> Range | None | Awaitable[Range | None]:
         """Find the first matching cell in this range, or return `None`.
 
-        Windows and macOS return the result directly. In xlwings Lite, await the result because Excel must be queried asynchronously. The search starts at the first cell in the requested traversal direction and is restricted to this range.
+        Classic xlwings returns the result directly. In xlwings Lite, await the result because Excel must be queried asynchronously. The search starts at the first cell in the requested traversal direction and is restricted to this range.
 
         Args:
             text: Text to find. An empty string is not allowed.
@@ -2378,9 +2378,9 @@ class Range:
         whole: bool = False,
         match_case: bool = False,
     ) -> None:
-        """Replace matching text within this range using Excel's native operation.
+        """Replace matching text within this range.
 
-        In xlwings Lite, the replacement is queued until the next sync. An empty replacement string is allowed; an empty search string is not.
+        An empty replacement string is allowed; an empty search string is not.
         """
         if not isinstance(old, str) or not isinstance(new, str):
             raise TypeError("old and new must be strings")
