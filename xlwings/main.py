@@ -5185,7 +5185,7 @@ class Comments:
 
 
 class Comment:
-    """A modern threaded comment attached to one cell, distinct from a `Note`.
+    """A modern threaded comment attached to one cell, distinct from a [](note.md).
 
     Examples:
         ```python
@@ -5204,7 +5204,9 @@ class Comment:
 
     @property
     def api(self) -> Any:
-        """The native desktop object. Unavailable in xlwings Lite."""
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
         return self.impl.api
 
     @property
@@ -5286,7 +5288,7 @@ class Comment:
         return [CommentReply(impl=impl) for impl in await self.impl.get_replies()]
 
     def add_reply(self, text: str) -> None:
-        """Add a plain-text reply. Fetch replies afterward to inspect it."""
+        """Add a plain-text reply."""
         _validate_comment_text(text)
         self.impl.add_reply(text)
 
