@@ -2346,8 +2346,6 @@ class Range:
             order: Search by `"rows"` or `"columns"`.
             match_case: Whether matching is case-sensitive.
 
-        In xlwings Lite, pending writes must be flushed before searching if the search needs to see their results.
-
         Examples:
             In desktop Python:
 
@@ -2401,8 +2399,6 @@ class Range:
         An empty replacement string is allowed; an empty search string is not.
 
         Examples:
-            In desktop Python:
-
             ```python
             import xlwings as xw
 
