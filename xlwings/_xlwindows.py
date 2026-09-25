@@ -1362,6 +1362,32 @@ class Range(base_classes.Range):
         if self.xl is not None:
             self.xl.Clear()
 
+    def sort(self, keys, ascending, has_headers):
+        sort = self.xl.Worksheet.Sort
+        sort.SortFields.Clear()
+        first_data_row = 2 if has_headers else 1
+        for key, direction in zip(keys, ascending):
+            key_range = self.xl.Worksheet.Range(
+                self.xl.Cells(first_data_row, key),
+                self.xl.Cells(self.shape[0], key),
+            )
+            sort.SortFields.Add(
+                Key=key_range,
+                SortOn=constants.SortOn.xlSortOnValues,
+                Order=(
+                    constants.SortOrder.xlAscending
+                    if direction
+                    else constants.SortOrder.xlDescending
+                ),
+            )
+        sort.SetRange(self.xl)
+        sort.Header = (
+            constants.YesNoGuess.xlYes if has_headers else constants.YesNoGuess.xlNo
+        )
+        sort.MatchCase = False
+        sort.Orientation = constants.Constants.xlTopToBottom
+        sort.Apply()
+
     @property
     def formula(self):
         if self.xl is not None:

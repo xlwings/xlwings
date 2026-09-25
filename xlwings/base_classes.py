@@ -829,6 +829,9 @@ class Sheet:
 
 
 class Range:
+    def sort(self, keys, ascending, has_headers):
+        raise NotImplementedError()
+
     @property
     def autofilter(self):
         raise NotImplementedError()

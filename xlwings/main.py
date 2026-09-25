@@ -2250,6 +2250,80 @@ class Range:
         """Clears the content and the formatting of a Range."""
         return self.impl.clear()
 
+    def sort(
+        self,
+        keys: int | Sequence[int],
+        ascending: bool | Sequence[bool] = True,
+        has_headers: bool = False,
+    ) -> None:
+        """Sort the rows of this rectangular range by one or more columns.
+
+        Args:
+            keys: One-based column positions within this range, in priority order.
+            ascending: One direction for every key, or one boolean per key.
+            has_headers: Whether to keep the first row in place as a header.
+
+        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported. In xlwings Lite, the sort is queued until the next sync.
+
+        Examples:
+            ```python
+            sheet["A1:D20"].sort([2, 1], [False, True], has_headers=True)
+            ```
+        """
+        if isinstance(keys, bool):
+            raise TypeError("keys must be one-based column positions")
+        if isinstance(keys, int):
+            normalized_keys = [keys]
+        elif isinstance(keys, Sequence) and not isinstance(keys, (str, bytes)):
+            normalized_keys = list(keys)
+        else:
+            raise TypeError("keys must be an integer or a sequence of integers")
+        if not normalized_keys:
+            raise ValueError("keys must contain at least one column")
+        if any(
+            not isinstance(key, int) or isinstance(key, bool) for key in normalized_keys
+        ):
+            raise TypeError("keys must contain only integers")
+        if any(key < 1 or key > self.shape[1] for key in normalized_keys):
+            raise ValueError("sort keys must be within the range's columns")
+        if len(set(normalized_keys)) != len(normalized_keys):
+            raise ValueError("sort keys must be unique")
+
+        if isinstance(ascending, bool):
+            normalized_ascending = [ascending] * len(normalized_keys)
+        elif isinstance(ascending, Sequence) and not isinstance(
+            ascending, (str, bytes)
+        ):
+            normalized_ascending = list(ascending)
+            if len(normalized_ascending) != len(normalized_keys):
+                raise ValueError("ascending must have one boolean per key")
+            if any(
+                not isinstance(direction, bool) for direction in normalized_ascending
+            ):
+                raise TypeError("ascending must contain only booleans")
+        else:
+            raise TypeError("ascending must be a boolean or a sequence of booleans")
+        if not isinstance(has_headers, bool):
+            raise TypeError("has_headers must be a boolean")
+        if has_headers and self.shape[0] < 2:
+            raise ValueError("a sort with headers needs at least two rows")
+
+        for table in self.sheet.tables:
+            table_range = table.range
+            if table_range is None:
+                continue
+            if (
+                self.row <= table_range.row + table_range.shape[0] - 1
+                and table_range.row <= self.row + self.shape[0] - 1
+                and self.column <= table_range.column + table_range.shape[1] - 1
+                and table_range.column <= self.column + self.shape[1] - 1
+            ):
+                raise ValueError(
+                    "Range.sort() does not support ranges intersecting a table"
+                )
+
+        self.impl.sort(normalized_keys, normalized_ascending, has_headers)
+
     @property
     def has_array(self) -> bool:
         """`True` if the range is part of a legacy CSE Array formula
