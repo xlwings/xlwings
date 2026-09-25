@@ -699,6 +699,12 @@ class Sheet(base_classes.Sheet):
         return notes
 
     @property
+    def comments(self):
+        raise NotImplementedError(
+            "Threaded comments are not available through Excel for Mac AppleScript"
+        )
+
+    @property
     def index(self):
         return self.xl.entry_index.get()
 
@@ -1459,6 +1465,17 @@ class Range(base_classes.Range):
 
     def add_note(self, text):
         return Note(parent=self, xl=self.xl.add_comment(comment_text=text))
+
+    @property
+    def comment(self):
+        raise NotImplementedError(
+            "Threaded comments are not available through Excel for Mac AppleScript"
+        )
+
+    def add_comment(self, text):
+        raise NotImplementedError(
+            "Threaded comments are not available through Excel for Mac AppleScript"
+        )
 
     @property
     def conditional_formats(self):

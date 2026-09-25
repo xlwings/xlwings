@@ -1219,6 +1219,20 @@ class Book:
         return Notes(self)
 
     @property
+    def comments(self) -> Comments:
+        """Threaded comments in this workbook. In xlwings Lite, use `await get_comments()`."""
+        return Comments(self)
+
+    async def get_comments(self) -> Comments:
+        """Fetch the workbook's threaded comments.
+
+        Requires xlwings Lite.
+        """
+        return Comments(
+            self, [Comment(impl=item) for item in await self.impl.get_comments()]
+        )
+
+    @property
     def app(self) -> App:
         """Returns an app object that represents the creator of the book.
 
@@ -1557,6 +1571,20 @@ class Sheet:
     def notes(self) -> Notes:
         """Notes on this worksheet, indexed by cell address or position."""
         return Notes(self)
+
+    @property
+    def comments(self) -> Comments:
+        """Threaded comments on this worksheet. In xlwings Lite, use `await get_comments()`."""
+        return Comments(self)
+
+    async def get_comments(self) -> Comments:
+        """Fetch this worksheet's threaded comments.
+
+        Requires xlwings Lite.
+        """
+        return Comments(
+            self, [Comment(impl=item) for item in await self.impl.get_comments()]
+        )
 
     @property
     def index(self) -> int:
@@ -1914,7 +1942,9 @@ class Sheet:
         Args:
             values_only: If `True`, only cells with values count as used. If `False`, cells with values or formatting count as used.
 
-        Requires xlwings Lite. Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
+        Unlike this method, {attr}`used_range` is a values-only snapshot in xlwings Lite and returns `A1` for an empty worksheet for backward compatibility.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -3437,6 +3467,34 @@ class Range:
             raise ValueError("This cell already has a note")
         return Note(impl=self.impl.add_note(text))
 
+    @property
+    def comment(self) -> Comment | None:
+        """The cell's threaded comment. In xlwings Lite, use `await get_comment()`."""
+        if self.shape != (1, 1):
+            raise ValueError("A comment location must be a single cell")
+        impl = self.impl.comment
+        return Comment(impl=impl) if impl is not None else None
+
+    async def get_comment(self) -> Comment | None:
+        """Fetch the cell's threaded comment, or `None`.
+
+        Requires xlwings Lite.
+        """
+        if self.shape != (1, 1):
+            raise ValueError("A comment location must be a single cell")
+        impl = await self.impl.get_comment()
+        return Comment(impl=impl) if impl is not None else None
+
+    def add_comment(self, text: str) -> Comment:
+        """Add a plain-text threaded comment to one cell and return its handle.
+
+        Raises `TypeError` for non-text content and `ValueError` for empty text or a multi-cell range. Excel rejects a second comment on the same cell.
+        """
+        _validate_comment_text(text)
+        if self.shape != (1, 1):
+            raise ValueError("A comment can only be added to a single cell")
+        return Comment(impl=self.impl.add_comment(text))
+
     def copy_picture(self, appearance: str = "screen", format: str = "picture") -> None:
         """Copies the range to the clipboard as picture.
 
@@ -3690,7 +3748,9 @@ class AutoFilter:
     async def get_criteria(self) -> list[AutoFilterCriteria]:
         """Returns the criteria for all fields from Excel.
 
-        The list contains one entry per field, including entries whose type is `"none"`. Unsupported native criteria are reported as `"unknown"`. Requires xlwings Lite.
+        The list contains one entry per field, including entries whose type is `"none"`. Unsupported native criteria are reported as `"unknown"`.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -5045,6 +5105,235 @@ class Note:
         return Range(impl=impl) if impl is not None else None
 
 
+def _validate_comment_text(text: str) -> None:
+    if not isinstance(text, str):
+        raise TypeError("Comment text must be a string")
+    if not text:
+        raise ValueError("Comment text must not be empty")
+
+
+class Comments:
+    """Threaded comments on a worksheet or in a workbook.
+
+    In xlwings Lite, obtain the collection with `await sheet.get_comments()` or `await book.get_comments()`.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        book = xw.Book()
+        sheet = book.sheets[0]
+        sheet["A1"].add_comment("Review")
+        for comment in book.comments:
+            print(comment.location.address, comment.text)
+        print(sheet.comments["A1"].text)
+        ```
+    """
+
+    def __init__(
+        self, parent: Book | Sheet, items: list[Comment] | None = None
+    ) -> None:
+        self.parent = parent
+        self._items = items
+
+    def __iter__(self) -> Iterator[Comment]:
+        if self._items is not None:
+            yield from self._items
+        elif isinstance(self.parent, Book):
+            for sheet in self.parent.sheets:
+                yield from sheet.comments
+        else:
+            for impl in self.parent.impl.comments:
+                yield Comment(impl=impl)
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    @property
+    def count(self) -> int:
+        """Number of comments in this collection."""
+        return len(self)
+
+    def __getitem__(self, key: int | str | Range) -> Comment:
+        if isinstance(key, int):
+            return list(self)[key]
+        if isinstance(key, str) and isinstance(self.parent, Sheet):
+            cell = self.parent.range(key)
+        elif isinstance(key, Range):
+            cell = key
+        else:
+            raise TypeError("Use a cell Range for workbook lookup")
+        if cell.shape != (1, 1):
+            raise ValueError("A comment location must be a single cell")
+        expected_book = (
+            self.parent if isinstance(self.parent, Book) else self.parent.book
+        )
+        if cell.sheet.book != expected_book or (
+            isinstance(self.parent, Sheet) and cell.sheet != self.parent
+        ):
+            raise ValueError("The cell must belong to this collection")
+        for comment in self:
+            location = getattr(comment.impl, "range", None)
+            if location is None:
+                location = comment.location
+            if (
+                location.sheet.name == cell.sheet.name
+                and location.address == cell.address
+            ):
+                return comment
+        raise KeyError(key)
+
+
+class Comment:
+    """A modern threaded comment attached to one cell, distinct from a [](note.md).
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        cell = xw.Book().sheets[0]["A1"]
+        comment = cell.add_comment("Review this value")
+        comment.text = "Review the updated value"
+        print(comment.author, comment.text)
+        comment.delete()
+        ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def api(self) -> Any:
+        """Returns the native object (`pywin32` or `appscript` obj)
+        of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def text(self) -> str:
+        """Comment text. In xlwings Lite, use `await get_text()` to read it."""
+        return self.impl.text
+
+    @text.setter
+    def text(self, value: str) -> None:
+        _validate_comment_text(value)
+        self.impl.text = value
+
+    async def get_text(self) -> str | None:
+        """Read the comment text, or `None` if it was deleted.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
+
+    @property
+    def author(self) -> str:
+        """Author name. In xlwings Lite, use `await get_author()`."""
+        return self.impl.author
+
+    async def get_author(self) -> str | None:
+        """Read the author's name.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_author()
+
+    @property
+    def creation_date(self) -> dt.datetime | None:
+        """Creation date, when Excel has one. In xlwings Lite, use `await get_creation_date()`."""
+        return self.impl.creation_date
+
+    async def get_creation_date(self) -> dt.datetime | None:
+        """Read the creation date.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_creation_date()
+
+    @property
+    def resolved(self) -> bool:
+        """Thread resolution state. In xlwings Lite, use `await get_resolved()`."""
+        return self.impl.resolved
+
+    async def get_resolved(self) -> bool | None:
+        """Read the resolution state.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_resolved()
+
+    @property
+    def location(self) -> Range:
+        """The comment's cell. In xlwings Lite, use `await get_location()`."""
+        return Range(impl=self.impl.location)
+
+    async def get_location(self) -> Range | None:
+        """Read the comment's cell.
+
+        Requires xlwings Lite.
+        """
+        impl = await self.impl.get_location()
+        return Range(impl=impl) if impl is not None else None
+
+    @property
+    def replies(self) -> list[CommentReply]:
+        """Replies to this comment. In xlwings Lite, use `await get_replies()`."""
+        return [CommentReply(impl=impl) for impl in self.impl.replies]
+
+    async def get_replies(self) -> list[CommentReply]:
+        """Fetch replies.
+
+        Requires xlwings Lite.
+        """
+        return [CommentReply(impl=impl) for impl in await self.impl.get_replies()]
+
+    def add_reply(self, text: str) -> None:
+        """Add a plain-text reply."""
+        _validate_comment_text(text)
+        self.impl.add_reply(text)
+
+    def resolve(self) -> None:
+        """Resolve this thread."""
+        self.impl.set_resolved(True)
+
+    def reopen(self) -> None:
+        """Reopen this thread."""
+        self.impl.set_resolved(False)
+
+    def delete(self) -> None:
+        """Delete the thread and all its replies."""
+        self.impl.delete()
+
+
+class CommentReply:
+    """A plain-text reply to a threaded comment.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        comment = xw.Book().sheets[0]["A1"].add_comment("Review")
+        comment.add_reply("Checked")
+        print(comment.replies[0].text)
+        ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def text(self) -> str:
+        """Reply text. In xlwings Lite, use `await get_text()`."""
+        return self.impl.text
+
+    async def get_text(self) -> str | None:
+        """Read the reply text, or `None` if it was deleted.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
+
+
 class Table:
     """The table object is a member of the `tables` collection:
 
@@ -5720,9 +6009,9 @@ class Chart:
     async def get_series(self) -> ChartSeriesCollection:
         """Fetches the chart's current ordered series collection.
 
-        Requires xlwings Lite. A newly created chart must first be dispatched
-        with `await book.flush()` so Excel can create its series from the source
-        data.
+        A newly created chart must first be dispatched with `await book.flush()` so Excel can create its series from the source data.
+
+        Requires xlwings Lite.
 
         ```{versionadded} 0.37.5
         ```
@@ -6244,43 +6533,50 @@ class ChartSeries:
     async def get_name(self) -> str:
         """Fetches the displayed series name.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_name()
 
     async def get_marker_style(self) -> ChartMarkerStyle:
         """Fetches the marker style.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_style()
 
     async def get_marker_size(self) -> int:
         """Fetches the marker size.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_size()
 
     async def get_marker_foreground_color(self) -> tuple[int, int, int] | None:
         """Fetches the marker foreground color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_foreground_color()
 
     async def get_marker_background_color(self) -> tuple[int, int, int] | None:
         """Fetches the marker background color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_marker_background_color()
 
     async def get_line_color(self) -> tuple[int, int, int] | None:
         """Fetches the series line color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_line_color()
 
     async def get_fill_color(self) -> tuple[int, int, int] | None:
         """Fetches the solid series fill color.
 
-        Requires xlwings Lite."""
+        Requires xlwings Lite.
+        """
         return await self.impl.get_fill_color()
 
     def __repr__(self) -> str:

@@ -1018,6 +1018,10 @@ class Sheet(base_classes.Sheet):
         return [Note(xl=comment) for comment in self.xl.Comments]
 
     @property
+    def comments(self):
+        return [Comment(xl=comment) for comment in self.xl.CommentsThreaded]
+
+    @property
     def index(self):
         return self.xl.Index
 
@@ -1706,6 +1710,13 @@ class Range(base_classes.Range):
 
     def add_note(self, text):
         return Note(xl=self.xl.AddComment(text))
+
+    @property
+    def comment(self):
+        return Comment(xl=self.xl.CommentThreaded) if self.xl.CommentThreaded else None
+
+    def add_comment(self, text):
+        return Comment(xl=self.xl.AddCommentThreaded(text))
 
     @property
     def conditional_formats(self):
@@ -2439,6 +2450,65 @@ class PageSetup(base_classes.PageSetup):
     @print_area.setter
     def print_area(self, value):
         self.xl.PrintArea = value
+
+
+class Comment(base_classes.Comment):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.Text()
+
+    @text.setter
+    def text(self, value):
+        self.xl.Text(value)
+
+    @property
+    def author(self):
+        return self.xl.Author.Name
+
+    @property
+    def creation_date(self):
+        return self.xl.Date
+
+    @property
+    def resolved(self):
+        raise NotImplementedError(
+            "Excel COM does not expose threaded-comment resolution"
+        )
+
+    def set_resolved(self, value):
+        raise NotImplementedError(
+            "Excel COM does not expose threaded-comment resolution"
+        )
+
+    @property
+    def location(self):
+        return Range(xl=self.xl.Parent)
+
+    @property
+    def replies(self):
+        return [CommentReply(xl=reply) for reply in self.xl.Replies]
+
+    def add_reply(self, text):
+        self.xl.AddReply(text)
+
+    def delete(self):
+        self.xl.Delete()
+
+
+class CommentReply(base_classes.CommentReply):
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def text(self):
+        return self.xl.Text()
 
 
 class Note(base_classes.Note):

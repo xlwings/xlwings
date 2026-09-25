@@ -626,6 +626,9 @@ class Books:
 
 
 class Book:
+    async def get_comments(self):
+        raise NotImplementedError("get_comments() is only supported in xlwings Lite")
+
     @property
     def api(self):
         raise NotImplementedError()
@@ -727,6 +730,13 @@ class Sheet:
     @property
     def notes(self):
         raise NotImplementedError()
+
+    @property
+    def comments(self):
+        raise NotImplementedError()
+
+    async def get_comments(self):
+        raise NotImplementedError("get_comments() is only supported in xlwings Lite")
 
     @property
     def index(self):
@@ -1179,6 +1189,16 @@ class Range:
         raise NotImplementedError()
 
     def add_note(self, text):
+        raise NotImplementedError()
+
+    @property
+    def comment(self):
+        raise NotImplementedError()
+
+    async def get_comment(self):
+        raise NotImplementedError("get_comment() is only supported in xlwings Lite")
+
+    def add_comment(self, text):
         raise NotImplementedError()
 
     def copy_picture(self, appearance, format):
@@ -1720,6 +1740,78 @@ class Note:
 
     def delete(self):
         raise NotImplementedError()
+
+
+class Comment:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def text(self):
+        raise NotImplementedError()
+
+    @text.setter
+    def text(self, value):
+        raise NotImplementedError()
+
+    async def get_text(self):
+        raise NotImplementedError("get_text() is only supported in xlwings Lite")
+
+    @property
+    def author(self):
+        raise NotImplementedError()
+
+    async def get_author(self):
+        raise NotImplementedError("get_author() is only supported in xlwings Lite")
+
+    @property
+    def creation_date(self):
+        raise NotImplementedError()
+
+    async def get_creation_date(self):
+        raise NotImplementedError(
+            "get_creation_date() is only supported in xlwings Lite"
+        )
+
+    @property
+    def resolved(self):
+        raise NotImplementedError()
+
+    async def get_resolved(self):
+        raise NotImplementedError("get_resolved() is only supported in xlwings Lite")
+
+    def set_resolved(self, value):
+        raise NotImplementedError()
+
+    @property
+    def location(self):
+        raise NotImplementedError()
+
+    async def get_location(self):
+        raise NotImplementedError("get_location() is only supported in xlwings Lite")
+
+    @property
+    def replies(self):
+        raise NotImplementedError()
+
+    async def get_replies(self):
+        raise NotImplementedError("get_replies() is only supported in xlwings Lite")
+
+    def add_reply(self, text):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class CommentReply:
+    @property
+    def text(self):
+        raise NotImplementedError()
+
+    async def get_text(self):
+        raise NotImplementedError("get_text() is only supported in xlwings Lite")
 
 
 class ConditionalFormat:

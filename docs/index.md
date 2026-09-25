@@ -101,6 +101,9 @@ api/chart_legend
 api/charts
 api/conditional_format
 api/conditional_formats
+api/comment
+api/comments
+api/comment_reply
 api/data_validation
 api/font
 api/name

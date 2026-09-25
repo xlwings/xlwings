@@ -939,6 +939,22 @@ class Book(base_classes.Book):
     def sheets(self):
         return Sheets(api=self.api["sheets"], book=self)
 
+    async def get_comments(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_comments() is only supported in xlwings Lite"
+            )
+        import js
+
+        entries = _normalize_jsnull((await js.xlwings.getComments()).to_py())
+        return [
+            Comment(
+                Range(sheet=self.sheets(entry["sheet"]), arg1=entry["address"]),
+                entry["id"],
+            )
+            for entry in entries
+        ]
+
     @property
     def app(self):
         return self.books.app
@@ -1156,6 +1172,26 @@ class Sheet(base_classes.Sheet):
         return [
             Note(Range(sheet=self, arg1=entry["address"]))
             for entry in self.api.get("notes", [])
+        ]
+
+    @property
+    def comments(self):
+        raise NotImplementedError(
+            "Reading comments synchronously isn't supported on this engine. "
+            "Use 'await sheet.get_comments()'."
+        )
+
+    async def get_comments(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_comments() is only supported in xlwings Lite"
+            )
+        import js
+
+        entries = _normalize_jsnull((await js.xlwings.getComments(self.name)).to_py())
+        return [
+            Comment(Range(sheet=self, arg1=entry["address"]), entry["id"])
+            for entry in entries
         ]
 
     def range(self, arg1, arg2=None):
@@ -1858,6 +1894,34 @@ class Range(base_classes.Range):
         self.append_json_action(func="addNote", args=[self.address, text])
         notes.append({"address": self.address})
         return Note(self)
+
+    @property
+    def comment(self):
+        raise NotImplementedError(
+            "Reading a comment synchronously isn't supported on this engine. "
+            "Use 'await range.get_comment()'."
+        )
+
+    async def get_comment(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_comment() is only supported in xlwings Lite")
+        import js
+
+        result = _normalize_jsnull(
+            await js.xlwings.getCommentAt(self.sheet.name, self.address)
+        )
+        if result is None:
+            return None
+        entry = _normalize_jsnull(result.to_py())
+        return Comment(self, entry["id"])
+
+    def add_comment(self, text):
+        if self.sheet.book.api["client"] != "Office.js":
+            raise NotImplementedError(
+                "Adding threaded comments requires an Office.js client"
+            )
+        self.append_json_action(func="addComment", args=[self.address, text])
+        return Comment(self)
 
     @property
     def hyperlink(self):
@@ -4733,6 +4797,133 @@ class ConditionalFormats(base_classes.ConditionalFormats):
         if self._api is not None:
             self._api.clear()
         self._pending.clear()
+
+
+class Comment(base_classes.Comment):
+    def __init__(self, range, comment_id=None):
+        self.range = range
+        self.comment_id = comment_id
+
+    @property
+    def api(self):
+        raise NotImplementedError("Comment.api is not available in xlwings Lite")
+
+    async def _read(self, key):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+
+        value = await js.xlwings.getCommentData(
+            self.range.sheet.name, self.comment_id, self.range.address, key
+        )
+        return _normalize_jsnull(value.to_py() if hasattr(value, "to_py") else value)
+
+    @property
+    def text(self):
+        raise NotImplementedError("Use 'await comment.get_text()' in xlwings Lite")
+
+    @text.setter
+    def text(self, value):
+        self.range.append_json_action(
+            func="setCommentText", args=[self.comment_id, self.range.address, value]
+        )
+
+    async def get_text(self):
+        return await self._read("text")
+
+    @property
+    def author(self):
+        raise NotImplementedError("Use 'await comment.get_author()' in xlwings Lite")
+
+    async def get_author(self):
+        return await self._read("author")
+
+    @property
+    def creation_date(self):
+        raise NotImplementedError(
+            "Use 'await comment.get_creation_date()' in xlwings Lite"
+        )
+
+    async def get_creation_date(self):
+        value = await self._read("creation_date")
+        return (
+            dt.datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+        )
+
+    @property
+    def resolved(self):
+        raise NotImplementedError("Use 'await comment.get_resolved()' in xlwings Lite")
+
+    async def get_resolved(self):
+        return await self._read("resolved")
+
+    def set_resolved(self, value):
+        self.range.append_json_action(
+            func="setCommentResolved", args=[self.comment_id, self.range.address, value]
+        )
+
+    @property
+    def location(self):
+        raise NotImplementedError("Use 'await comment.get_location()' in xlwings Lite")
+
+    async def get_location(self):
+        value = await self._read("location")
+        if value is None:
+            return None
+        sheet = self.range.sheet.book.sheets(value["sheet"])
+        return Range(sheet=sheet, arg1=value["address"])
+
+    @property
+    def replies(self):
+        raise NotImplementedError("Use 'await comment.get_replies()' in xlwings Lite")
+
+    async def get_replies(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_replies() is only supported in xlwings Lite")
+        import js
+
+        entries = _normalize_jsnull(
+            (
+                await js.xlwings.getCommentReplies(
+                    self.range.sheet.name, self.comment_id, self.range.address
+                )
+            ).to_py()
+        )
+        return [CommentReply(self, entry["id"]) for entry in entries]
+
+    def add_reply(self, text):
+        self.range.append_json_action(
+            func="addCommentReply", args=[self.comment_id, self.range.address, text]
+        )
+
+    def delete(self):
+        self.range.append_json_action(
+            func="deleteComment", args=[self.comment_id, self.range.address]
+        )
+
+
+class CommentReply(base_classes.CommentReply):
+    def __init__(self, comment, reply_id):
+        self.comment = comment
+        self.reply_id = reply_id
+
+    @property
+    def text(self):
+        raise NotImplementedError("Use 'await reply.get_text()' in xlwings Lite")
+
+    async def get_text(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_text() is only supported in xlwings Lite")
+        import js
+
+        return _normalize_jsnull(
+            await js.xlwings.getCommentReplyText(
+                self.comment.range.sheet.name,
+                self.comment.comment_id,
+                self.comment.range.address,
+                self.reply_id,
+            )
+        )
 
 
 class Note(base_classes.Note):
