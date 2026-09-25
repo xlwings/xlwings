@@ -832,6 +832,12 @@ class Range:
     def sort(self, keys, ascending, has_headers):
         raise NotImplementedError()
 
+    def remove_duplicates(self, columns, has_headers):
+        raise NotImplementedError()
+
+    def get_special_cells(self, cell_type, value_type):
+        raise NotImplementedError()
+
     def find(self, text, whole, direction, order, match_case):
         raise NotImplementedError()
 

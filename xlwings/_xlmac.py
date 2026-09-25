@@ -24,7 +24,7 @@ import xlwings
 
 from . import base_classes, mac_dict, utils
 from ._names import NameIndex
-from .constants import ColorIndex
+from .constants import ColorIndex, SpecialCellsValue
 from .utils import (
     VersionNumber,
     col_name,
@@ -1127,6 +1127,47 @@ class Range(base_classes.Range):
         sort.sort_orientation.set(kw.sort_columns)
         sort.match_case.set(False)
         sort.apply_sort()
+
+    def remove_duplicates(self, columns, has_headers):
+        raise NotImplementedError(
+            "Range.remove_duplicates() is unavailable on Excel for Mac because its AppleScript command cannot specify columns or headers"
+        )
+
+    def get_special_cells(self, cell_type, value_type):
+        types = {
+            "blanks": kw.cell_type_blanks,
+            "constants": kw.cell_type_constants,
+            "formulas": kw.cell_type_formulas,
+            "visible": kw.cell_type_visible,
+        }
+        values = {
+            "numbers": SpecialCellsValue.xlNumbers,
+            "text": SpecialCellsValue.xlTextValues,
+            "logical": SpecialCellsValue.xlLogical,
+            "errors": SpecialCellsValue.xlErrors,
+        }
+        try:
+            if value_type is None:
+                selected = self.xl.special_cells(type=types[cell_type])
+            else:
+                selected = self.xl.special_cells(
+                    type=types[cell_type], value=values[value_type]
+                )
+            # AppleScript can widen a single-cell SpecialCells query to the
+            # worksheet's used range. Restrict it to the requested cell.
+            if self.shape == (1, 1):
+                clipped = self.sheet.book.app.xl.intersect(
+                    range1=self.xl, range2=selected
+                )
+                if clipped is None or clipped == kw.missing_value:
+                    return []
+                return [self]
+            address = selected.get_address()
+        except CommandError as exc:
+            if exc.errornumber == -50:
+                return []
+            raise
+        return [Range(self.sheet, part.strip()) for part in address.split(",")]
 
     def find(self, text, whole, direction, order, match_case):
         if self.xl is None:

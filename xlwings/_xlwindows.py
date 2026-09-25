@@ -1389,6 +1389,44 @@ class Range(base_classes.Range):
         sort.Orientation = constants.Constants.xlTopToBottom
         sort.Apply()
 
+    def remove_duplicates(self, columns, has_headers):
+        self.xl.RemoveDuplicates(
+            Columns=columns,
+            Header=(
+                constants.YesNoGuess.xlYes if has_headers else constants.YesNoGuess.xlNo
+            ),
+        )
+
+    def get_special_cells(self, cell_type, value_type):
+        types = {
+            "blanks": constants.CellType.xlCellTypeBlanks,
+            "constants": constants.CellType.xlCellTypeConstants,
+            "formulas": constants.CellType.xlCellTypeFormulas,
+            "visible": constants.CellType.xlCellTypeVisible,
+        }
+        values = {
+            "numbers": constants.SpecialCellsValue.xlNumbers,
+            "text": constants.SpecialCellsValue.xlTextValues,
+            "logical": constants.SpecialCellsValue.xlLogical,
+            "errors": constants.SpecialCellsValue.xlErrors,
+        }
+        try:
+            if value_type is None:
+                selected = self.xl.SpecialCells(Type=types[cell_type])
+            else:
+                selected = self.xl.SpecialCells(
+                    Type=types[cell_type], Value=values[value_type]
+                )
+        except pywintypes.com_error as exc:
+            description = str(exc.excepinfo[2] if exc.excepinfo else "").lower()
+            if "no cells were found" in description:
+                return []
+            raise
+        # Excel searches the used range when SpecialCells receives one cell.
+        # Intersecting also makes the requested rectangle explicit for other shapes.
+        clipped = self.xl.Application.Intersect(selected, self.xl)
+        return [] if clipped is None else [Range(area) for area in clipped.Areas]
+
     def find(self, text, whole, direction, order, match_case):
         if self.xl is None:
             return None

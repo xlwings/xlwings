@@ -1661,6 +1661,24 @@ class Range(base_classes.Range):
             args=[keys, ascending, has_headers],
         )
 
+    def remove_duplicates(self, columns, has_headers):
+        self.append_json_action(
+            func="rangeRemoveDuplicates",
+            args=[columns, has_headers],
+        )
+
+    async def get_special_cells(self, cell_type, value_type):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Range.get_special_cells() requires xlwings Lite on this engine"
+            )
+        import js
+
+        addresses = await js.xlwings.getSpecialCells(
+            self.sheet.name, self.address, cell_type, value_type
+        )
+        return [Range(self.sheet, address) for address in addresses.to_py()]
+
     async def find(self, text, whole, direction, order, match_case):
         if sys.platform != "emscripten":
             raise NotImplementedError(
