@@ -307,6 +307,18 @@ class TestRangeAttributes(TestBase):
             assert sheet["A1"].rows.hidden is False
             assert sheet["A1"].columns.hidden is False
 
+            sheet["B2"].rows.hidden = False
+            sheet["B2"].columns.hidden = False
+            sheet["A1"].rows.hidden = True
+            sheet["A1"].columns.hidden = True
+            assert selection.rows.hidden is None
+            assert selection.columns.hidden is None
+
+            selection.rows.hidden = True
+            selection.columns.hidden = True
+            assert selection.rows.hidden is True
+            assert selection.columns.hidden is True
+
             selection.rows.hidden = False
             selection.columns.hidden = False
             assert selection.rows.hidden is False

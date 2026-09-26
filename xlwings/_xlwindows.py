@@ -1319,7 +1319,12 @@ class Range(base_classes.Range):
 
     @property
     def row_hidden(self):
-        return self.xl.EntireRow.Hidden
+        rows = self.xl.EntireRow.Rows
+        first = rows.Item(1).Hidden
+        for index in range(2, rows.Count + 1):
+            if rows.Item(index).Hidden != first:
+                return None
+        return first
 
     @row_hidden.setter
     def row_hidden(self, value):
@@ -1327,7 +1332,12 @@ class Range(base_classes.Range):
 
     @property
     def column_hidden(self):
-        return self.xl.EntireColumn.Hidden
+        columns = self.xl.EntireColumn.Columns
+        first = columns.Item(1).Hidden
+        for index in range(2, columns.Count + 1):
+            if columns.Item(index).Hidden != first:
+                return None
+        return first
 
     @column_hidden.setter
     def column_hidden(self, value):
