@@ -7250,20 +7250,22 @@ class PivotTable:
 
     @property
     def range(self) -> Range:
-        """The range of the pivot table report, excluding the filters area.
-
-        Not yet available on xlwings Lite and xlwings Server.
-        """
+        """The range of the pivot table report, excluding the filters area. In xlwings Lite, use `await get_range()`."""
         return Range(impl=self.impl.range)
+
+    async def get_range(self) -> Range:
+        """Fetch the current pivot table report range, excluding the filters area. In xlwings Lite, flush queued changes before reading them back. This read is unavailable in xlwings Server."""
+        return Range(impl=await self.impl.get_range())
 
     @property
     def data_body_range(self) -> Range | None:
-        """The range of the values area, or `None` if the pivot table has no
-        value fields.
-
-        Not yet available on xlwings Lite and xlwings Server.
-        """
+        """The range of the values area, or `None` if the pivot table has no value fields. In xlwings Lite, use `await get_data_body_range()`."""
         impl = self.impl.data_body_range
+        return Range(impl=impl) if impl is not None else None
+
+    async def get_data_body_range(self) -> Range | None:
+        """Fetch the current values area, or `None` if the pivot table has no value fields. In xlwings Lite, flush queued changes before reading them back. This read is unavailable in xlwings Server."""
+        impl = await self.impl.get_data_body_range()
         return Range(impl=impl) if impl is not None else None
 
     def refresh(self) -> None:

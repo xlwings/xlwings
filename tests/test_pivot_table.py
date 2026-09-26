@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -316,6 +317,7 @@ def test_grand_totals(fx):
 def test_ranges(fx):
     pt = fx.pt
     assert pt.range.address == "$A$3:$B$6"
+    assert asyncio.run(pt.get_range()).address == pt.range.address
     assert pt.range.value == [
         ["Row Labels", "Sum of Sales"],
         ["North", 300.0],
@@ -326,6 +328,7 @@ def test_ranges(fx):
     assert body is not None
     assert body.address == "$B$4:$B$6"
     assert body.sheet == fx.sheet
+    assert asyncio.run(pt.get_data_body_range()).address == body.address
 
 
 def test_data_body_range_without_values(fx):
@@ -334,6 +337,7 @@ def test_data_body_range_without_values(fx):
     try:
         assert len(pt.values) == 0
         assert pt.data_body_range is None
+        assert asyncio.run(pt.get_data_body_range()) is None
     finally:
         pt.values.add("Sales", function="sum")
     assert pt.values[0].name == "Sum of Sales"

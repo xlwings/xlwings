@@ -4253,16 +4253,38 @@ class PivotTable(base_classes.PivotTable):
     @property
     def range(self):
         raise NotImplementedError(
-            "PivotTable.range isn't supported on this engine: the payload doesn't "
-            "carry the pivot table's range."
+            "PivotTable.range is not supported on this engine. "
+            "In xlwings Lite, use 'await pivot.get_range()'."
         )
+
+    async def _get_range(self, kind):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("PivotTable range reads require xlwings Lite")
+        import js
+
+        address = _normalize_jsnull(
+            await js.xlwings.getPivotTableRangeAddress(
+                self.parent.name, self.index - 1, self.api.get("id"), kind
+            )
+        )
+        if not address:
+            if kind == "data_body":
+                return None
+            raise RuntimeError("Excel returned no pivot table report range")
+        return self.parent.range(str(address))
+
+    async def get_range(self):
+        return await self._get_range("report")
 
     @property
     def data_body_range(self):
         raise NotImplementedError(
-            "PivotTable.data_body_range isn't supported on this engine: the "
-            "payload doesn't carry the pivot table's range."
+            "PivotTable.data_body_range is not supported on this engine. "
+            "In xlwings Lite, use 'await pivot.get_data_body_range()'."
         )
+
+    async def get_data_body_range(self):
+        return await self._get_range("data_body")
 
     def refresh(self):
         self._queue("refreshPivotTable")
