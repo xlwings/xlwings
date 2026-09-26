@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from datetime import date, datetime
 from pathlib import Path
@@ -155,6 +156,54 @@ class TestTable(unittest.TestCase):
         self.assertEqual(self.test_table.range.address, "$A$1:$C$3")
         self.test_table.resize(self.sheet["$A$1:$B$2"])
         self.assertEqual(self.test_table.range.address, "$A$1:$B$2")
+
+
+class TestTableColumns(unittest.TestCase):
+    """Desktop Excel behavior for structural table columns."""
+
+    def setUp(self):
+        self.book = xw.Book()
+        self.sheet = self.book.sheets[0]
+        self.sheet["B2:D4"].value = [
+            ["Item", "Qty", "Double"],
+            ["first", 2, None],
+            ["second", 3, None],
+        ]
+        self.table = self.sheet.tables.add(
+            self.sheet["B2:D4"], name="ColumnStructureTest"
+        )
+        self.sheet["D3:D4"].formula = "=[@Qty]*2"
+
+    def tearDown(self):
+        self.book.close()
+
+    def test_insert_delete_preserves_calculated_column_and_style(self):
+        self.sheet["A3"].value = "left"
+        self.table.show_totals = True
+        style = self.table.table_style
+        columns = self.table.columns
+        self.assertEqual([column.name for column in columns], ["Item", "Qty", "Double"])
+        inserted = columns.add("Margin", index=2)
+        self.assertEqual(inserted.index, 2)
+        self.assertEqual(columns[1].name, "Margin")
+        self.assertEqual(asyncio.run(columns.get_count()), 4)
+        self.assertEqual(columns["Margin"].range.address, "$C$2:$C$5")
+        self.assertEqual(columns["Margin"].data_body_range.address, "$C$3:$C$4")
+        self.assertEqual(self.sheet["E3:E4"].value, [4, 6])
+        self.assertTrue(self.table.show_totals)
+        self.assertEqual(self.table.table_style, style)
+        self.assertEqual(self.sheet["A3"].value, "left")
+        columns["Margin"].delete()
+        self.assertEqual([column.name for column in columns], ["Item", "Qty", "Double"])
+        self.assertEqual(self.sheet["D3:D4"].value, [4, 6])
+
+    def test_rejects_occupied_cells_beside_table(self):
+        self.sheet["E3"].value = "keep"
+        with self.assertRaisesRegex(ValueError, "beside the table"):
+            self.table.columns.add("Blocked")
+        with self.assertRaisesRegex(ValueError, "beside the table"):
+            self.table.columns["Qty"].delete()
+        self.assertEqual(self.sheet["E3"].value, "keep")
 
 
 class TestTableUpdate(unittest.TestCase):

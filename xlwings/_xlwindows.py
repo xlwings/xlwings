@@ -3218,6 +3218,10 @@ class Table(base_classes.Table):
         return self.xl
 
     @property
+    def columns(self):
+        return TableColumns(self)
+
+    @property
     def name(self):
         return self.xl.Name
 
@@ -3327,6 +3331,76 @@ class Table(base_classes.Table):
 
     def resize(self, range):
         self.xl.Resize(range.api)
+
+
+class TableColumn(base_classes.TableColumn):
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @property
+    def index(self):
+        return self.xl.Index
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.Range)
+
+    async def get_range(self):
+        return self.range
+
+    @property
+    def data_body_range(self):
+        body = self.xl.DataBodyRange
+        return Range(xl=body) if body else None
+
+    async def get_data_body_range(self):
+        return self.data_body_range
+
+    def delete(self):
+        self.parent._require_safe_right_edge()
+        if len(self.parent) == 1:
+            raise ValueError("Cannot delete the last table column")
+        self.xl.Delete()
+
+
+class TableColumns(Collection, base_classes.TableColumns):
+    _wrap = TableColumn
+
+    def __init__(self, parent):
+        self.parent = parent
+        super().__init__(xl=parent.xl.ListColumns)
+
+    def __call__(self, key):
+        try:
+            return TableColumn(self, self.xl.Item(key))
+        except pywintypes.com_error:
+            raise KeyError(key)
+
+    def __iter__(self):
+        for column in self.xl:
+            yield TableColumn(self, column)
+
+    def _require_safe_right_edge(self):
+        table = self.parent.xl.Range
+        used = self.parent.xl.Parent.UsedRange
+        last_table_column = table.Column + table.Columns.Count - 1
+        last_used_column = used.Column + used.Columns.Count - 1
+        if last_used_column > last_table_column:
+            raise ValueError("Cells or formatting beside the table would move")
+
+    def add(self, name, index):
+        self._require_safe_right_edge()
+        column = self.xl.Add(Position=index or len(self) + 1)
+        column.Name = name
+        return TableColumn(self, column)
+
+    async def get_count(self):
+        return len(self)
 
 
 class Tables(Collection, base_classes.Tables):

@@ -128,5 +128,7 @@ api/shapes
 api/sheet
 api/sheets
 api/table
+api/table_column
+api/table_columns
 api/tables
 ```
