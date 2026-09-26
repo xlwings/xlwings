@@ -220,14 +220,16 @@ class TestTableRows(unittest.TestCase):
         )
         self.assertEqual(self.table.table_style, original_style)
 
-    def test_refuses_to_shift_neighbors(self):
+    def test_native_row_changes_with_cells_below(self):
         self.sheet["B6"].value = "keep"
-        with self.assertRaisesRegex(ValueError, "below the table"):
-            self.table.rows.add(["third", 30])
-        with self.assertRaisesRegex(ValueError, "below the table"):
-            self.table.rows[0].delete()
-        self.assertEqual(self.sheet["B6"].value, "keep")
+        self.sheet["E6"].value = "side"
+        self.table.rows.add(["third", 30])
+        self.assertEqual(len(self.table.rows), 3)
+        self.assertIn("keep", [self.sheet[f"B{row}"].value for row in (6, 7)])
+        self.table.rows[0].delete()
         self.assertEqual(len(self.table.rows), 2)
+        self.assertIn("keep", [self.sheet[f"B{row}"].value for row in (5, 6, 7)])
+        self.assertEqual(self.sheet["E6"].value, "side")
 
     def test_empty_table_and_totals_row(self):
         self.table.show_totals = True

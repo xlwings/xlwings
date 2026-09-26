@@ -5922,7 +5922,7 @@ class TableRow:
         return Range(impl=await self.impl.get_range())
 
     def delete(self) -> None:
-        """Delete this table row. Refuses deletion when cells below the table would move."""
+        """Delete this table row. Excel may shift cells below the table upward."""
         self.impl.delete()
 
 
@@ -5949,7 +5949,7 @@ class TableRows(Collection[TableRow]):
     ) -> TableRow:
         """Add one row before one-based `index`, or append when it is `None`.
 
-        `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. The operation refuses to move or consume cells below the table.
+        `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. Excel may shift cells below the table downward.
         """
         if index is not None:
             if not isinstance(index, int) or isinstance(index, bool):

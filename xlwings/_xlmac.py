@@ -3069,7 +3069,6 @@ class TableRow(base_classes.TableRow):
         return self.range
 
     def delete(self):
-        self.parent._require_free_space_below()
         self.xl.delete()
 
 
@@ -3090,24 +3089,7 @@ class TableRows(Collection, base_classes.TableRows):
     def column_count(self):
         return self.parent.range.shape[1]
 
-    def _require_free_space_below(self):
-        table = self.parent.range
-        used = self.parent.parent.used_range
-        table_bottom = table.row + table.shape[0] - 1
-        used_bottom = used.row + used.shape[0] - 1
-        table_left = table.column
-        table_right = table_left + table.shape[1] - 1
-        used_left = used.column
-        used_right = used_left + used.shape[1] - 1
-        if (
-            used_bottom > table_bottom
-            and used_left <= table_right
-            and used_right >= table_left
-        ):
-            raise ValueError("Cells or formatting below the table would move")
-
     def add(self, values, index):
-        self._require_free_space_below()
         at = (
             self.parent.xl
             if index is None or index == len(self) + 1
