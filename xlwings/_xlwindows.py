@@ -3430,8 +3430,12 @@ class TableColumns(Collection, base_classes.TableColumns):
     _wrap = TableColumn
 
     def __init__(self, parent):
-        self.parent = parent
+        self._parent = parent
         super().__init__(xl=parent.xl.ListColumns)
+
+    @property
+    def parent(self):
+        return self._parent
 
     def __call__(self, key):
         try:
