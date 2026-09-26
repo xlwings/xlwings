@@ -1029,6 +1029,28 @@ class Range(base_classes.Range):
         return self.xl
 
     @property
+    def row_hidden(self):
+        value = self.xl.entire_row.rows.hidden.get()
+        if isinstance(value, list):
+            return value[0] if all(item == value[0] for item in value) else None
+        return None if value == kw.missing_value else value
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        self.xl.entire_row.hidden.set(value)
+
+    @property
+    def column_hidden(self):
+        value = self.xl.entire_column.columns.hidden.get()
+        if isinstance(value, list):
+            return value[0] if all(item == value[0] for item in value) else None
+        return None if value == kw.missing_value else value
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        self.xl.entire_column.hidden.set(value)
+
+    @property
     def autofilter(self):
         return AutoFilter(self)
 
@@ -2926,6 +2948,10 @@ class Table(base_classes.Table):
         return self.xl
 
     @property
+    def columns(self):
+        return TableColumns(self)
+
+    @property
     def name(self):
         return self.xl.name.get()
 
@@ -3100,6 +3126,88 @@ class TableRows(Collection, base_classes.TableRows):
         if values is not None:
             row.range.raw_value = [values]
         return row
+
+    async def get_count(self):
+        return len(self)
+
+
+class TableColumn(base_classes.TableColumn):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl[key]
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @property
+    def index(self):
+        return self.xl.index.get()
+
+    @property
+    def range(self):
+        table_range = self.parent.parent.range
+        return Range(
+            self.parent.parent.parent,
+            (
+                table_range.row,
+                table_range.column + self.index - 1,
+                table_range.shape[0],
+                1,
+            ),
+        )
+
+    async def get_range(self):
+        return self.range
+
+    @property
+    def data_body_range(self):
+        body = self.parent.parent.data_body_range
+        return (
+            Range(
+                self.parent.parent.parent,
+                (body.row, body.column + self.index - 1, body.shape[0], 1),
+            )
+            if body
+            else None
+        )
+
+    async def get_data_body_range(self):
+        return self.data_body_range
+
+    def delete(self):
+        if len(self.parent) == 1:
+            raise ValueError("Cannot delete the last table column")
+        self.xl.delete()
+
+
+class TableColumns(Collection, base_classes.TableColumns):
+    _attr = "list_columns"
+    _kw = kw.list_column
+    _wrap = TableColumn
+
+    def __call__(self, key):
+        if isinstance(key, str):
+            for index in range(1, len(self) + 1):
+                if self.xl[index].name.get() == key:
+                    key = index
+                    break
+            else:
+                raise KeyError(key)
+        if not self.xl[key].exists():
+            raise KeyError(key)
+        return TableColumn(self, key)
+
+    def add(self, name, index):
+        at = (
+            self.parent.xl
+            if index is None or index == len(self) + 1
+            else self.xl[index]
+        )
+        created = self.parent.xl.make(
+            new=kw.list_column, at=at, with_properties={kw.name: name}
+        )
+        return TableColumn(self, created.index.get())
 
     async def get_count(self):
         return len(self)

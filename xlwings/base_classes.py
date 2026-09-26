@@ -829,6 +829,28 @@ class Sheet:
 
 
 class Range:
+    @property
+    def row_hidden(self):
+        raise NotImplementedError()
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        raise NotImplementedError()
+
+    @property
+    def column_hidden(self):
+        raise NotImplementedError()
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        raise NotImplementedError()
+
+    async def get_row_hidden(self):
+        raise NotImplementedError("get_hidden() is only supported in xlwings Lite")
+
+    async def get_column_hidden(self):
+        raise NotImplementedError("get_hidden() is only supported in xlwings Lite")
+
     def sort(self, keys, ascending, has_headers):
         raise NotImplementedError()
 
@@ -1935,6 +1957,10 @@ class ConditionalFormats(Collection):
 
 class Table:
     @property
+    def columns(self):
+        raise NotImplementedError()
+
+    @property
     def api(self):
         raise NotImplementedError()
 
@@ -2073,6 +2099,41 @@ class TableRow:
 
 class TableRows(Collection):
     def add(self, values, index):
+        raise NotImplementedError()
+
+    async def get_count(self):
+        raise NotImplementedError()
+
+
+class TableColumn:
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @property
+    def index(self):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    async def get_range(self):
+        raise NotImplementedError()
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError()
+
+    async def get_data_body_range(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class TableColumns:
+    def add(self, name, index):
         raise NotImplementedError()
 
     async def get_count(self):

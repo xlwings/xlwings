@@ -1573,6 +1573,34 @@ class Range(base_classes.Range):
         )
 
     @property
+    def row_hidden(self):
+        raise NotImplementedError(
+            "Reading row visibility synchronously isn't supported on this engine. "
+            "Use 'await myrange.rows.get_hidden()' to fetch it."
+        )
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        self.append_json_action(func="setRowHidden", args=[value])
+
+    @property
+    def column_hidden(self):
+        raise NotImplementedError(
+            "Reading column visibility synchronously isn't supported on this engine. "
+            "Use 'await myrange.columns.get_hidden()' to fetch it."
+        )
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        self.append_json_action(func="setColumnHidden", args=[value])
+
+    async def get_row_hidden(self):
+        return await self._get_range_data("row_hidden", method="get_hidden")
+
+    async def get_column_hidden(self):
+        return await self._get_range_data("column_hidden", method="get_hidden")
+
+    @property
     def autofilter(self):
         return AutoFilter(self)
 
@@ -3055,6 +3083,10 @@ class AutoFilter(base_classes.AutoFilter):
 
 class Table(base_classes.Table):
     @property
+    def columns(self):
+        return TableColumns(self)
+
+    @property
     def show_autofilter(self):
         return self.api["show_autofilter"]
 
@@ -3345,6 +3377,116 @@ class TableRows(base_classes.TableRows):
         )
         self.parent.api["row_count"] = self.parent.api.get("row_count", 0) + 1
         return TableRow(self, position)
+
+
+class TableColumn(base_classes.TableColumn):
+    def __init__(self, parent, name):
+        self.parent = parent
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def index(self):
+        return self.parent.api.index(self.name) + 1
+
+    @property
+    def range(self):
+        raise NotImplementedError(
+            "TableColumn.range is not supported in xlwings Lite. Use 'await column.get_range()'."
+        )
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError(
+            "TableColumn.data_body_range is not supported in xlwings Lite. "
+            "Use 'await column.get_data_body_range()'."
+        )
+
+    async def _get_range(self, data_body):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableColumn live reads require xlwings Lite")
+        import js
+
+        address = await js.xlwings.getTableColumnRangeAddress(
+            self.parent.parent.parent.name,
+            self.parent.parent.index - 1,
+            self.name,
+            bool(data_body),
+        )
+        return self.parent.parent.parent.range(str(address)) if address else None
+
+    async def get_range(self):
+        return await self._get_range(False)
+
+    async def get_data_body_range(self):
+        return await self._get_range(True)
+
+    def delete(self):
+        if len(self.parent) == 1:
+            raise ValueError("Cannot delete the last table column")
+        self.parent.parent.append_json_action(
+            func="deleteTableColumn",
+            args=[self.parent.parent.index - 1, self.name],
+        )
+        self.parent.api.remove(self.name)
+        self.parent.parent.api["column_count"] = len(self.parent.api)
+
+
+class TableColumns(base_classes.TableColumns):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        if "columns" not in self.parent.api:
+            raise NotImplementedError(
+                "Table columns require a matching xlwings Server or xlwings Lite client"
+            )
+        return self.parent.api["columns"]
+
+    def __len__(self):
+        return len(self.api)
+
+    def __call__(self, key):
+        if isinstance(key, numbers.Integral) and not isinstance(key, bool):
+            if not 1 <= key <= len(self):
+                raise KeyError(key)
+            return TableColumn(self, self.api[key - 1])
+        for name in self.api:
+            if name == key:
+                return TableColumn(self, name)
+        raise KeyError(key)
+
+    def __iter__(self):
+        for name in self.api:
+            yield TableColumn(self, name)
+
+    def __contains__(self, key):
+        return key in self.api
+
+    async def get_count(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableColumns.get_count() requires xlwings Lite")
+        import js
+
+        return int(
+            await js.xlwings.getTableColumnCount(
+                self.parent.parent.name, self.parent.index - 1
+            )
+        )
+
+    def add(self, name, index):
+        position = len(self) + 1 if index is None else index
+        self.parent.append_json_action(
+            func="addTableColumn",
+            args=[self.parent.index - 1, position - 1, name],
+        )
+        self.api.insert(position - 1, name)
+        self.parent.api["column_count"] = len(self.api)
+        return TableColumn(self, name)
 
 
 class Tables(Collection, base_classes.Tables):

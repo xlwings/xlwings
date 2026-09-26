@@ -287,6 +287,55 @@ class TestRangeAttributes(TestBase):
         result = self.wb1.sheets[0].range("A1:B2").row_height
         self.assertEqual(None, result)
 
+    def test_row_and_column_hidden(self):
+        sheet = self.wb1.sheets[0]
+        sheet["A1:B3"].value = [["keep", 2], [3, 4], [5, 6]]
+        sheet["B1"].formula = "=1+1"
+        try:
+            selection = sheet["A1:B3"]
+            selection.rows.hidden = False
+            selection.columns.hidden = False
+            assert selection.rows.hidden is False
+            assert selection.columns.hidden is False
+
+            sheet["B2"].rows.hidden = True
+            sheet["B2"].columns.hidden = True
+            assert sheet["A2"].rows.hidden is True
+            assert sheet["B1"].columns.hidden is True
+            assert selection.rows.hidden is None
+            assert selection.columns.hidden is None
+            assert sheet["A1"].rows.hidden is False
+            assert sheet["A1"].columns.hidden is False
+
+            sheet["B2"].rows.hidden = False
+            sheet["B2"].columns.hidden = False
+            sheet["A1"].rows.hidden = True
+            sheet["A1"].columns.hidden = True
+            assert selection.rows.hidden is None
+            assert selection.columns.hidden is None
+
+            selection.rows.hidden = True
+            selection.columns.hidden = True
+            assert selection.rows.hidden is True
+            assert selection.columns.hidden is True
+
+            selection.rows.hidden = False
+            selection.columns.hidden = False
+            assert selection.rows.hidden is False
+            assert selection.columns.hidden is False
+            assert sheet["A1"].value == "keep"
+            assert sheet["B1"].formula == "=1+1"
+            assert sheet["B2"].value == 4
+        finally:
+            sheet["A1:B3"].rows.hidden = False
+            sheet["A1:B3"].columns.hidden = False
+
+    def test_hidden_rejects_non_boolean(self):
+        selection = self.wb1.sheets[0]["A1:B2"]
+        for collection in (selection.rows, selection.columns):
+            with self.assertRaises(TypeError):
+                collection.hidden = 1
+
     def test_width(self):
         """test_width: Width depends on default style text size,
         so do not test absolute widths"""

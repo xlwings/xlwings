@@ -4171,6 +4171,24 @@ class RangeRows(Ranges):
 
     count = property(__len__)
 
+    @property
+    def hidden(self) -> bool | None:
+        """Whether all represented worksheet rows are hidden.
+
+        Setting this property hides or shows the entire worksheet rows represented by the range. Returns `None` when some rows are hidden and others are visible. In xlwings Lite, use `await rng.rows.get_hidden()` to read this state.
+        """
+        return self.rng.impl.row_hidden
+
+    @hidden.setter
+    def hidden(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("hidden must be a boolean")
+        self.rng.impl.row_hidden = value
+
+    async def get_hidden(self) -> bool | None:
+        """Fetch row visibility in xlwings Lite; return `None` for a mixed selection."""
+        return await self.rng.impl.get_row_hidden()
+
     def autofit(self) -> None:
         """Autofits the height of the rows."""
         self.rng.impl.autofit(axis="r")
@@ -4240,6 +4258,24 @@ class RangeColumns(Ranges):
         return self.rng.shape[1]
 
     count = property(__len__)
+
+    @property
+    def hidden(self) -> bool | None:
+        """Whether all represented worksheet columns are hidden.
+
+        Setting this property hides or shows the entire worksheet columns represented by the range. Returns `None` when some columns are hidden and others are visible. In xlwings Lite, use `await rng.columns.get_hidden()` to read this state.
+        """
+        return self.rng.impl.column_hidden
+
+    @hidden.setter
+    def hidden(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("hidden must be a boolean")
+        self.rng.impl.column_hidden = value
+
+    async def get_hidden(self) -> bool | None:
+        """Fetch column visibility in xlwings Lite; return `None` for a mixed selection."""
+        return await self.rng.impl.get_column_hidden()
 
     def autofit(self) -> None:
         """Autofits the width of the columns."""
@@ -5771,6 +5807,11 @@ class Table:
         self.impl.table_style = value
 
     @property
+    def columns(self) -> TableColumns:
+        """The columns belonging to this table. Integer collection lookup is zero-based."""
+        return TableColumns(impl=self.impl.columns)
+
+    @property
     def totals_row_range(self) -> Range | None:
         """Returns an xlwings range object representing the Total row"""
         if self.impl.totals_row_range:
@@ -5970,6 +6011,72 @@ class TableRows(Collection[TableRow]):
                     raise ValueError("table row numbers must be finite")
             values = list(values)
         return TableRow(impl=self.impl.add(values, index))
+
+
+class TableColumn:
+    """A column in an Excel table. Obtain it again after changing table structure."""
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def name(self) -> str:
+        """The column header."""
+        return self.impl.name
+
+    @property
+    def index(self) -> int:
+        """One-based position within the table."""
+        return self.impl.index
+
+    @property
+    def range(self) -> Range:
+        """All cells in this column. In xlwings Lite, use `await get_range()`."""
+        return Range(impl=self.impl.range)
+
+    async def get_range(self) -> Range:
+        """Fetch this column's current range in xlwings Lite."""
+        return Range(impl=await self.impl.get_range())
+
+    @property
+    def data_body_range(self) -> Range | None:
+        """Data cells, excluding header and totals. In xlwings Lite, use `await get_data_body_range()`."""
+        impl = self.impl.data_body_range
+        return Range(impl=impl) if impl else None
+
+    async def get_data_body_range(self) -> Range | None:
+        """Fetch this column's current data cells in xlwings Lite."""
+        impl = await self.impl.get_data_body_range()
+        return Range(impl=impl) if impl else None
+
+    def delete(self) -> None:
+        """Delete the column from its table. Excel may move cells beside the table."""
+        self.impl.delete()
+
+
+class TableColumns(Collection[TableColumn]):
+    """Table columns. Collection lookup is zero-based; column indexes are one-based."""
+
+    _wrap = TableColumn
+
+    async def get_count(self) -> int:
+        """Fetch the current column count in xlwings Lite."""
+        return await self.impl.get_count()
+
+    def add(self, name: str, index: int | None = None) -> TableColumn:
+        """Insert a named column before one-based `index`, or append when omitted. Excel may move cells beside the table."""
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+        if not name.strip():
+            raise ValueError("name must not be empty")
+        if index is not None:
+            if not isinstance(index, int) or isinstance(index, bool):
+                raise TypeError("index must be an integer or None")
+            if not 1 <= index <= len(self) + 1:
+                raise IndexError("Table column index out of range")
+        if name.casefold() in (column.name.casefold() for column in self):
+            raise ValueError(f"Table column named {name!r} already exists")
+        return TableColumn(impl=self.impl.add(name, index))
 
 
 class Tables(Collection[Table]):
