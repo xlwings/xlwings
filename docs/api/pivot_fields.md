@@ -3,4 +3,5 @@
 ```{eval-rst}
 .. autoclass:: xlwings.PivotFields
     :members:
+    :inherited-members:
 ```

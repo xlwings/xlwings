@@ -1,7 +1,7 @@
-# Tables
+# TableColumns
 
 ```{eval-rst}
-.. autoclass:: xlwings.main.Tables
+.. autoclass:: xlwings.main.TableColumns
     :members:
     :inherited-members:
 ```
