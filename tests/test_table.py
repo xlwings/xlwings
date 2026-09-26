@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from datetime import date, datetime
 from pathlib import Path
@@ -175,6 +176,77 @@ class TestTableUpdate(unittest.TestCase):
         sheet.tables[3].update(df, index=False)
         self.assertEqual(sheet["A1:E50"].value, book.sheets["expected"]["A1:E50"].value)
         sheet.book.close()
+
+
+class TestTableRows(unittest.TestCase):
+    """Integration checks against desktop Excel on Windows and macOS."""
+
+    def setUp(self):
+        self.book = xw.Book()
+        self.sheet = self.book.sheets[0]
+        self.sheet["B2:C4"].value = [["Item", "Amount"], ["first", 10], ["second", 20]]
+        self.table = self.sheet.tables.add(self.sheet["B2:C4"], name="RowStructureTest")
+
+    def tearDown(self):
+        self.book.close()
+
+    def test_append_insert_delete_and_readback(self):
+        self.sheet["A3"].value = "left"
+        self.sheet["E3"].value = "right"
+        self.sheet["C3"].formula = "=5*2"
+        original_style = self.table.table_style
+        rows = self.table.rows
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(asyncio.run(rows.get_count()), 2)
+        self.assertEqual(rows[0].range.address, "$B$3:$C$3")
+        self.assertEqual(asyncio.run(rows[0].get_range()).address, "$B$3:$C$3")
+
+        appended = rows.add(["third", 30])
+        self.assertEqual(appended.index, 2)
+        rows.add(["middle", 15], index=1)
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(
+            self.table.data_body_range.value,
+            [["first", 10], ["middle", 15], ["second", 20], ["third", 30]],
+        )
+        self.assertEqual(self.sheet["C3"].formula, "=5*2")
+        self.assertEqual(self.sheet["A3"].value, "left")
+        self.assertEqual(self.sheet["E3"].value, "right")
+
+        rows[1].delete()
+        self.assertEqual(
+            self.table.data_body_range.value,
+            [["first", 10], ["second", 20], ["third", 30]],
+        )
+        self.assertEqual(self.table.table_style, original_style)
+
+    def test_refuses_to_shift_neighbors(self):
+        self.sheet["B6"].value = "keep"
+        with self.assertRaisesRegex(ValueError, "below the table"):
+            self.table.rows.add(["third", 30])
+        with self.assertRaisesRegex(ValueError, "below the table"):
+            self.table.rows[0].delete()
+        self.assertEqual(self.sheet["B6"].value, "keep")
+        self.assertEqual(len(self.table.rows), 2)
+
+    def test_empty_table_and_totals_row(self):
+        self.table.show_totals = True
+        initial_style = self.table.table_style
+        self.table.rows.add(["third", 30])
+        self.assertEqual(len(self.table.rows), 3)
+        self.assertTrue(self.table.show_totals)
+        self.assertIsNotNone(self.table.totals_row_range)
+        self.table.rows[1].delete()
+        self.assertTrue(self.table.show_totals)
+        self.assertEqual(self.table.table_style, initial_style)
+        self.assertEqual(len(self.table.rows), 2)
+
+        empty_sheet = self.book.sheets.add("EmptyRows")
+        empty = empty_sheet.tables.add(empty_sheet["G2:H2"], name="EmptyRowsTest")
+        self.assertEqual(len(empty.rows), 0)
+        empty.rows.add(["only", 1])
+        self.assertEqual(len(empty.rows), 1)
+        self.assertEqual(empty.data_body_range.value, ["only", 1])
 
 
 if __name__ == "__main__":

@@ -129,4 +129,6 @@ api/sheet
 api/sheets
 api/table
 api/tables
+api/table_row
+api/table_rows
 ```

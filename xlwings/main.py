@@ -5686,6 +5686,11 @@ class Table:
         return AutoFilter(impl=self.impl.autofilter, parent=self)
 
     @property
+    def rows(self) -> TableRows:
+        """Data rows of this table, excluding headers and totals."""
+        return TableRows(impl=self.impl.rows)
+
+    @property
     def show_autofilter(self) -> bool:
         """Turn the autofilter on or off by setting it to `True` or `False`
         (read/write boolean)
@@ -5894,6 +5899,77 @@ class Table:
 
     def __repr__(self) -> str:
         return "<Table '{0}' in {1}>".format(self.name, self.parent.name)
+
+
+class TableRow:
+    """A data row in an Excel table. Row objects refer to a position, so obtain them again after sorting or changing the table structure."""
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def index(self) -> int:
+        """Zero-based position within the table's data rows."""
+        return self.impl.index
+
+    @property
+    def range(self) -> Range:
+        """Cells in this row. In xlwings Lite, use `await get_range()`."""
+        return Range(impl=self.impl.range)
+
+    async def get_range(self) -> Range:
+        """Fetch this row's cells. Use this method for xlwings Lite readback."""
+        return Range(impl=await self.impl.get_range())
+
+    def delete(self) -> None:
+        """Delete this table row. Refuses deletion when cells below the table would move."""
+        self.impl.delete()
+
+
+class TableRows(Collection[TableRow]):
+    """Collection of data rows in a table. Positions are zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count."""
+
+    _wrap = TableRow
+
+    def __getitem__(self, key: int) -> TableRow:
+        if not isinstance(key, int) or isinstance(key, bool):
+            raise TypeError("Table rows use integer indexes")
+        return super().__getitem__(key)
+
+    async def get_count(self) -> int:
+        """Fetch the current row count. Use this method for xlwings Lite readback."""
+        return await self.impl.get_count()
+
+    def add(
+        self,
+        values: list[str | int | float | bool | None]
+        | tuple[str | int | float | bool | None, ...]
+        | None = None,
+        index: int | None = None,
+    ) -> TableRow:
+        """Add one row at zero-based `index`, or append when it is `None`.
+
+        `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. The operation refuses to move or consume cells below the table.
+        """
+        if index is not None:
+            if not isinstance(index, int) or isinstance(index, bool):
+                raise TypeError("index must be an integer or None")
+            if index < 0 or index > len(self):
+                raise IndexError("Table row index out of range")
+        if values is not None:
+            if not isinstance(values, (list, tuple)):
+                raise TypeError("values must be a one-dimensional list or tuple")
+            if len(values) != self.impl.column_count:
+                raise ValueError("values must match the table column count")
+            for value in values:
+                if value is not None and not isinstance(value, (str, int, float, bool)):
+                    raise TypeError(
+                        "table row values must be strings, numbers, booleans, or None"
+                    )
+                if isinstance(value, float) and not math.isfinite(value):
+                    raise ValueError("table row numbers must be finite")
+            values = list(values)
+        return TableRow(impl=self.impl.add(values, index))
 
 
 class Tables(Collection[Table]):

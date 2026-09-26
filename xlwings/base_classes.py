@@ -2050,6 +2050,34 @@ class Table:
     def resize(self, range):
         raise NotImplementedError()
 
+    @property
+    def rows(self):
+        raise NotImplementedError()
+
+
+class TableRow:
+    @property
+    def index(self):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    async def get_range(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class TableRows(Collection):
+    def add(self, values, index):
+        raise NotImplementedError()
+
+    async def get_count(self):
+        raise NotImplementedError()
+
 
 class Tables:
     def add(

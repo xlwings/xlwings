@@ -3302,6 +3302,87 @@ class Table(base_classes.Table):
     def resize(self, range):
         self.xl.Resize(range.api)
 
+    @property
+    def rows(self):
+        return TableRows(self)
+
+
+class TableRow(base_classes.TableRow):
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def index(self):
+        return self.xl.Index - 1
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.Range)
+
+    async def get_range(self):
+        return self.range
+
+    def delete(self):
+        self.parent._require_free_space_below()
+        self.xl.Delete()
+
+
+class TableRows(Collection, base_classes.TableRows):
+    _wrap = TableRow
+
+    def __init__(self, parent):
+        self._parent = parent
+        super().__init__(xl=parent.xl.ListRows)
+
+    @property
+    def parent(self):
+        return self._parent
+
+    def __call__(self, key):
+        try:
+            return TableRow(self, self.xl.Item(key))
+        except pywintypes.com_error:
+            raise KeyError(key)
+
+    def __iter__(self):
+        for row in self.xl:
+            yield TableRow(self, row)
+
+    @property
+    def column_count(self):
+        return self.parent.xl.ListColumns.Count
+
+    def _require_free_space_below(self):
+        table = self.parent.xl.Range
+        used = self.parent.xl.Parent.UsedRange
+        table_bottom = table.Row + table.Rows.Count - 1
+        used_bottom = used.Row + used.Rows.Count - 1
+        table_left = table.Column
+        table_right = table_left + table.Columns.Count - 1
+        used_left = used.Column
+        used_right = used_left + used.Columns.Count - 1
+        if (
+            used_bottom > table_bottom
+            and used_left <= table_right
+            and used_right >= table_left
+        ):
+            raise ValueError("Cells or formatting below the table would move")
+
+    def add(self, values, index):
+        self._require_free_space_below()
+        row = (
+            self.xl.Add(AlwaysInsert=False)
+            if index is None
+            else self.xl.Add(Position=index + 1, AlwaysInsert=False)
+        )
+        if values is not None:
+            row.Range.Value = [values]
+        return TableRow(self, row)
+
+    async def get_count(self):
+        return len(self)
+
 
 class Tables(Collection, base_classes.Tables):
     _wrap = Table

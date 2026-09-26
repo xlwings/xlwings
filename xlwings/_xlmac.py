@@ -3047,6 +3047,81 @@ class Table(base_classes.Table):
     def resize(self, range):
         self.xl.resize(range=range.api)
 
+    @property
+    def rows(self):
+        return TableRows(self)
+
+
+class TableRow(base_classes.TableRow):
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl[key]
+
+    @property
+    def index(self):
+        return self.xl.index.get() - 1
+
+    @property
+    def range(self):
+        return Range(self.parent.parent.parent, self.xl.range_object.get_address())
+
+    async def get_range(self):
+        return self.range
+
+    def delete(self):
+        self.parent._require_free_space_below()
+        self.xl.delete()
+
+
+class TableRows(Collection, base_classes.TableRows):
+    _attr = "list_rows"
+    _kw = kw.list_row
+    _wrap = TableRow
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def __call__(self, key):
+        if not self.xl[key].exists():
+            raise KeyError(key)
+        return TableRow(self, key)
+
+    @property
+    def column_count(self):
+        return self.parent.range.shape[1]
+
+    def _require_free_space_below(self):
+        table = self.parent.range
+        used = self.parent.parent.used_range
+        table_bottom = table.row + table.shape[0] - 1
+        used_bottom = used.row + used.shape[0] - 1
+        table_left = table.column
+        table_right = table_left + table.shape[1] - 1
+        used_left = used.column
+        used_right = used_left + used.shape[1] - 1
+        if (
+            used_bottom > table_bottom
+            and used_left <= table_right
+            and used_right >= table_left
+        ):
+            raise ValueError("Cells or formatting below the table would move")
+
+    def add(self, values, index):
+        self._require_free_space_below()
+        at = (
+            self.parent.xl
+            if index is None or index == len(self)
+            else self.xl[index + 1]
+        )
+        created = self.parent.xl.make(new=kw.list_row, at=at)
+        row = TableRow(self, created.index.get())
+        if values is not None:
+            row.range.raw_value = [values]
+        return row
+
+    async def get_count(self):
+        return len(self)
+
 
 class Tables(Collection, base_classes.Tables):
     _attr = "list_objects"
