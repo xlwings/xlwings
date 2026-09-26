@@ -4744,6 +4744,23 @@ def test_pivot_table_setters(pivot_book):
         ("setPivotLayout", [0, "show_column_grand_totals", False], 0),
         ("refreshPivotTable", [0], 0),
     ]
+    assert [(a["pivot_id"], a["pivot_name"]) for a in actions] == [
+        (None, "PivotTable1"),
+        (None, "Sales"),
+        (None, "Sales"),
+        (None, "Sales"),
+        (None, "Sales"),
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_pivot_action_keeps_loaded_id(pivot_book):
+    pt = pivot_book.sheets[0].pivot_tables[0]
+    pt.api["id"] = "stable-pivot-id"
+    pt.refresh()
+    action = _actions(pivot_book)[0]
+    assert action["pivot_id"] == "stable-pivot-id"
+    assert action["pivot_name"] == "PivotTable1"
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

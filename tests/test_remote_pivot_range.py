@@ -48,8 +48,8 @@ class PivotClient:
         self.addresses = addresses
         self.calls = []
 
-    async def getPivotTableRangeAddress(self, sheet, index, pivot_id, kind):
-        self.calls.append((sheet, index, pivot_id, kind))
+    async def getPivotTableRangeAddress(self, sheet, index, pivot_id, pivot_name, kind):
+        self.calls.append((sheet, index, pivot_id, pivot_name, kind))
         return self.addresses[kind]
 
 
@@ -90,8 +90,8 @@ def test_pivot_range_reads_current_addresses(monkeypatch):
     assert report.sheet.name == "Pivot Sheet"
     assert body.address == "$B$4:$C$8"
     assert client.calls == [
-        ("Pivot Sheet", 0, "pivot-1", "report"),
-        ("Pivot Sheet", 0, "pivot-1", "data_body"),
+        ("Pivot Sheet", 0, "pivot-1", "Sales", "report"),
+        ("Pivot Sheet", 0, "pivot-1", "Sales", "data_body"),
     ]
 
 
@@ -100,7 +100,7 @@ def test_empty_data_body_returns_none(monkeypatch):
     pivot = book().sheets[0].pivot_tables[0]
 
     assert asyncio.run(pivot.get_data_body_range()) is None
-    assert client.calls == [("Pivot Sheet", 0, "pivot-1", "data_body")]
+    assert client.calls == [("Pivot Sheet", 0, "pivot-1", "Sales", "data_body")]
 
 
 def test_missing_report_address_is_an_error(monkeypatch):

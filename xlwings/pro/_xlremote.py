@@ -850,18 +850,20 @@ class Book(base_classes.Book):
 
     def append_json_action(self, **kwargs):
         args = kwargs.get("args")
-        self._json["actions"].append(
-            {
-                "func": kwargs.get("func"),
-                "args": [args] if not isinstance(args, list) else args,
-                "values": kwargs.get("values"),
-                "sheet_position": kwargs.get("sheet_position"),
-                "start_row": kwargs.get("start_row"),
-                "start_column": kwargs.get("start_column"),
-                "row_count": kwargs.get("row_count"),
-                "column_count": kwargs.get("column_count"),
-            }
-        )
+        action = {
+            "func": kwargs.get("func"),
+            "args": [args] if not isinstance(args, list) else args,
+            "values": kwargs.get("values"),
+            "sheet_position": kwargs.get("sheet_position"),
+            "start_row": kwargs.get("start_row"),
+            "start_column": kwargs.get("start_column"),
+            "row_count": kwargs.get("row_count"),
+            "column_count": kwargs.get("column_count"),
+        }
+        if "pivot_name" in kwargs:
+            action["pivot_id"] = kwargs.get("pivot_id")
+            action["pivot_name"] = kwargs["pivot_name"]
+        self._json["actions"].append(action)
 
     @property
     def api(self):
@@ -4189,7 +4191,12 @@ class PivotTable(base_classes.PivotTable):
         raise KeyError("The pivot table has been deleted.")
 
     def _queue(self, func, *args):
-        self.append_json_action(func=func, args=[self.index - 1, *args])
+        self.append_json_action(
+            func=func,
+            args=[self.index - 1, *args],
+            pivot_id=self.api.get("id"),
+            pivot_name=self.name,
+        )
 
     @property
     def name(self):
@@ -4264,7 +4271,7 @@ class PivotTable(base_classes.PivotTable):
 
         address = _normalize_jsnull(
             await js.xlwings.getPivotTableRangeAddress(
-                self.parent.name, self.index - 1, self.api.get("id"), kind
+                self.parent.name, self.index - 1, self.api.get("id"), self.name, kind
             )
         )
         if not address:
