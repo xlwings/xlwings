@@ -5943,7 +5943,18 @@ class Table:
 
 
 class TableRow:
-    """A data row in an Excel table. Row objects refer to a position, so obtain them again after sorting or changing the table structure."""
+    """A data row in an Excel table. Row objects refer to a position, so obtain them again after sorting or changing the table structure.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        table = xw.Book().sheets[0].tables["Table1"]
+        row = table.rows[0]  # First data row; row.index is 1
+        print(row.range.value)
+        row.delete()
+        ```
+    """
 
     def __init__(self, impl: Any) -> None:
         self.impl = impl
@@ -5968,7 +5979,18 @@ class TableRow:
 
 
 class TableRows(Collection[TableRow]):
-    """Collection of data rows in a table. Row indexes are one-based; square-bracket lookup is zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count."""
+    """Collection of data rows in a table. Row indexes are one-based; square-bracket lookup is zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        rows = xw.Book().sheets[0].tables["Table1"].rows
+        rows.add(["Pencil", 2])  # Append
+        rows.add(["Pen", 3], index=1)  # Insert before the first data row
+        print(rows[0].range.value)  # ["Pen", 3]
+        ```
+    """
 
     _wrap = TableRow
 
@@ -6014,7 +6036,19 @@ class TableRows(Collection[TableRow]):
 
 
 class TableColumn:
-    """A column in an Excel table. Obtain it again after changing table structure."""
+    """A column in an Excel table. Obtain it again after changing table structure.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        table = xw.Book().sheets[0].tables["Table1"]
+        column = table.columns["MyColumn"]
+        print(column.index)
+        print(column.data_body_range.value)
+        column.delete()
+        ```
+    """
 
     def __init__(self, impl: Any) -> None:
         self.impl = impl
@@ -6055,7 +6089,17 @@ class TableColumn:
 
 
 class TableColumns(Collection[TableColumn]):
-    """Table columns. Collection lookup is zero-based; column indexes are one-based."""
+    """Table columns. Collection lookup is zero-based; column indexes are one-based.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        columns = xw.Book().sheets[0].tables["Table1"].columns
+        columns.add("Tax", index=2)
+        print(columns[1].name)
+        ```
+    """
 
     _wrap = TableColumn
 
