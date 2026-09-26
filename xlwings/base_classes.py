@@ -1957,6 +1957,10 @@ class ConditionalFormats(Collection):
 
 class Table:
     @property
+    def columns(self):
+        raise NotImplementedError()
+
+    @property
     def api(self):
         raise NotImplementedError()
 
@@ -2070,6 +2074,69 @@ class Table:
         raise NotImplementedError()
 
     def resize(self, range):
+        raise NotImplementedError()
+
+    @property
+    def rows(self):
+        raise NotImplementedError()
+
+
+class TableRow:
+    @property
+    def index(self):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    async def get_range(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class TableRows(Collection):
+    def add(self, values, index):
+        raise NotImplementedError()
+
+    async def get_count(self):
+        raise NotImplementedError()
+
+
+class TableColumn:
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @property
+    def index(self):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    async def get_range(self):
+        raise NotImplementedError()
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError()
+
+    async def get_data_body_range(self):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class TableColumns:
+    def add(self, name, index):
+        raise NotImplementedError()
+
+    async def get_count(self):
         raise NotImplementedError()
 
 

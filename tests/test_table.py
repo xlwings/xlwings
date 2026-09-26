@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from datetime import date, datetime
 from pathlib import Path
@@ -157,6 +158,55 @@ class TestTable(unittest.TestCase):
         self.assertEqual(self.test_table.range.address, "$A$1:$B$2")
 
 
+class TestTableColumns(unittest.TestCase):
+    """Desktop Excel behavior for structural table columns."""
+
+    def setUp(self):
+        self.book = xw.Book()
+        self.sheet = self.book.sheets[0]
+        self.sheet["B2:D4"].value = [
+            ["Item", "Qty", "Double"],
+            ["first", 2, None],
+            ["second", 3, None],
+        ]
+        self.table = self.sheet.tables.add(
+            self.sheet["B2:D4"], name="ColumnStructureTest"
+        )
+        self.sheet["D3:D4"].formula = "=[@Qty]*2"
+
+    def tearDown(self):
+        self.book.close()
+
+    def test_insert_delete_preserves_calculated_column_and_style(self):
+        self.sheet["A3"].value = "left"
+        self.table.show_totals = True
+        style = self.table.table_style
+        columns = self.table.columns
+        self.assertEqual([column.name for column in columns], ["Item", "Qty", "Double"])
+        inserted = columns.add("Margin", index=2)
+        self.assertEqual(inserted.index, 2)
+        self.assertEqual(columns[1].name, "Margin")
+        self.assertEqual(asyncio.run(columns.get_count()), 4)
+        self.assertEqual(columns["Margin"].range.address, "$C$2:$C$5")
+        self.assertEqual(columns["Margin"].data_body_range.address, "$C$3:$C$4")
+        self.assertEqual(self.sheet["E3:E4"].value, [4, 6])
+        self.assertTrue(self.table.show_totals)
+        self.assertEqual(self.table.table_style, style)
+        self.assertEqual(self.sheet["A3"].value, "left")
+        columns["Margin"].delete()
+        self.assertEqual([column.name for column in columns], ["Item", "Qty", "Double"])
+        self.assertEqual(self.sheet["D3:D4"].value, [4, 6])
+
+    def test_native_changes_with_cells_beside_table(self):
+        self.sheet["F3"].value = "keep"
+        self.table.columns.add("Native")
+        self.assertEqual(len(self.table.columns), 4)
+        self.assertIn("keep", [self.sheet[f"{col}3"].value for col in ("F", "G")])
+        self.table.columns["Native"].delete()
+        self.assertEqual(len(self.table.columns), 3)
+        self.assertIn("keep", [self.sheet[f"{col}3"].value for col in ("F", "G")])
+
+
 class TestTableUpdate(unittest.TestCase):
     def test_table_update(self):
         df = pd.DataFrame(
@@ -175,6 +225,79 @@ class TestTableUpdate(unittest.TestCase):
         sheet.tables[3].update(df, index=False)
         self.assertEqual(sheet["A1:E50"].value, book.sheets["expected"]["A1:E50"].value)
         sheet.book.close()
+
+
+class TestTableRows(unittest.TestCase):
+    """Integration checks against desktop Excel on Windows and macOS."""
+
+    def setUp(self):
+        self.book = xw.Book()
+        self.sheet = self.book.sheets[0]
+        self.sheet["B2:C4"].value = [["Item", "Amount"], ["first", 10], ["second", 20]]
+        self.table = self.sheet.tables.add(self.sheet["B2:C4"], name="RowStructureTest")
+
+    def tearDown(self):
+        self.book.close()
+
+    def test_append_insert_delete_and_readback(self):
+        self.sheet["A3"].value = "left"
+        self.sheet["E3"].value = "right"
+        self.sheet["C3"].formula = "=5*2"
+        original_style = self.table.table_style
+        rows = self.table.rows
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(asyncio.run(rows.get_count()), 2)
+        self.assertEqual(rows[0].range.address, "$B$3:$C$3")
+        self.assertEqual(asyncio.run(rows[0].get_range()).address, "$B$3:$C$3")
+
+        appended = rows.add(["third", 30])
+        self.assertEqual(appended.index, 3)
+        rows.add(["middle", 15], index=2)
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(
+            self.table.data_body_range.value,
+            [["first", 10], ["middle", 15], ["second", 20], ["third", 30]],
+        )
+        self.assertEqual(self.sheet["C3"].formula, "=5*2")
+        self.assertEqual(self.sheet["A3"].value, "left")
+        self.assertEqual(self.sheet["E3"].value, "right")
+
+        rows[1].delete()
+        self.assertEqual(
+            self.table.data_body_range.value,
+            [["first", 10], ["second", 20], ["third", 30]],
+        )
+        self.assertEqual(self.table.table_style, original_style)
+
+    def test_native_row_changes_with_cells_below(self):
+        self.sheet["B6"].value = "keep"
+        self.sheet["E6"].value = "side"
+        self.table.rows.add(["third", 30])
+        self.assertEqual(len(self.table.rows), 3)
+        self.assertIn("keep", [self.sheet[f"B{row}"].value for row in (6, 7)])
+        self.table.rows[0].delete()
+        self.assertEqual(len(self.table.rows), 2)
+        self.assertIn("keep", [self.sheet[f"B{row}"].value for row in (5, 6, 7)])
+        self.assertEqual(self.sheet["E6"].value, "side")
+
+    def test_empty_table_and_totals_row(self):
+        self.table.show_totals = True
+        initial_style = self.table.table_style
+        self.table.rows.add(["third", 30])
+        self.assertEqual(len(self.table.rows), 3)
+        self.assertTrue(self.table.show_totals)
+        self.assertIsNotNone(self.table.totals_row_range)
+        self.table.rows[1].delete()
+        self.assertTrue(self.table.show_totals)
+        self.assertEqual(self.table.table_style, initial_style)
+        self.assertEqual(len(self.table.rows), 2)
+
+        empty_sheet = self.book.sheets.add("EmptyRows")
+        empty = empty_sheet.tables.add(empty_sheet["G2:H2"], name="EmptyRowsTest")
+        self.assertEqual(len(empty.rows), 0)
+        empty.rows.add(["only", 1])
+        self.assertEqual(len(empty.rows), 1)
+        self.assertEqual(empty.data_body_range.value, ["only", 1])
 
 
 if __name__ == "__main__":

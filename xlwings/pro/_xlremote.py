@@ -3083,6 +3083,10 @@ class AutoFilter(base_classes.AutoFilter):
 
 class Table(base_classes.Table):
     @property
+    def columns(self):
+        return TableColumns(self)
+
+    @property
     def show_autofilter(self):
         return self.api["show_autofilter"]
 
@@ -3162,6 +3166,12 @@ class Table(base_classes.Table):
 
     @show_headers.setter
     def show_headers(self, value):
+        self.api["row_count"] = (
+            self.api.get("row_count", 0)
+            + int(value)
+            - int(self.api.get("show_headers", True))
+        )
+        self.api["show_headers"] = value
         self.append_json_action(func="showHeadersTable", args=[self.index - 1, value])
 
     @property
@@ -3170,6 +3180,12 @@ class Table(base_classes.Table):
 
     @show_totals.setter
     def show_totals(self, value):
+        self.api["row_count"] = (
+            self.api.get("row_count", 0)
+            + int(value)
+            - int(self.api.get("show_totals", False))
+        )
+        self.api["show_totals"] = value
         self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
 
     @property
@@ -3264,6 +3280,214 @@ class Table(base_classes.Table):
             func="resizeTable", args=[self.index - 1, range.address]
         )
 
+    @property
+    def rows(self):
+        return TableRows(self)
+
+
+class TableRow(base_classes.TableRow):
+    def __init__(self, parent, index):
+        self.parent = parent
+        self._index = index
+
+    @property
+    def index(self):
+        return self._index
+
+    @property
+    def range(self):
+        raise NotImplementedError(
+            "TableRow.range is not supported in xlwings Lite. Use 'await row.get_range()'."
+        )
+
+    async def get_range(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableRow.get_range() requires xlwings Lite")
+        import js
+
+        address = await js.xlwings.getTableRowRangeAddress(
+            self.parent.parent.parent.name, self.parent.parent.index - 1, self.index - 1
+        )
+        return self.parent.parent.parent.range(str(address))
+
+    def delete(self):
+        self.parent.parent.append_json_action(
+            func="deleteTableRow",
+            args=[self.parent.parent.index - 1, self.index - 1],
+        )
+        self.parent.parent.api["row_count"] -= 1
+
+
+class TableRows(base_classes.TableRows):
+    def __init__(self, parent):
+        self._parent = parent
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def column_count(self):
+        return self.parent.api.get("column_count", 0)
+
+    def __len__(self):
+        metadata = self.parent.api
+        return max(
+            0,
+            metadata.get("row_count", 0)
+            - bool(metadata.get("show_headers", True))
+            - bool(metadata.get("show_totals", False)),
+        )
+
+    def __call__(self, key):
+        if (
+            not isinstance(key, numbers.Integral)
+            or isinstance(key, bool)
+            or not 1 <= key <= len(self)
+        ):
+            raise KeyError(key)
+        return TableRow(self, key)
+
+    def __iter__(self):
+        for index in range(1, len(self) + 1):
+            yield TableRow(self, index)
+
+    async def get_count(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableRows.get_count() requires xlwings Lite")
+        import js
+
+        count = int(
+            await js.xlwings.getTableRowCount(
+                self.parent.parent.name, self.parent.index - 1
+            )
+        )
+        self.parent.api["row_count"] = (
+            count
+            + bool(self.parent.api.get("show_headers", True))
+            + bool(self.parent.api.get("show_totals", False))
+        )
+        return count
+
+    def add(self, values, index):
+        position = len(self) + 1 if index is None else index
+        self.parent.append_json_action(
+            func="addTableRow",
+            args=[self.parent.index - 1, position - 1, values],
+        )
+        self.parent.api["row_count"] = self.parent.api.get("row_count", 0) + 1
+        return TableRow(self, position)
+
+
+class TableColumn(base_classes.TableColumn):
+    def __init__(self, parent, name):
+        self.parent = parent
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def index(self):
+        return self.parent.api.index(self.name) + 1
+
+    @property
+    def range(self):
+        raise NotImplementedError(
+            "TableColumn.range is not supported in xlwings Lite. Use 'await column.get_range()'."
+        )
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError(
+            "TableColumn.data_body_range is not supported in xlwings Lite. "
+            "Use 'await column.get_data_body_range()'."
+        )
+
+    async def _get_range(self, data_body):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableColumn live reads require xlwings Lite")
+        import js
+
+        address = await js.xlwings.getTableColumnRangeAddress(
+            self.parent.parent.parent.name,
+            self.parent.parent.index - 1,
+            self.name,
+            bool(data_body),
+        )
+        return self.parent.parent.parent.range(str(address)) if address else None
+
+    async def get_range(self):
+        return await self._get_range(False)
+
+    async def get_data_body_range(self):
+        return await self._get_range(True)
+
+    def delete(self):
+        if len(self.parent) == 1:
+            raise ValueError("Cannot delete the last table column")
+        self.parent.parent.append_json_action(
+            func="deleteTableColumn",
+            args=[self.parent.parent.index - 1, self.name],
+        )
+        self.parent.api.remove(self.name)
+        self.parent.parent.api["column_count"] = len(self.parent.api)
+
+
+class TableColumns(base_classes.TableColumns):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        if "columns" not in self.parent.api:
+            raise NotImplementedError(
+                "Table columns require a matching xlwings Server or xlwings Lite client"
+            )
+        return self.parent.api["columns"]
+
+    def __len__(self):
+        return len(self.api)
+
+    def __call__(self, key):
+        if isinstance(key, numbers.Integral) and not isinstance(key, bool):
+            if not 1 <= key <= len(self):
+                raise KeyError(key)
+            return TableColumn(self, self.api[key - 1])
+        for name in self.api:
+            if name == key:
+                return TableColumn(self, name)
+        raise KeyError(key)
+
+    def __iter__(self):
+        for name in self.api:
+            yield TableColumn(self, name)
+
+    def __contains__(self, key):
+        return key in self.api
+
+    async def get_count(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("TableColumns.get_count() requires xlwings Lite")
+        import js
+
+        return int(
+            await js.xlwings.getTableColumnCount(
+                self.parent.parent.name, self.parent.index - 1
+            )
+        )
+
+    def add(self, name, index):
+        position = len(self) + 1 if index is None else index
+        self.parent.append_json_action(
+            func="addTableColumn",
+            args=[self.parent.index - 1, position - 1, name],
+        )
+        self.api.insert(position - 1, name)
+        self.parent.api["column_count"] = len(self.api)
+        return TableColumn(self, name)
+
 
 class Tables(Collection, base_classes.Tables):
     _attr = "tables"
@@ -3301,6 +3525,8 @@ class Tables(Collection, base_classes.Tables):
                 # there's nothing to seed until the payload refreshes.
                 "name": name if name else "",
                 "range_address": source.address if source else None,
+                "row_count": source.shape[0] if source else 0,
+                "column_count": source.shape[1] if source else 0,
                 "header_row_range_address": None,
                 "data_body_range_address": None,
                 "total_row_range_address": None,

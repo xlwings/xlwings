@@ -5722,6 +5722,11 @@ class Table:
         return AutoFilter(impl=self.impl.autofilter, parent=self)
 
     @property
+    def rows(self) -> TableRows:
+        """Data rows of this table, excluding headers and totals."""
+        return TableRows(impl=self.impl.rows)
+
+    @property
     def show_autofilter(self) -> bool:
         """Turn the autofilter on or off by setting it to `True` or `False`
         (read/write boolean)
@@ -5800,6 +5805,11 @@ class Table:
     @table_style.setter
     def table_style(self, value: str) -> None:
         self.impl.table_style = value
+
+    @property
+    def columns(self) -> TableColumns:
+        """The columns belonging to this table. Integer collection lookup is zero-based."""
+        return TableColumns(impl=self.impl.columns)
 
     @property
     def totals_row_range(self) -> Range | None:
@@ -5930,6 +5940,187 @@ class Table:
 
     def __repr__(self) -> str:
         return "<Table '{0}' in {1}>".format(self.name, self.parent.name)
+
+
+class TableRow:
+    """A data row in an Excel table. Row objects refer to a position, so obtain them again after sorting or changing the table structure.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        table = xw.Book().sheets[0].tables["Table1"]
+        row = table.rows[0]  # First data row; row.index is 1
+        print(row.range.value)
+        row.delete()
+        ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def index(self) -> int:
+        """One-based position within the table's data rows."""
+        return self.impl.index
+
+    @property
+    def range(self) -> Range:
+        """Cells in this row. In xlwings Lite, use `await get_range()`."""
+        return Range(impl=self.impl.range)
+
+    async def get_range(self) -> Range:
+        """Fetch this row's cells. Use this method for xlwings Lite readback."""
+        return Range(impl=await self.impl.get_range())
+
+    def delete(self) -> None:
+        """Delete this table row. Excel may shift cells below the table upward."""
+        self.impl.delete()
+
+
+class TableRows(Collection[TableRow]):
+    """Collection of data rows in a table. Row indexes are one-based; square-bracket lookup is zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        rows = xw.Book().sheets[0].tables["Table1"].rows
+        rows.add(["Pencil", 2])  # Append
+        rows.add(["Pen", 3], index=1)  # Insert before the first data row
+        print(rows[0].range.value)  # ["Pen", 3]
+        ```
+    """
+
+    _wrap = TableRow
+
+    def __getitem__(self, key: int) -> TableRow:
+        if not isinstance(key, int) or isinstance(key, bool):
+            raise TypeError("Table rows use integer indexes")
+        return super().__getitem__(key)
+
+    async def get_count(self) -> int:
+        """Fetch the current row count. Use this method for xlwings Lite readback."""
+        return await self.impl.get_count()
+
+    def add(
+        self,
+        values: list[str | int | float | bool | None]
+        | tuple[str | int | float | bool | None, ...]
+        | None = None,
+        index: int | None = None,
+    ) -> TableRow:
+        """Add one row before one-based `index`, or append when it is `None`.
+
+        `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. Excel may shift cells below the table downward.
+        """
+        if index is not None:
+            if not isinstance(index, int) or isinstance(index, bool):
+                raise TypeError("index must be an integer or None")
+            if index < 1 or index > len(self) + 1:
+                raise IndexError("Table row index out of range")
+        if values is not None:
+            if not isinstance(values, (list, tuple)):
+                raise TypeError("values must be a one-dimensional list or tuple")
+            if len(values) != self.impl.column_count:
+                raise ValueError("values must match the table column count")
+            for value in values:
+                if value is not None and not isinstance(value, (str, int, float, bool)):
+                    raise TypeError(
+                        "table row values must be strings, numbers, booleans, or None"
+                    )
+                if isinstance(value, float) and not math.isfinite(value):
+                    raise ValueError("table row numbers must be finite")
+            values = list(values)
+        return TableRow(impl=self.impl.add(values, index))
+
+
+class TableColumn:
+    """A column in an Excel table. Obtain it again after changing table structure.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        table = xw.Book().sheets[0].tables["Table1"]
+        column = table.columns["MyColumn"]
+        print(column.index)
+        print(column.data_body_range.value)
+        column.delete()
+        ```
+    """
+
+    def __init__(self, impl: Any) -> None:
+        self.impl = impl
+
+    @property
+    def name(self) -> str:
+        """The column header."""
+        return self.impl.name
+
+    @property
+    def index(self) -> int:
+        """One-based position within the table."""
+        return self.impl.index
+
+    @property
+    def range(self) -> Range:
+        """All cells in this column. In xlwings Lite, use `await get_range()`."""
+        return Range(impl=self.impl.range)
+
+    async def get_range(self) -> Range:
+        """Fetch this column's current range in xlwings Lite."""
+        return Range(impl=await self.impl.get_range())
+
+    @property
+    def data_body_range(self) -> Range | None:
+        """Data cells, excluding header and totals. In xlwings Lite, use `await get_data_body_range()`."""
+        impl = self.impl.data_body_range
+        return Range(impl=impl) if impl else None
+
+    async def get_data_body_range(self) -> Range | None:
+        """Fetch this column's current data cells in xlwings Lite."""
+        impl = await self.impl.get_data_body_range()
+        return Range(impl=impl) if impl else None
+
+    def delete(self) -> None:
+        """Delete the column from its table. Excel may move cells beside the table."""
+        self.impl.delete()
+
+
+class TableColumns(Collection[TableColumn]):
+    """Table columns. Collection lookup is zero-based; column indexes are one-based.
+
+    Examples:
+        ```python
+        import xlwings as xw
+
+        columns = xw.Book().sheets[0].tables["Table1"].columns
+        columns.add("Tax", index=2)
+        print(columns[1].name)
+        ```
+    """
+
+    _wrap = TableColumn
+
+    async def get_count(self) -> int:
+        """Fetch the current column count in xlwings Lite."""
+        return await self.impl.get_count()
+
+    def add(self, name: str, index: int | None = None) -> TableColumn:
+        """Insert a named column before one-based `index`, or append when omitted. Excel may move cells beside the table."""
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+        if not name.strip():
+            raise ValueError("name must not be empty")
+        if index is not None:
+            if not isinstance(index, int) or isinstance(index, bool):
+                raise TypeError("index must be an integer or None")
+            if not 1 <= index <= len(self) + 1:
+                raise IndexError("Table column index out of range")
+        if name.casefold() in (column.name.casefold() for column in self):
+            raise ValueError(f"Table column named {name!r} already exists")
+        return TableColumn(impl=self.impl.add(name, index))
 
 
 class Tables(Collection[Table]):
