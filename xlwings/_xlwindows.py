@@ -3362,7 +3362,6 @@ class TableColumn(base_classes.TableColumn):
         return self.data_body_range
 
     def delete(self):
-        self.parent._require_safe_right_edge()
         if len(self.parent) == 1:
             raise ValueError("Cannot delete the last table column")
         self.xl.Delete()
@@ -3385,16 +3384,7 @@ class TableColumns(Collection, base_classes.TableColumns):
         for column in self.xl:
             yield TableColumn(self, column)
 
-    def _require_safe_right_edge(self):
-        table = self.parent.xl.Range
-        used = self.parent.xl.Parent.UsedRange
-        last_table_column = table.Column + table.Columns.Count - 1
-        last_used_column = used.Column + used.Columns.Count - 1
-        if last_used_column > last_table_column:
-            raise ValueError("Cells or formatting beside the table would move")
-
     def add(self, name, index):
-        self._require_safe_right_edge()
         column = self.xl.Add(Position=index or len(self) + 1)
         column.Name = name
         return TableColumn(self, column)

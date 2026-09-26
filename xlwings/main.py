@@ -5974,7 +5974,7 @@ class TableColumn:
         return Range(impl=impl) if impl else None
 
     def delete(self) -> None:
-        """Delete the column from its table."""
+        """Delete the column from its table. Excel may move cells beside the table."""
         self.impl.delete()
 
 
@@ -5988,7 +5988,7 @@ class TableColumns(Collection[TableColumn]):
         return await self.impl.get_count()
 
     def add(self, name: str, index: int | None = None) -> TableColumn:
-        """Insert a named column before one-based `index`, or append when omitted."""
+        """Insert a named column before one-based `index`, or append when omitted. Excel may move cells beside the table."""
         if not isinstance(name, str):
             raise TypeError("name must be a string")
         if not name.strip():

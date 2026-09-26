@@ -197,13 +197,14 @@ class TestTableColumns(unittest.TestCase):
         self.assertEqual([column.name for column in columns], ["Item", "Qty", "Double"])
         self.assertEqual(self.sheet["D3:D4"].value, [4, 6])
 
-    def test_rejects_occupied_cells_beside_table(self):
-        self.sheet["E3"].value = "keep"
-        with self.assertRaisesRegex(ValueError, "beside the table"):
-            self.table.columns.add("Blocked")
-        with self.assertRaisesRegex(ValueError, "beside the table"):
-            self.table.columns["Qty"].delete()
-        self.assertEqual(self.sheet["E3"].value, "keep")
+    def test_native_changes_with_cells_beside_table(self):
+        self.sheet["F3"].value = "keep"
+        self.table.columns.add("Native")
+        self.assertEqual(len(self.table.columns), 4)
+        self.assertIn("keep", [self.sheet[f"{col}3"].value for col in ("F", "G")])
+        self.table.columns["Native"].delete()
+        self.assertEqual(len(self.table.columns), 3)
+        self.assertIn("keep", [self.sheet[f"{col}3"].value for col in ("F", "G")])
 
 
 class TestTableUpdate(unittest.TestCase):

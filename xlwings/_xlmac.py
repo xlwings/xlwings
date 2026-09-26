@@ -3089,7 +3089,16 @@ class TableColumn(base_classes.TableColumn):
 
     @property
     def range(self):
-        return self.parent.parent.range[:, self.index - 1]
+        table_range = self.parent.parent.range
+        return Range(
+            self.parent.parent.parent,
+            (
+                table_range.row,
+                table_range.column + self.index - 1,
+                table_range.shape[0],
+                1,
+            ),
+        )
 
     async def get_range(self):
         return self.range
@@ -3097,13 +3106,19 @@ class TableColumn(base_classes.TableColumn):
     @property
     def data_body_range(self):
         body = self.parent.parent.data_body_range
-        return body[:, self.index - 1] if body else None
+        return (
+            Range(
+                self.parent.parent.parent,
+                (body.row, body.column + self.index - 1, body.shape[0], 1),
+            )
+            if body
+            else None
+        )
 
     async def get_data_body_range(self):
         return self.data_body_range
 
     def delete(self):
-        self.parent._require_safe_right_edge()
         if len(self.parent) == 1:
             raise ValueError("Cannot delete the last table column")
         self.xl.delete()
@@ -3115,18 +3130,18 @@ class TableColumns(Collection, base_classes.TableColumns):
     _wrap = TableColumn
 
     def __call__(self, key):
+        if isinstance(key, str):
+            for index in range(1, len(self) + 1):
+                if self.xl[index].name.get() == key:
+                    key = index
+                    break
+            else:
+                raise KeyError(key)
         if not self.xl[key].exists():
             raise KeyError(key)
         return TableColumn(self, key)
 
-    def _require_safe_right_edge(self):
-        table = self.parent.range
-        used = self.parent.parent.used_range
-        if used.column + used.shape[1] - 1 > table.column + table.shape[1] - 1:
-            raise ValueError("Cells or formatting beside the table would move")
-
     def add(self, name, index):
-        self._require_safe_right_edge()
         at = (
             self.parent.xl
             if index is None or index == len(self) + 1
