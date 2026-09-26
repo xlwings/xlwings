@@ -36,12 +36,12 @@ def test_remote_table_rows_queue_and_local_count():
     table = remote_table()
     rows = table.rows
     assert len(rows) == 2
-    assert [row.index for row in rows] == [0, 1]
-    assert rows[-1].index == 1
+    assert [row.index for row in rows] == [1, 2]
+    assert rows[-1].index == 2
     appended = rows.add(["new", 3])
-    inserted = rows.add(index=0)
-    assert appended.index == 2
-    assert inserted.index == 0
+    inserted = rows.add(index=1)
+    assert appended.index == 3
+    assert inserted.index == 1
     assert len(rows) == 4
     rows[1].delete()
     assert len(rows) == 3
@@ -61,8 +61,8 @@ def test_remote_table_rows_queue_and_local_count():
         ([1, object()], None, TypeError),
         ([1, float("nan")], None, ValueError),
         ([1, 2], True, TypeError),
-        ([1, 2], -1, IndexError),
-        ([1, 2], 3, IndexError),
+        ([1, 2], 0, IndexError),
+        ([1, 2], 4, IndexError),
     ],
 )
 def test_remote_table_row_validation_before_queue(values, index, error):

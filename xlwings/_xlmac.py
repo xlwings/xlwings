@@ -3059,7 +3059,7 @@ class TableRow(base_classes.TableRow):
 
     @property
     def index(self):
-        return self.xl.index.get() - 1
+        return self.xl.index.get()
 
     @property
     def range(self):
@@ -3110,8 +3110,8 @@ class TableRows(Collection, base_classes.TableRows):
         self._require_free_space_below()
         at = (
             self.parent.xl
-            if index is None or index == len(self)
-            else self.xl[index + 1]
+            if index is None or index == len(self) + 1
+            else self.xl[index]
         )
         created = self.parent.xl.make(new=kw.list_row, at=at)
         row = TableRow(self, created.index.get())

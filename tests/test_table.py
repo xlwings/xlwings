@@ -202,8 +202,8 @@ class TestTableRows(unittest.TestCase):
         self.assertEqual(asyncio.run(rows[0].get_range()).address, "$B$3:$C$3")
 
         appended = rows.add(["third", 30])
-        self.assertEqual(appended.index, 2)
-        rows.add(["middle", 15], index=1)
+        self.assertEqual(appended.index, 3)
+        rows.add(["middle", 15], index=2)
         self.assertEqual(len(rows), 4)
         self.assertEqual(
             self.table.data_body_range.value,

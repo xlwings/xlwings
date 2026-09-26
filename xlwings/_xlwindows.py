@@ -3314,7 +3314,7 @@ class TableRow(base_classes.TableRow):
 
     @property
     def index(self):
-        return self.xl.Index - 1
+        return self.xl.Index
 
     @property
     def range(self):
@@ -3374,7 +3374,7 @@ class TableRows(Collection, base_classes.TableRows):
         row = (
             self.xl.Add(AlwaysInsert=False)
             if index is None
-            else self.xl.Add(Position=index + 1, AlwaysInsert=False)
+            else self.xl.Add(Position=index, AlwaysInsert=False)
         )
         if values is not None:
             row.Range.Value = [values]

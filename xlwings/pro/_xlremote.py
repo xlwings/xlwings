@@ -3274,14 +3274,14 @@ class TableRow(base_classes.TableRow):
         import js
 
         address = await js.xlwings.getTableRowRangeAddress(
-            self.parent.parent.parent.name, self.parent.parent.index - 1, self.index
+            self.parent.parent.parent.name, self.parent.parent.index - 1, self.index - 1
         )
         return self.parent.parent.parent.range(str(address))
 
     def delete(self):
         self.parent.parent.append_json_action(
             func="deleteTableRow",
-            args=[self.parent.parent.index - 1, self.index],
+            args=[self.parent.parent.index - 1, self.index - 1],
         )
         self.parent.parent.api["row_count"] -= 1
 
@@ -3314,10 +3314,10 @@ class TableRows(base_classes.TableRows):
             or not 1 <= key <= len(self)
         ):
             raise KeyError(key)
-        return TableRow(self, key - 1)
+        return TableRow(self, key)
 
     def __iter__(self):
-        for index in range(len(self)):
+        for index in range(1, len(self) + 1):
             yield TableRow(self, index)
 
     async def get_count(self):
@@ -3338,10 +3338,10 @@ class TableRows(base_classes.TableRows):
         return count
 
     def add(self, values, index):
-        position = len(self) if index is None else index
+        position = len(self) + 1 if index is None else index
         self.parent.append_json_action(
             func="addTableRow",
-            args=[self.parent.index - 1, position, values],
+            args=[self.parent.index - 1, position - 1, values],
         )
         self.parent.api["row_count"] = self.parent.api.get("row_count", 0) + 1
         return TableRow(self, position)

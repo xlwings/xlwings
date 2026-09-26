@@ -5909,7 +5909,7 @@ class TableRow:
 
     @property
     def index(self) -> int:
-        """Zero-based position within the table's data rows."""
+        """One-based position within the table's data rows."""
         return self.impl.index
 
     @property
@@ -5927,7 +5927,7 @@ class TableRow:
 
 
 class TableRows(Collection[TableRow]):
-    """Collection of data rows in a table. Positions are zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count."""
+    """Collection of data rows in a table. Row indexes are one-based; square-bracket lookup is zero-based. In xlwings Lite, `len(rows)` uses loaded metadata; use `await rows.get_count()` for the current count."""
 
     _wrap = TableRow
 
@@ -5947,14 +5947,14 @@ class TableRows(Collection[TableRow]):
         | None = None,
         index: int | None = None,
     ) -> TableRow:
-        """Add one row at zero-based `index`, or append when it is `None`.
+        """Add one row before one-based `index`, or append when it is `None`.
 
         `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. The operation refuses to move or consume cells below the table.
         """
         if index is not None:
             if not isinstance(index, int) or isinstance(index, bool):
                 raise TypeError("index must be an integer or None")
-            if index < 0 or index > len(self):
+            if index < 1 or index > len(self) + 1:
                 raise IndexError("Table row index out of range")
         if values is not None:
             if not isinstance(values, (list, tuple)):
