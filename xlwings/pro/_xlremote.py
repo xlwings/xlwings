@@ -446,6 +446,10 @@ def _update_api_in_place(target, source):
                     if key == "sheets":
                         item = dict(item)
                         _update_pivots_in_place(entry, item)
+                        if "tables" in item:
+                            _update_api_in_place(entry, {"tables": item.pop("tables")})
+                    elif key == "tables":
+                        entry.pop("_columns_pending", None)
                     entry.update(item)
                     new_list.append(entry)
                 else:
@@ -885,7 +889,16 @@ class Book(base_classes.Book):
             # that indeterminate batch: replaying it can duplicate non-idempotent
             # actions such as adding a defined name.
             self._json["actions"] = []
-            await js.xlwings.runActions(actions_js)
+            try:
+                await js.xlwings.runActions(actions_js)
+            except Exception:
+                # Some actions may have succeeded. Refresh optimistic metadata
+                # without masking the original action error if refresh also fails.
+                try:
+                    await self.load(values=False)
+                except Exception:
+                    pass
+                raise
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
@@ -1443,6 +1456,10 @@ class Sheet(base_classes.Sheet):
                     # metadata-only payload.
                     sheet_data.pop("values", None)
                 _update_pivots_in_place(self._api, sheet_data)
+                if "tables" in sheet_data:
+                    _update_api_in_place(
+                        self._api, {"tables": sheet_data.pop("tables")}
+                    )
                 self._api.update(sheet_data)
                 break
         if load_values:
@@ -3362,11 +3379,12 @@ class TableRows(base_classes.TableRows):
                 self.parent.parent.name, self.parent.index - 1
             )
         )
-        self.parent.api["row_count"] = (
-            count
-            + bool(self.parent.api.get("show_headers", True))
-            + bool(self.parent.api.get("show_totals", False))
-        )
+        if not self.parent.parent.book.json()["actions"]:
+            self.parent.api["row_count"] = (
+                count
+                + bool(self.parent.api.get("show_headers", True))
+                + bool(self.parent.api.get("show_totals", False))
+            )
         return count
 
     def add(self, values, index):
@@ -3407,7 +3425,7 @@ class TableColumn(base_classes.TableColumn):
 
     async def _get_range(self, data_body):
         if sys.platform != "emscripten":
-            raise NotImplementedError("TableColumn live reads require xlwings Lite")
+            raise NotImplementedError("TableColumn range reads require xlwings Lite")
         import js
 
         address = await js.xlwings.getTableColumnRangeAddress(
@@ -3442,6 +3460,13 @@ class TableColumns(base_classes.TableColumns):
     @property
     def api(self):
         if "columns" not in self.parent.api:
+            if self.parent.api.get("_columns_pending"):
+                raise XlwingsError(
+                    "The new table's column names are unavailable until Excel creates "
+                    "the table and its metadata is reloaded. In xlwings Lite, call "
+                    "'await book.flush()' and 'await sheet.load()', then obtain the "
+                    "table again."
+                )
             raise NotImplementedError(
                 "Table columns require a matching xlwings Server or xlwings Lite client"
             )
@@ -3472,11 +3497,16 @@ class TableColumns(base_classes.TableColumns):
             raise NotImplementedError("TableColumns.get_count() requires xlwings Lite")
         import js
 
-        return int(
+        count = int(
             await js.xlwings.getTableColumnCount(
                 self.parent.parent.name, self.parent.index - 1
             )
         )
+        if not self.parent.parent.book.json()["actions"] and (
+            "columns" not in self.parent.api or count != len(self.parent.api["columns"])
+        ):
+            await self.parent.parent.book.load(values=False)
+        return count
 
     def add(self, name, index):
         position = len(self) + 1 if index is None else index
@@ -3513,6 +3543,8 @@ class Tables(Collection, base_classes.Tables):
         table_style_name=None,
         name=None,
     ):
+        if not isinstance(has_headers, bool):
+            raise TypeError("has_headers must be True or False")
         self.append_json_action(
             func="addTable",
             args=[source.address, has_headers, table_style_name, name],
@@ -3527,10 +3559,12 @@ class Tables(Collection, base_classes.Tables):
                 "range_address": source.address if source else None,
                 "row_count": source.shape[0] if source else 0,
                 "column_count": source.shape[1] if source else 0,
+                # Excel determines the final names when the queued action runs.
+                "_columns_pending": True,
                 "header_row_range_address": None,
                 "data_body_range_address": None,
                 "total_row_range_address": None,
-                "show_headers": has_headers if has_headers is not None else True,
+                "show_headers": True,
                 "show_totals": False,
                 "table_style": table_style_name if table_style_name else "",
                 # Excel's defaults for a new table, so the getters work before

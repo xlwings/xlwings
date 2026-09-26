@@ -207,6 +207,20 @@ class TestTableColumns(unittest.TestCase):
         self.assertIn("keep", [self.sheet[f"{col}3"].value for col in ("F", "G")])
 
 
+class TestTableHeaderOption(unittest.TestCase):
+    def test_add_without_source_headers(self):
+        book = xw.Book()
+        try:
+            sheet = book.sheets[0]
+            source = sheet["B2:C3"]
+            source.value = [["first", 1], ["second", 2]]
+            table = sheet.tables.add(source, has_headers=False)
+            self.assertIsNotNone(table.header_row_range)
+            self.assertEqual(table.data_body_range.value, [["first", 1], ["second", 2]])
+        finally:
+            book.close()
+
+
 class TestTableUpdate(unittest.TestCase):
     def test_table_update(self):
         df = pd.DataFrame(

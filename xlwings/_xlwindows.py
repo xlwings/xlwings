@@ -3444,7 +3444,7 @@ class TableColumns(Collection, base_classes.TableColumns):
             yield TableColumn(self, column)
 
     def add(self, name, index):
-        column = self.xl.Add(Position=index or len(self) + 1)
+        column = self.xl.Add(Position=len(self) + 1 if index is None else index)
         column.Name = name
         return TableColumn(self, column)
 
@@ -3470,7 +3470,11 @@ class Tables(Collection, base_classes.Tables):
                 SourceType=ListObjectSourceType.xlSrcRange,
                 Source=source.api,
                 LinkSource=link_source,
-                XlListObjectHasHeaders=True,
+                XlListObjectHasHeaders=(
+                    constants.YesNoGuess.xlYes
+                    if has_headers
+                    else constants.YesNoGuess.xlNo
+                ),
                 Destination=destination,
                 TableStyleName=table_style_name,
             )

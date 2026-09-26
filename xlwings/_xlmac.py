@@ -3231,7 +3231,6 @@ class Tables(Collection, base_classes.Tables):
         header_row = {
             True: kw.header_yes,
             False: kw.header_no,
-            "guess": kw.header_guess,
         }
         sheet_index = self.parent.xl.entry_index.get()
         table = Table(

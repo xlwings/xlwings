@@ -1,3 +1,7 @@
+import asyncio
+import sys
+from types import ModuleType, SimpleNamespace
+
 import pytest
 
 import xlwings as xw
@@ -76,3 +80,19 @@ def test_remote_row_sync_range_points_to_async_getter():
     row = remote_table().rows[0]
     with pytest.raises(NotImplementedError, match="await row.get_range"):
         row.range
+
+
+def test_remote_row_get_count_preserves_queued_changes(monkeypatch):
+    table = remote_table()
+    rows = table.rows
+    rows.add(["queued", 3])
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    js = ModuleType("js")
+
+    async def current_count(*args):
+        return 2
+
+    js.xlwings = SimpleNamespace(getTableRowCount=current_count)
+    monkeypatch.setitem(sys.modules, "js", js)
+    assert asyncio.run(rows.get_count()) == 2
+    assert len(rows) == 3

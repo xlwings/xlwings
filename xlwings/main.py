@@ -6089,7 +6089,7 @@ class TableColumn:
 
 
 class TableColumns(Collection[TableColumn]):
-    """Table columns. Collection lookup is zero-based; column indexes are one-based.
+    """Table columns. Collection lookup is zero-based; column indexes are one-based. For a newly created table in xlwings Lite, call `await book.flush()` and `await sheet.load()` before accessing its columns, then obtain the table again.
 
     Examples:
         ```python
@@ -6145,7 +6145,7 @@ class Tables(Collection[Table]):
         name: str | None = None,
         source_type: str | None = None,
         link_source: bool | None = None,
-        has_headers: bool | str = True,
+        has_headers: bool = True,
         destination: Range | None = None,
         table_style_name: str = "TableStyleMedium2",
     ) -> Table:
@@ -6159,8 +6159,7 @@ class Tables(Collection[Table]):
                 object. No other options are allowed at the moment.
             link_source: Currently not implemented as this is only in case `source_type` is
                 `xlSrcExternal`.
-            has_headers: Indicates whether the data being imported has column labels. Defaults to
-                `True`. Possible values: `True`, `False`, `'guess'`
+            has_headers: Whether the source range has column labels. Defaults to `True`. When `False`, Excel generates headers above the source data.
             destination: Currently not implemented as this is used in case `source_type` is
                 `xlSrcExternal`.
             table_style_name: Possible strings: `'TableStyleLightN'` (where N is 1-21),
@@ -6177,6 +6176,9 @@ class Tables(Collection[Table]):
             <Table 'MyTable' in Sheet1>
             ```
         """
+
+        if not isinstance(has_headers, bool):
+            raise TypeError("has_headers must be True or False")
 
         impl = self.impl.add(
             source_type=source_type,
