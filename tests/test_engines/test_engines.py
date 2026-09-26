@@ -3388,6 +3388,29 @@ def test_range_group_a_getters_pass_through(book, getter, reported):
         assert asyncio.run(getattr(rng, getter)()) == reported
 
 
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "axis,key", [("rows", "row_hidden"), ("columns", "column_hidden")]
+)
+@pytest.mark.parametrize("reported", [True, False, None])
+def test_range_visibility_getters_pass_through(book, axis, key, reported):
+    selection = book.sheets[0]["A1:B2"]
+
+    async def fake(self, requested_key, method=None):
+        assert requested_key == key
+        return reported
+
+    with mock.patch.object(type(selection.impl), "_get_range_data", fake):
+        assert asyncio.run(getattr(selection, axis).get_hidden()) is reported
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("axis", ["rows", "columns"])
+def test_range_visibility_getters_require_xlwings_lite(book, axis):
+    with pytest.raises(NotImplementedError, match="xlwings Lite"):
+        asyncio.run(getattr(book.sheets[0]["A1"], axis).get_hidden())
+
+
 @pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 @pytest.mark.parametrize(
     "kwargs,expected",

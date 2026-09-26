@@ -1318,6 +1318,22 @@ class Range(base_classes.Range):
         return self.xl
 
     @property
+    def row_hidden(self):
+        return self.xl.EntireRow.Hidden
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        self.xl.EntireRow.Hidden = value
+
+    @property
+    def column_hidden(self):
+        return self.xl.EntireColumn.Hidden
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        self.xl.EntireColumn.Hidden = value
+
+    @property
     def autofilter(self):
         return AutoFilter(self)
 

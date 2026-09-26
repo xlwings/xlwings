@@ -1029,6 +1029,28 @@ class Range(base_classes.Range):
         return self.xl
 
     @property
+    def row_hidden(self):
+        value = self.xl.entire_row.rows.hidden.get()
+        if isinstance(value, list):
+            return value[0] if all(item == value[0] for item in value) else None
+        return None if value == kw.missing_value else value
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        self.xl.entire_row.hidden.set(value)
+
+    @property
+    def column_hidden(self):
+        value = self.xl.entire_column.columns.hidden.get()
+        if isinstance(value, list):
+            return value[0] if all(item == value[0] for item in value) else None
+        return None if value == kw.missing_value else value
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        self.xl.entire_column.hidden.set(value)
+
+    @property
     def autofilter(self):
         return AutoFilter(self)
 

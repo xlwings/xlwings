@@ -63,6 +63,32 @@ def test_formula_single_cell(book):
     assert (action["row_count"], action["column_count"]) == (1, 1)
 
 
+@pytest.mark.parametrize(
+    "axis,func", [("rows", "setRowHidden"), ("columns", "setColumnHidden")]
+)
+def test_row_and_column_hidden_actions(book, axis, func):
+    selection = book.sheets[0]["B2:C4"]
+    collection = getattr(selection, axis)
+    collection.hidden = True
+    action = last_action(book)
+    assert action["func"] == func
+    assert action["args"] == [True]
+    assert (action["start_row"], action["start_column"]) == (1, 1)
+    assert (action["row_count"], action["column_count"]) == (3, 2)
+    with pytest.raises(NotImplementedError, match="get_hidden"):
+        _ = collection.hidden
+
+
+@pytest.mark.parametrize("axis", ["rows", "columns"])
+@pytest.mark.parametrize("value", [1, None, "true"])
+def test_hidden_rejects_non_boolean_without_queuing(book, axis, value):
+    collection = getattr(book.sheets[0]["A1:B2"], axis)
+    before = len(actions(book))
+    with pytest.raises(TypeError, match="hidden must be a boolean"):
+        collection.hidden = value
+    assert len(actions(book)) == before
+
+
 def test_formula_broadcasts_scalar_to_range(book):
     book.sheets[0]["A1:B2"].formula = "=A1"
     action = last_action(book)
