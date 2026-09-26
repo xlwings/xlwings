@@ -1573,6 +1573,34 @@ class Range(base_classes.Range):
         )
 
     @property
+    def row_hidden(self):
+        raise NotImplementedError(
+            "Reading row visibility synchronously isn't supported on this engine. "
+            "Use 'await myrange.rows.get_hidden()' to fetch it."
+        )
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        self.append_json_action(func="setRowHidden", args=[value])
+
+    @property
+    def column_hidden(self):
+        raise NotImplementedError(
+            "Reading column visibility synchronously isn't supported on this engine. "
+            "Use 'await myrange.columns.get_hidden()' to fetch it."
+        )
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        self.append_json_action(func="setColumnHidden", args=[value])
+
+    async def get_row_hidden(self):
+        return await self._get_range_data("row_hidden", method="get_hidden")
+
+    async def get_column_hidden(self):
+        return await self._get_range_data("column_hidden", method="get_hidden")
+
+    @property
     def autofilter(self):
         return AutoFilter(self)
 

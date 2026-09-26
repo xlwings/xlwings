@@ -4171,6 +4171,24 @@ class RangeRows(Ranges):
 
     count = property(__len__)
 
+    @property
+    def hidden(self) -> bool | None:
+        """Whether all represented worksheet rows are hidden.
+
+        Setting this property hides or shows the entire worksheet rows represented by the range. Returns `None` when some rows are hidden and others are visible. In xlwings Lite, use `await rng.rows.get_hidden()` to read this state.
+        """
+        return self.rng.impl.row_hidden
+
+    @hidden.setter
+    def hidden(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("hidden must be a boolean")
+        self.rng.impl.row_hidden = value
+
+    async def get_hidden(self) -> bool | None:
+        """Fetch row visibility in xlwings Lite; return `None` for a mixed selection."""
+        return await self.rng.impl.get_row_hidden()
+
     def autofit(self) -> None:
         """Autofits the height of the rows."""
         self.rng.impl.autofit(axis="r")
@@ -4240,6 +4258,24 @@ class RangeColumns(Ranges):
         return self.rng.shape[1]
 
     count = property(__len__)
+
+    @property
+    def hidden(self) -> bool | None:
+        """Whether all represented worksheet columns are hidden.
+
+        Setting this property hides or shows the entire worksheet columns represented by the range. Returns `None` when some columns are hidden and others are visible. In xlwings Lite, use `await rng.columns.get_hidden()` to read this state.
+        """
+        return self.rng.impl.column_hidden
+
+    @hidden.setter
+    def hidden(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("hidden must be a boolean")
+        self.rng.impl.column_hidden = value
+
+    async def get_hidden(self) -> bool | None:
+        """Fetch column visibility in xlwings Lite; return `None` for a mixed selection."""
+        return await self.rng.impl.get_column_hidden()
 
     def autofit(self) -> None:
         """Autofits the width of the columns."""

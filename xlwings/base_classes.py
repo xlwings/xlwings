@@ -829,6 +829,28 @@ class Sheet:
 
 
 class Range:
+    @property
+    def row_hidden(self):
+        raise NotImplementedError()
+
+    @row_hidden.setter
+    def row_hidden(self, value):
+        raise NotImplementedError()
+
+    @property
+    def column_hidden(self):
+        raise NotImplementedError()
+
+    @column_hidden.setter
+    def column_hidden(self, value):
+        raise NotImplementedError()
+
+    async def get_row_hidden(self):
+        raise NotImplementedError("get_hidden() is only supported in xlwings Lite")
+
+    async def get_column_hidden(self):
+        raise NotImplementedError("get_hidden() is only supported in xlwings Lite")
+
     def sort(self, keys, ascending, has_headers):
         raise NotImplementedError()
 
