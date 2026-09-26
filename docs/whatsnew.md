@@ -4,6 +4,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.5 (TBD)
 
+- Added {meth}`Range.remove_duplicates <xlwings.Range.remove_duplicates>` for native duplicate removal on Windows and xlwings Lite, and {meth}`Range.get_special_cells <xlwings.Range.get_special_cells>` to select blanks, constants, formulas, or visible cells. The special-cell read is awaited in xlwings Lite.
 - Added {meth}`Range.find <xlwings.Range.find>` and {meth}`Range.replace_all <xlwings.Range.replace_all>` for scoped Excel searches and replacements. `find()` returns directly on Windows and macOS and is awaited in xlwings Lite; replacements are queued in xlwings Lite.
 - Added a separate {class}`Comment <xlwings.Comment>` model for plain-text threaded comments, replies, and metadata. xlwings Lite reads comments asynchronously and can resolve or reopen threads with ExcelApi 1.11.
 - xlwings Lite: added {meth}`Range.get_colors <xlwings.Range.get_colors>` to read per-cell direct fill colors as a two-dimensional RGB/`None` matrix.

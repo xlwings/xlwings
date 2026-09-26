@@ -31,6 +31,7 @@ from typing import (
     Generator,
     Generic,
     Iterator,
+    Literal,
     Mapping,
     Sequence,
     TypeVar,
@@ -2325,6 +2326,90 @@ class Range:
                 )
 
         self.impl.sort(normalized_keys, normalized_ascending, has_headers)
+
+    def remove_duplicates(
+        self, columns: int | Sequence[int], has_headers: bool = False
+    ) -> None:
+        """Remove duplicate rows within this range, keeping the first occurrence.
+
+        Args:
+            columns: One-based column positions within this range used to identify duplicates.
+            has_headers: Keep the first row as a header.
+
+        Only cells inside this range are shifted. Ranges intersecting an Excel table are not supported. On macOS this method isn't supported and raises `NotImplementedError`.
+        """
+        if isinstance(columns, bool):
+            raise TypeError("columns must be one-based column positions")
+        if isinstance(columns, int):
+            normalized = [columns]
+        elif isinstance(columns, Sequence) and not isinstance(columns, (str, bytes)):
+            normalized = list(columns)
+        else:
+            raise TypeError("columns must be an integer or a sequence of integers")
+        if not normalized:
+            raise ValueError("columns must contain at least one column")
+        if any(
+            not isinstance(column, int) or isinstance(column, bool)
+            for column in normalized
+        ):
+            raise TypeError("columns must contain only integers")
+        if any(column < 1 or column > self.shape[1] for column in normalized):
+            raise ValueError("columns must be within the range's columns")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("columns must be unique")
+        if not isinstance(has_headers, bool):
+            raise TypeError("has_headers must be a boolean")
+        if has_headers and self.shape[0] < 2:
+            raise ValueError("duplicate removal with headers needs at least two rows")
+        for table in self.sheet.tables:
+            table_range = table.range
+            if table_range is None:
+                continue
+            if (
+                self.row < table_range.row + table_range.shape[0]
+                and table_range.row < self.row + self.shape[0]
+                and self.column < table_range.column + table_range.shape[1]
+                and table_range.column < self.column + self.shape[1]
+            ):
+                raise ValueError(
+                    "Range.remove_duplicates() does not support ranges intersecting a table"
+                )
+        self.impl.remove_duplicates(normalized, has_headers)
+
+    def get_special_cells(
+        self,
+        cell_type: Literal["blanks", "constants", "formulas", "visible"],
+        value_type: Literal["numbers", "text", "logical", "errors"] | None = None,
+    ) -> list[Range] | Awaitable[list[Range]]:
+        """Return the rectangular areas of matching cells within this range.
+
+        `cell_type` is `"blanks"`, `"constants"`, `"formulas"`, or `"visible"`. For constants or formulas, `value_type` may be `"numbers"`, `"text"`, `"logical"`, or `"errors"`; omitting it selects all value types. Returns an empty list when no cells match. Desktop Python returns the list directly; in xlwings Lite use `await range.get_special_cells(...)`.
+        """
+        if not isinstance(cell_type, str):
+            raise TypeError("cell_type must be a string")
+        if cell_type not in ("blanks", "constants", "formulas", "visible"):
+            raise ValueError(
+                "cell_type must be 'blanks', 'constants', 'formulas', or 'visible'"
+            )
+        if value_type is not None:
+            if not isinstance(value_type, str):
+                raise TypeError("value_type must be a string or None")
+            if cell_type not in ("constants", "formulas"):
+                raise ValueError(
+                    "value_type is only supported for constants and formulas"
+                )
+            if value_type not in ("numbers", "text", "logical", "errors"):
+                raise ValueError(
+                    "value_type must be 'numbers', 'text', 'logical', or 'errors'"
+                )
+        areas = self.impl.get_special_cells(cell_type, value_type)
+        if inspect.isawaitable(areas):
+
+            async def await_areas() -> list[Range]:
+                return [Range(impl=area) for area in await areas]
+
+            return await_areas()
+        return [Range(impl=area) for area in areas]
 
     def find(
         self,
