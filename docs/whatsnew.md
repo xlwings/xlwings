@@ -2,19 +2,17 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.5 (TBD)
+## v0.37.5 (Sep 27, 2026)
 
-- Added {meth}`Range.remove_duplicates <xlwings.Range.remove_duplicates>` for native duplicate removal on Windows and xlwings Lite, and {meth}`Range.get_special_cells <xlwings.Range.get_special_cells>` to select blanks, constants, formulas, or visible cells. The special-cell read is awaited in xlwings Lite.
-- Added {meth}`Range.find <xlwings.Range.find>` and {meth}`Range.replace_all <xlwings.Range.replace_all>` for scoped Excel searches and replacements. `find()` returns directly on Windows and macOS and is awaited in xlwings Lite; replacements are queued in xlwings Lite.
-- Added a separate {class}`Comment <xlwings.Comment>` model for plain-text threaded comments, replies, and metadata. xlwings Lite reads comments asynchronously and can resolve or reopen threads with ExcelApi 1.11.
-- xlwings Lite: added {meth}`Range.get_colors <xlwings.Range.get_colors>` to read per-cell direct fill colors as a two-dimensional RGB/`None` matrix.
-- Added {meth}`Range.set_colors <xlwings.Range.set_colors>` for shape-validated bulk direct-fill writes. Use an RGB tuple or list, hex string, or Excel packed integer to set a cell, `None` to clear it, or `...` to leave it unchanged; xlwings Lite requires ExcelApi 1.9.
-
-- Added `Sheet.move()` to move a worksheet before or after another worksheet in the same book.
-- xlwings Lite: added `await Sheet.get_used_range(values_only=False)` to fetch the current formatting-aware or values-only used range while preserving the existing `Sheet.used_range` behavior.
-- Added `Range.data_validation` with list, whole-number, decimal, date, time, text-length, and custom-formula validation. xlwings Lite can inspect validation rules on demand with `await Range.get_data_validation()`.
-- Added primary category and value chart axes on Windows and remote engines with titles, scales, major units, number formats, visibility, and asynchronous xlwings Lite getters, see {class}`ChartAxis <xlwings.main.ChartAxis>`.
-- Added chart series collection access on Windows, macOS, and remote engines with series names, marker formatting, line and fill colors, and asynchronous xlwings Lite getters, see {class}`ChartSeries <xlwings.main.ChartSeries>`.
+- Added {meth}`Range.remove_duplicates <xlwings.Range.remove_duplicates>` for native duplicate removal and {meth}`Range.get_special_cells <xlwings.Range.get_special_cells>` to select blanks, constants, formulas, or visible cells.
+- Added {meth}`Range.find <xlwings.Range.find>` and {meth}`Range.replace_all <xlwings.Range.replace_all>` for scoped Excel searches and replacements.
+- Added support for threaded comments via {class}`Comment <xlwings.Comment>`.
+- Added {meth}`Range.get_colors <xlwings.Range.get_colors>` and {meth}`Range.set_colors <xlwings.Range.set_colors>` for bulk read and writes of cell colors.
+- Added {meth}`Sheet.move() <xlwings.Sheet.move>` to move a worksheet.
+- xlwings Lite: added `await` {meth}`Sheet.get_used_range(values_only=False) <xlwings.Sheet.get_used_range>` to fetch the current formatting-aware used range.
+- Added {attr}`Range.data_validation <xlwings.Range.data_validation>` with list, whole-number, decimal, date, time, text-length, and custom-formula validation.
+- Added primary category and value chart axes with titles, scales, major units, number formats, visibility, see {class}`ChartAxis <xlwings.main.ChartAxis>`.
+- Added chart series collection access with series names, marker formatting, line and fill colors, see {class}`ChartSeries <xlwings.main.ChartSeries>`.
 
 ## v0.37.4 (Sep 16, 2026)
 
