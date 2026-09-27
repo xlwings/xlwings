@@ -4085,11 +4085,17 @@ class PivotTable(base_classes.PivotTable):
     def range(self):
         return Range(xl=self.xl.TableRange1)
 
+    async def get_range(self):
+        return self.range
+
     @property
     def data_body_range(self):
         if self.xl.DataFields.Count == 0:
             return None
         return Range(xl=self.xl.DataBodyRange)
+
+    async def get_data_body_range(self):
+        return self.data_body_range
 
     def refresh(self):
         self.xl.RefreshTable()

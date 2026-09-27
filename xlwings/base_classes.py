@@ -2575,8 +2575,14 @@ class PivotTable:
     def range(self):
         raise NotImplementedError()
 
+    async def get_range(self):
+        raise NotImplementedError()
+
     @property
     def data_body_range(self):
+        raise NotImplementedError()
+
+    async def get_data_body_range(self):
         raise NotImplementedError()
 
     def refresh(self):

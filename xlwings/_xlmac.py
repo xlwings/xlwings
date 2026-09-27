@@ -3864,6 +3864,9 @@ class PivotTable(base_classes.PivotTable):
     def range(self):
         return Range(self.parent, self.xl.table_range1.get_address())
 
+    async def get_range(self):
+        return self.range
+
     @property
     def data_body_range(self):
         # Excel for Mac answers with the row labels area when there are no
@@ -3871,6 +3874,9 @@ class PivotTable(base_classes.PivotTable):
         if not _mac_list(self.xl.data_fields):
             return None
         return Range(self.parent, self.xl.data_body_range.get_address())
+
+    async def get_data_body_range(self):
+        return self.data_body_range
 
     def refresh(self):
         self.xl.refresh_table()

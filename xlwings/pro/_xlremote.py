@@ -854,18 +854,20 @@ class Book(base_classes.Book):
 
     def append_json_action(self, **kwargs):
         args = kwargs.get("args")
-        self._json["actions"].append(
-            {
-                "func": kwargs.get("func"),
-                "args": [args] if not isinstance(args, list) else args,
-                "values": kwargs.get("values"),
-                "sheet_position": kwargs.get("sheet_position"),
-                "start_row": kwargs.get("start_row"),
-                "start_column": kwargs.get("start_column"),
-                "row_count": kwargs.get("row_count"),
-                "column_count": kwargs.get("column_count"),
-            }
-        )
+        action = {
+            "func": kwargs.get("func"),
+            "args": [args] if not isinstance(args, list) else args,
+            "values": kwargs.get("values"),
+            "sheet_position": kwargs.get("sheet_position"),
+            "start_row": kwargs.get("start_row"),
+            "start_column": kwargs.get("start_column"),
+            "row_count": kwargs.get("row_count"),
+            "column_count": kwargs.get("column_count"),
+        }
+        if "pivot_name" in kwargs:
+            action["pivot_id"] = kwargs.get("pivot_id")
+            action["pivot_name"] = kwargs["pivot_name"]
+        self._json["actions"].append(action)
 
     @property
     def api(self):
@@ -4449,7 +4451,12 @@ class PivotTable(base_classes.PivotTable):
         raise KeyError("The pivot table has been deleted.")
 
     def _queue(self, func, *args):
-        self.append_json_action(func=func, args=[self.index - 1, *args])
+        self.append_json_action(
+            func=func,
+            args=[self.index - 1, *args],
+            pivot_id=self.api.get("id"),
+            pivot_name=self.name,
+        )
 
     @property
     def name(self):
@@ -4513,16 +4520,38 @@ class PivotTable(base_classes.PivotTable):
     @property
     def range(self):
         raise NotImplementedError(
-            "PivotTable.range isn't supported on this engine: the payload doesn't "
-            "carry the pivot table's range."
+            "PivotTable.range is not supported on this engine. "
+            "In xlwings Lite, use 'await pivot.get_range()'."
         )
+
+    async def _get_range(self, kind):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("PivotTable range reads require xlwings Lite")
+        import js
+
+        address = _normalize_jsnull(
+            await js.xlwings.getPivotTableRangeAddress(
+                self.parent.name, self.index - 1, self.api.get("id"), self.name, kind
+            )
+        )
+        if not address:
+            if kind == "data_body":
+                return None
+            raise RuntimeError("Excel returned no pivot table report range")
+        return self.parent.range(str(address))
+
+    async def get_range(self):
+        return await self._get_range("report")
 
     @property
     def data_body_range(self):
         raise NotImplementedError(
-            "PivotTable.data_body_range isn't supported on this engine: the "
-            "payload doesn't carry the pivot table's range."
+            "PivotTable.data_body_range is not supported on this engine. "
+            "In xlwings Lite, use 'await pivot.get_data_body_range()'."
         )
+
+    async def get_data_body_range(self):
+        return await self._get_range("data_body")
 
     def refresh(self):
         self._queue("refreshPivotTable")
