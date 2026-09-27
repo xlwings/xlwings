@@ -4,13 +4,21 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.5 (Sep 27, 2026)
 
+- xlwings Lite: added `await` {meth}`PivotTable.get_range <xlwings.PivotTable.get_range>` and `await` {meth}`PivotTable.get_data_body_range <xlwings.PivotTable.get_data_body_range>`.
+- Added {attr}`Table.rows <xlwings.main.Table.rows>` and {attr}`Table.columns <xlwings.main.Table.columns>` to insert, inspect, and delete table rows and columns.
+- Added {attr}`RangeRows.hidden <xlwings.RangeRows.hidden>` and {attr}`RangeColumns.hidden <xlwings.RangeColumns.hidden>` to read and change row and column visibility.
 - Added {meth}`Range.remove_duplicates <xlwings.Range.remove_duplicates>` for native duplicate removal and {meth}`Range.get_special_cells <xlwings.Range.get_special_cells>` to select blanks, constants, formulas, or visible cells.
 - Added {meth}`Range.find <xlwings.Range.find>` and {meth}`Range.replace_all <xlwings.Range.replace_all>` for scoped Excel searches and replacements.
-- Added support for threaded comments via {class}`Comment <xlwings.Comment>`.
+- Added {meth}`Range.sort <xlwings.Range.sort>` to sort a rectangular range by one or more columns.
+- Added support for threaded comments via {class}`Comment <xlwings.main.Comment>`.
+- Added {meth}`Range.add_note <xlwings.Range.add_note>` and {class}`Notes <xlwings.main.Notes>` collections for cell notes.
+- macOS: fixed macOS 27 compatibility.
 - Added {meth}`Range.get_colors <xlwings.Range.get_colors>` and {meth}`Range.set_colors <xlwings.Range.set_colors>` for bulk read and writes of cell colors.
 - Added {meth}`Sheet.move() <xlwings.Sheet.move>` to move a worksheet.
 - xlwings Lite: added `await` {meth}`Sheet.get_used_range(values_only=False) <xlwings.Sheet.get_used_range>` to fetch the current formatting-aware used range.
+- Added {attr}`Range.autofilter <xlwings.Range.autofilter>` and {attr}`Table.autofilter <xlwings.main.Table.autofilter>` to apply value, comparison, and top/bottom filters.
 - Added {attr}`Range.data_validation <xlwings.Range.data_validation>` with list, whole-number, decimal, date, time, text-length, and custom-formula validation.
+- Added {attr}`Range.conditional_formats <xlwings.Range.conditional_formats>` for cell-value, formula, color-scale, data-bar, and icon-set rules.
 - Added primary category and value chart axes with titles, scales, major units, number formats, visibility, see {class}`ChartAxis <xlwings.main.ChartAxis>`.
 - Added chart series collection access with series names, marker formatting, line and fill colors, see {class}`ChartSeries <xlwings.main.ChartSeries>`.
 
