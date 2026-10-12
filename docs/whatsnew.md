@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.6 (unreleased)
 
 - Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.
+- Added {meth}`Table.sort <xlwings.main.Table.sort>` to sort a table's data rows with Excel's native table sort, keeping calculated columns and row formatting.
 
 ## v0.37.5 (Sep 27, 2026)
 

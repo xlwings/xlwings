@@ -102,6 +102,110 @@ class TestTable(unittest.TestCase):
         finally:
             book.close()
 
+    def _sort_table(self, sheet, show_totals=True):
+        sheet["A1"].value = [
+            ["Name", "Price", "Double"],
+            ["b", 20, None],
+            ["d", 10, None],
+            ["a", 30, None],
+            ["c", 20, None],
+        ]
+        table = sheet.tables.add(sheet["A1:C5"], name="Products")
+        sheet["C2:C5"].formula = "=[@[Price]]*2"
+        sheet["A3"].color = (255, 0, 0)  # record "d"
+        sheet["E2"].value = "sentinel"
+        table.show_totals = show_totals
+        return table
+
+    def test_sort(self):
+        book = xw.Book()
+        sheet = book.sheets[0]
+        try:
+            table = self._sort_table(sheet)
+            calculated_formula = sheet["C2"].formula
+            totals_formula = sheet["C6"].formula
+            table_address = table.range.address
+
+            table.sort([2, 1], [False, True])
+
+            self.assertEqual(
+                sheet["A1:C6"].value,
+                [
+                    ["Name", "Price", "Double"],
+                    ["a", 30, 60],
+                    ["b", 20, 40],
+                    ["c", 20, 40],
+                    ["d", 10, 20],
+                    ["Total", None, 160],
+                ],
+            )
+            self.assertEqual(
+                [list(row) for row in sheet["C2:C5"].formula],
+                [[calculated_formula]] * 4,
+            )
+            self.assertEqual(sheet["C6"].formula, totals_formula)
+            self.assertEqual(sheet["A5"].color, (255, 0, 0))
+            self.assertEqual(
+                [cell.address for cell in sheet["A2:C5"] if cell.color is not None],
+                ["$A$5"],
+            )
+            self.assertEqual(sheet["E2"].value, "sentinel")
+            self.assertEqual(table.range.address, table_address)
+
+            table.sort(1, ascending=False)
+            self.assertEqual(sheet["A2:A5"].value, ["d", "c", "b", "a"])
+            self.assertEqual(sheet["A2"].color, (255, 0, 0))
+        finally:
+            book.close()
+
+    def test_sort_hidden_headers(self):
+        # Excel for Mac keeps the table's sort header after hiding the header row,
+        # which would leave the first record in place. Cover both a table that was
+        # never sorted and one sorted while its headers were visible.
+        for sorted_before in (False, True):
+            with self.subTest(sorted_before=sorted_before):
+                book = xw.Book()
+                sheet = book.sheets[0]
+                try:
+                    table = self._sort_table(sheet)
+                    if sorted_before:
+                        table.sort(1)
+                    table.show_headers = False
+                    body = table.data_body_range
+                    calculated_formula = body[0, 2].formula
+
+                    table.sort(1, ascending=False)
+
+                    self.assertEqual(
+                        body.value,
+                        [["d", 10, 20], ["c", 20, 40], ["b", 20, 40], ["a", 30, 60]],
+                    )
+                    self.assertEqual(
+                        [list(row) for row in body[:, 2].formula],
+                        [[calculated_formula]] * 4,
+                    )
+                    self.assertEqual(body[0, 0].color, (255, 0, 0))
+                    self.assertEqual(table.totals_row_range[0, 0].value, "Total")
+                    self.assertEqual(sheet["E2"].value, "sentinel")
+                finally:
+                    book.close()
+
+    def test_sort_rejects_invalid_keys(self):
+        book = xw.Book()
+        sheet = book.sheets[0]
+        try:
+            table = self._sort_table(sheet, show_totals=False)
+            values = sheet["A1:C5"].value
+            for keys in ([4], [0], [1, 1], "Price"):
+                with self.subTest(keys=keys):
+                    with self.assertRaises((TypeError, ValueError)):
+                        table.sort(keys)
+            with self.assertRaisesRegex(ValueError, "use Table.sort"):
+                sheet["A1:C5"].sort(1, has_headers=True)
+            self.assertEqual(sheet["A1:C5"].value, values)
+        finally:
+            book.close()
+
     def test_show_headers(self):
         self.assertTrue(self.test_table.show_headers)
         self.test_table.show_headers = False

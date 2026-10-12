@@ -3119,6 +3119,11 @@ class Table(base_classes.Table):
     def autofilter(self):
         return AutoFilter(self.range, table_index=self.index - 1)
 
+    def sort(self, keys, ascending):
+        self.append_json_action(
+            func="tableSort", args=[self.index - 1, keys, ascending]
+        )
+
     def __init__(self, parent, key):
         self._parent = parent
         self._api = self.parent.api["tables"][key - 1]

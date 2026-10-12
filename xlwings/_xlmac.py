@@ -2999,6 +2999,28 @@ class Table(base_classes.Table):
     def autofilter(self):
         return AutoFilter(self, is_table=True)
 
+    def sort(self, keys, ascending):
+        if not self.xl.show_headers.get():
+            # Excel for Mac can keep the table's sort header set after the header
+            # row is hidden, which would pin the first data row in place.
+            body = self.data_body_range
+            if body:
+                body.sort(keys, ascending, False)
+            return
+        sort = self.xl.sort_object
+        fields = sort.sortfieldset
+        fields.clear_sortfieldset()
+        for key, direction in zip(keys, ascending):
+            fields.add_sortfield(
+                key=self.xl.list_columns[key].range_object,
+                sorton=kw.sort_on_cell_value,
+                order=kw.sort_ascending if direction else kw.sort_descending,
+            )
+        # AppleScript names the key orientation: column keys sort complete rows.
+        sort.sort_orientation.set(kw.sort_columns)
+        sort.match_case.set(False)
+        sort.apply_sort()
+
     @property
     def show_autofilter(self):
         return self.xl.show_autofilter.get()

@@ -1956,6 +1956,9 @@ class ConditionalFormats(Collection):
 
 
 class Table:
+    def sort(self, keys, ascending):
+        raise NotImplementedError()
+
     @property
     def columns(self):
         raise NotImplementedError()
