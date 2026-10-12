@@ -606,6 +606,32 @@ def test_scalar_fill_above_budget_chunks_target_range(
     assert all(a["values"] == [[scalar] * 3] * 2 for a in actions)
 
 
+@pytest.fixture
+def desktop_engine_type(monkeypatch):
+    # Desktop engines fill a scalar natively; emulate one on the remote engine.
+    monkeypatch.setattr(_xlremote.Engine, "type", property(lambda self: "desktop"))
+
+
+@pytest.mark.parametrize("options", [{}, {"chunksize": 2}])
+def test_scalar_fill_on_desktop_is_never_chunked(
+    sheet, book, write_budget, desktop_engine_type, options
+):
+    # Chunking a scalar formula would restart its relative references in every
+    # chunk, so =A1*2 would land in the first row of each chunk.
+    write_budget(7)
+    sheet["B1:B6"].options(**options).value = "=A1*2"
+    actions = _set_values_actions(book)
+    assert [(a["start_row"], a["row_count"]) for a in actions] == [(0, 6)]
+
+
+def test_non_scalar_write_on_desktop_still_chunks(
+    sheet, book, write_budget, desktop_engine_type
+):
+    write_budget(7)
+    sheet["A1"].value = _values()
+    assert [a["row_count"] for a in _set_values_actions(book)] == [2, 2, 2]
+
+
 def test_scalar_fill_small_range_is_direct(sheet, book):
     sheet["A1:C6"].value = 5
     actions = _set_values_actions(book)

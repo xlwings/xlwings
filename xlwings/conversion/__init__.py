@@ -117,13 +117,14 @@ def _check_not_jagged(value):
                 )
 
 
-def write(value, rng, options, engine_name=None):
+def write(value, rng, options, engine_name=None, *, write_property="raw_value"):
     _check_not_jagged(value)
     convert = options.get("convert", None)
     pipeline = (
         accessors.get(convert, convert).router(value, rng, options).writer(options)
     )
     ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
+    ctx.meta["write_property"] = write_property
     pipeline(ctx)
     return ctx.value
 
