@@ -4,13 +4,13 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.6 (unreleased)
 
-- {bdg-danger}`Breaking Change` Writing to {attr}`Range.formula <xlwings.Range.formula>` and {attr}`Range.formula2 <xlwings.Range.formula2>` now works like writing to {attr}`Range.value <xlwings.Range.value>` on all engines, see [](converters.md#writing-formulas). Dates, NumPy and pandas values, DataFrames, and `options()` are now supported. The written range is sized to the data: a flat list is always written as a row (use `options(transpose=True)` for a column), larger data is no longer cut off at the target's size, and a 1x1 list is no longer repeated over a larger target. On xlwings Lite and xlwings Server, `None` now clears a cell instead of leaving it unchanged, and a single formula written to a multi-cell range now adjusts its relative references for each cell, as on desktop Excel.
-- Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` on desktop Excel restarted its relative references in every automatic chunk. Desktop scalar fills are no longer chunked.
 - Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.
-- Added {meth}`Table.sort <xlwings.main.Table.sort>` to sort a table's data rows with Excel's native table sort, keeping calculated columns and row formatting.
+- Added {meth}`Table.sort <xlwings.main.Table.sort>` to sort a table's data rows with Excel's native table sort.
 - Added secondary chart axes and combination charts: {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>`, {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`, {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`, and {attr}`ChartSeries.chart_type <xlwings.main.ChartSeries.chart_type>`.
 - Added {attr}`ChartAxis.reverse_order <xlwings.main.ChartAxis.reverse_order>` and {attr}`ChartAxis.crosses <xlwings.main.ChartAxis.crosses>`, e.g., to flip the bar order of a bar chart while keeping the value axis at the bottom.
-- {class}`ChartAxis <xlwings.main.ChartAxis>` now works on macOS, too. Excel for Mac returns axis references that it can't resolve itself; xlwings now rebuilds them.
+- Bug fix: {class}`ChartAxis <xlwings.main.ChartAxis>` now works on macOS, too.
+- Bug fix: Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` on desktop Excel restarted its relative references in every automatic chunk. Desktop scalar fills are no longer chunked.
+- {bdg-danger}`Breaking Change` Writing to {attr}`Range.formula <xlwings.Range.formula>` and {attr}`Range.formula2 <xlwings.Range.formula2>` now works like writing to {attr}`Range.value <xlwings.Range.value>` on all engines, see [](converters.md#writing-formulas).
 
 ## v0.37.5 (Sep 27, 2026)
 
