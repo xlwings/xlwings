@@ -285,6 +285,9 @@ BORDER_GRID_SIDES = BORDER_SIDES[:6]
 ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
 ChartPlotBy = Literal["rows", "columns"]
 ChartAxisGroup = Literal["primary", "secondary"]
+# Where the other axis crosses this axis. Excel can also report "custom" when
+# the crossing point was set to a specific value in Excel.
+ChartAxisCrosses = Literal["automatic", "minimum", "maximum"]
 ChartMarkerStyle = Literal[
     "automatic",
     "none",
@@ -301,6 +304,7 @@ ChartMarkerStyle = Literal[
 CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
 CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
 CHART_AXIS_GROUPS: tuple[str, ...] = get_args(ChartAxisGroup)
+CHART_AXIS_CROSSES: tuple[str, ...] = get_args(ChartAxisCrosses)
 CHART_MARKER_STYLES: tuple[str, ...] = get_args(ChartMarkerStyle)
 
 # The pivot table vocabulary. PivotFunction lists Excel's "Summarize Values By"
@@ -2338,6 +2342,22 @@ class ChartAxis:
     def visible(self, value):
         raise NotImplementedError()
 
+    @property
+    def reverse_order(self):
+        raise NotImplementedError()
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        raise NotImplementedError()
+
+    @property
+    def crosses(self):
+        raise NotImplementedError()
+
+    @crosses.setter
+    def crosses(self, value):
+        raise NotImplementedError()
+
     def set(
         self,
         *,
@@ -2347,6 +2367,8 @@ class ChartAxis:
         major_unit=_UNSET,
         number_format=_UNSET,
         visible=_UNSET,
+        reverse_order=_UNSET,
+        crosses=_UNSET,
     ):
         raise NotImplementedError()
 
@@ -2373,6 +2395,14 @@ class ChartAxis:
 
     async def get_visible(self):
         raise NotImplementedError("get_visible() is only supported in xlwings Lite")
+
+    async def get_reverse_order(self):
+        raise NotImplementedError(
+            "get_reverse_order() is only supported in xlwings Lite"
+        )
+
+    async def get_crosses(self):
+        raise NotImplementedError("get_crosses() is only supported in xlwings Lite")
 
 
 class ChartSeries:

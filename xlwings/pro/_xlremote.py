@@ -4314,6 +4314,28 @@ class ChartAxis(base_classes.ChartAxis):
     def visible(self, value):
         self.set(visible=value)
 
+    @property
+    def reverse_order(self):
+        try:
+            return self._local_or_raise("reverse_order")
+        except NotImplementedError:
+            raise self._sync_read_error("get_reverse_order") from None
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self.set(reverse_order=value)
+
+    @property
+    def crosses(self):
+        try:
+            return self._local_or_raise("crosses")
+        except NotImplementedError:
+            raise self._sync_read_error("get_crosses") from None
+
+    @crosses.setter
+    def crosses(self, value):
+        self.set(crosses=value)
+
     def set(
         self,
         *,
@@ -4323,6 +4345,8 @@ class ChartAxis(base_classes.ChartAxis):
         major_unit=base_classes._UNSET,
         number_format=base_classes._UNSET,
         visible=base_classes._UNSET,
+        reverse_order=base_classes._UNSET,
+        crosses=base_classes._UNSET,
     ):
         self._require_created()
         values = {}
@@ -4333,6 +4357,8 @@ class ChartAxis(base_classes.ChartAxis):
             ("major_unit", major_unit),
             ("number_format", number_format),
             ("visible", visible),
+            ("reverse_order", reverse_order),
+            ("crosses", crosses),
         ):
             if value is base_classes._UNSET:
                 continue
@@ -4390,6 +4416,12 @@ class ChartAxis(base_classes.ChartAxis):
 
     async def get_visible(self):
         return await self._get_axis_data("visible")
+
+    async def get_reverse_order(self):
+        return await self._get_axis_data("reverse_order")
+
+    async def get_crosses(self):
+        return await self._get_axis_data("crosses")
 
 
 class ChartLegend(base_classes.ChartLegend):

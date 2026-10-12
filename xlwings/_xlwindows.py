@@ -57,6 +57,7 @@ import xlwings
 
 from . import base_classes, constants, utils
 from .constants import (
+    AxisCrosses,
     AxisGroup,
     AxisType,
     ColorIndex,
@@ -3830,6 +3831,15 @@ class ChartAxis(base_classes.ChartAxis):
         "category": AxisType.xlCategory,
         "value": AxisType.xlValue,
     }
+    _crosses_s2k = {
+        "automatic": AxisCrosses.xlAxisCrossesAutomatic,
+        "minimum": AxisCrosses.xlAxisCrossesMinimum,
+        "maximum": AxisCrosses.xlAxisCrossesMaximum,
+    }
+    _crosses_k2s = {
+        **{v: k for k, v in _crosses_s2k.items()},
+        AxisCrosses.xlAxisCrossesCustom: "custom",
+    }
 
     def __init__(self, parent, axis_type, group="primary"):
         self.parent = parent
@@ -3963,6 +3973,22 @@ class ChartAxis(base_classes.ChartAxis):
     def number_format(self, value):
         self._axis().TickLabels.NumberFormat = value
 
+    @property
+    def reverse_order(self):
+        return bool(self._axis().ReversePlotOrder)
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self._axis().ReversePlotOrder = value
+
+    @property
+    def crosses(self):
+        return self._crosses_k2s[self._axis().Crosses]
+
+    @crosses.setter
+    def crosses(self, value):
+        self._axis().Crosses = self._crosses_s2k[value]
+
     def set(
         self,
         *,
@@ -3972,8 +3998,18 @@ class ChartAxis(base_classes.ChartAxis):
         major_unit=base_classes._UNSET,
         number_format=base_classes._UNSET,
         visible=base_classes._UNSET,
+        reverse_order=base_classes._UNSET,
+        crosses=base_classes._UNSET,
     ):
-        attributes = (title, minimum_scale, maximum_scale, major_unit, number_format)
+        attributes = (
+            title,
+            minimum_scale,
+            maximum_scale,
+            major_unit,
+            number_format,
+            reverse_order,
+            crosses,
+        )
         if visible is True or (
             visible is False
             and any(value is not base_classes._UNSET for value in attributes)
@@ -3989,6 +4025,10 @@ class ChartAxis(base_classes.ChartAxis):
             self.major_unit = major_unit
         if number_format is not base_classes._UNSET:
             self.number_format = number_format
+        if reverse_order is not base_classes._UNSET:
+            self.reverse_order = reverse_order
+        if crosses is not base_classes._UNSET:
+            self.crosses = crosses
         if visible is False:
             self.visible = False
 

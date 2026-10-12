@@ -1164,6 +1164,25 @@ def test_chart_axis_individual_setters_and_automatic_scale():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_axis_reverse_order_and_crosses():
+    book = _fresh_book()
+    axis = book.sheets[0].charts[0].category_axis
+
+    axis.set(reverse_order=True, crosses="maximum")
+    axis.crosses = "automatic"
+
+    assert [(action["func"], action["args"]) for action in _actions(book)] == [
+        (
+            "setChartAxis",
+            [0, "category", {"reverse_order": True, "crosses": "maximum"}],
+        ),
+        ("setChartAxis", [0, "category", {"crosses": "automatic"}]),
+    ]
+    assert axis.reverse_order is True
+    assert axis.crosses == "automatic"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_axis_bulk_hide_uses_false_as_the_final_state():
     book = _fresh_book()
     axis = book.sheets[0].charts[0].value_axis
@@ -1191,6 +1210,8 @@ def test_chart_axis_getters_and_api_raise_before_write():
         ("major_unit", "get_major_unit"),
         ("number_format", "get_number_format"),
         ("visible", "get_visible"),
+        ("reverse_order", "get_reverse_order"),
+        ("crosses", "get_crosses"),
     ]:
         with pytest.raises(NotImplementedError, match=getter):
             getattr(axis, attribute)
@@ -1212,6 +1233,9 @@ def test_chart_axis_getters_and_api_raise_before_write():
         ({"major_unit": True}, "Invalid major_unit"),
         ({"number_format": None}, "Invalid number_format"),
         ({"visible": 1}, "Invalid visible"),
+        ({"reverse_order": 1}, "Invalid reverse_order"),
+        ({"crosses": "custom"}, "Invalid crosses"),
+        ({"crosses": "Maximum"}, "Invalid crosses"),
     ],
 )
 def test_chart_axis_set_validates_before_queueing(kwargs, match):
