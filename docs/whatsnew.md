@@ -8,6 +8,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - Added {meth}`Table.sort <xlwings.main.Table.sort>` to sort a table's data rows with Excel's native table sort, keeping calculated columns and row formatting.
 - Added secondary chart axes and combination charts: {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>`, {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`, {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`, and {attr}`ChartSeries.chart_type <xlwings.main.ChartSeries.chart_type>`.
 - Added {attr}`ChartAxis.reverse_order <xlwings.main.ChartAxis.reverse_order>` and {attr}`ChartAxis.crosses <xlwings.main.ChartAxis.crosses>`, e.g., to flip the bar order of a bar chart while keeping the value axis at the bottom.
+- {class}`ChartAxis <xlwings.main.ChartAxis>` now works on macOS, too. Excel for Mac returns axis references that it can't resolve itself; xlwings now rebuilds them.
 
 ## v0.37.5 (Sep 27, 2026)
 

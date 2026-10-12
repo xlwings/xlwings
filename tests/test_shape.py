@@ -395,7 +395,6 @@ class TestChartFormatting(TestBase):
         axis.title = "Revenue"
         self.assertEqual(sht.charts["Renamed"].value_axis.title, "Revenue")
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
     def test_axis_bulk_set_formats_hidden_axis_before_hiding(self):
         _, chart = self._chart()
         axis = chart.value_axis
@@ -408,7 +407,6 @@ class TestChartFormatting(TestBase):
         self.assertEqual(axis.minimum_scale, 0)
         self.assertEqual(axis.number_format, "0.0")
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
     def test_axis_reverse_order_and_crosses(self):
         sht, chart = self._chart()
         chart.category_axis.set(reverse_order=True, crosses="maximum")
@@ -497,7 +495,6 @@ class TestChartFormatting(TestBase):
             with self.assertRaises(ValueError):
                 chart.series[0].set(**kwargs)
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
     def test_secondary_axes(self):
         sht, chart = self._chart()
         chart.chart_type = "column_clustered"
@@ -530,12 +527,6 @@ class TestChartFormatting(TestBase):
         chart.series[1].axis_group = "primary"
         with self.assertRaisesRegex(xw.XlwingsError, "no secondary axis group"):
             actual.secondary_value_axis.visible
-
-    @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
-    def test_axes_report_the_apple_script_limitation_on_mac(self):
-        _, chart = self._chart()
-        with self.assertRaisesRegex(NotImplementedError, "AppleScript"):
-            chart.value_axis.title
 
     def test_plot_by(self):
         sht, chart = self._chart()

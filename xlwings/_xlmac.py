@@ -3612,83 +3612,149 @@ class ChartSeriesCollection(Collection, base_classes.ChartSeriesCollection):
 
 
 class ChartAxis(base_classes.ChartAxis):
+    _axis_types = {
+        "category": kw.category_axis,
+        "value": kw.value_axis,
+    }
+
     def __init__(self, parent, axis_type):
+        # Only the parent is kept: the chart's native reference is name-based
+        # and gets replaced when the chart is renamed
         self.parent = parent
+        # "category", "value", "secondary_category" or "secondary_value"
         self.axis_type = axis_type
 
-    def _unsupported(self):
-        raise NotImplementedError(
-            "ChartAxis isn't supported on macOS because Excel's AppleScript "
-            "axis references can't be read or formatted."
-        )
+    @property
+    def _secondary(self):
+        return self.axis_type.startswith("secondary_")
 
     @property
-    def api(self):
-        self._unsupported()
+    def _label(self):
+        if self._secondary:
+            return self.axis_type.replace("_", " ")
+        return f"primary {self.axis_type}"
 
     @property
-    def title(self):
-        self._unsupported()
-
-    @title.setter
-    def title(self, value):
-        self._unsupported()
+    def _xl_axis_type(self):
+        return self._axis_types[self.axis_type.removeprefix("secondary_")]
 
     @property
-    def minimum_scale(self):
-        self._unsupported()
-
-    @minimum_scale.setter
-    def minimum_scale(self, value):
-        self._unsupported()
-
-    @property
-    def maximum_scale(self):
-        self._unsupported()
-
-    @maximum_scale.setter
-    def maximum_scale(self, value):
-        self._unsupported()
-
-    @property
-    def major_unit(self):
-        self._unsupported()
-
-    @major_unit.setter
-    def major_unit(self, value):
-        self._unsupported()
-
-    @property
-    def number_format(self):
-        self._unsupported()
-
-    @number_format.setter
-    def number_format(self, value):
-        self._unsupported()
+    def _xl_axis_group(self):
+        if not self._secondary:
+            return kw.primary_axis
+        # Excel only has secondary axes while a series is plotted on them.
+        groups = _mac_list(self.parent.xl.series_collection.axis_group)
+        if kw.secondary_axis not in groups:
+            raise xlwings.XlwingsError(
+                "The chart has no secondary axis group. Move a series to it "
+                "first with series.axis_group = 'secondary'."
+            )
+        return kw.secondary_axis
 
     @property
     def visible(self):
-        self._unsupported()
+        return self.parent.xl.get_has_axis(
+            axis_type=self._xl_axis_type, axis_group=self._xl_axis_group
+        )
 
     @visible.setter
     def visible(self, value):
-        self._unsupported()
+        self.parent.xl.set_has_axis(
+            axis_exists=bool(value),
+            axis_type=self._xl_axis_type,
+            axis_group=self._xl_axis_group,
+        )
+
+    def _axis(self):
+        if not self.visible:
+            raise xlwings.XlwingsError(f"The chart has no visible {self._label} axis.")
+        ref = self.parent.xl.get_axis(
+            axis_type=self._xl_axis_type, which_axis=self._xl_axis_group
+        )
+        # Excel returns the axis id as an unsigned integer but only resolves
+        # ids sent as signed integers, so the returned reference fails with
+        # -1728. Rebuilding it with a Python int sends a signed integer.
+        return self.parent.xl.axes.ID(int(ref.AS_aemreference._key))
+
+    @property
+    def api(self):
+        return self._axis() if self.visible else None
+
+    @property
+    def title(self):
+        if not self.visible:
+            return None
+        axis = self._axis()
+        return axis.axis_title.axis_title_text.get() if axis.has_title.get() else None
+
+    @title.setter
+    def title(self, value):
+        if value is None:
+            if self.visible:
+                self._axis().has_title.set(False)
+            return
+        self.visible = True
+        axis = self._axis()
+        axis.has_title.set(True)
+        axis.axis_title.axis_title_text.set(value)
+
+    def _get_scale(self, attribute):
+        return float(getattr(self._axis(), attribute).get())
+
+    def _set_scale(self, attribute, value):
+        axis = self._axis()
+        if value is None:
+            getattr(axis, f"{attribute}_is_auto").set(True)
+        else:
+            getattr(axis, attribute).set(value)
+
+    @property
+    def minimum_scale(self):
+        return self._get_scale("minimum_scale")
+
+    @minimum_scale.setter
+    def minimum_scale(self, value):
+        self._set_scale("minimum_scale", value)
+
+    @property
+    def maximum_scale(self):
+        return self._get_scale("maximum_scale")
+
+    @maximum_scale.setter
+    def maximum_scale(self, value):
+        self._set_scale("maximum_scale", value)
+
+    @property
+    def major_unit(self):
+        return self._get_scale("major_unit")
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._set_scale("major_unit", value)
+
+    @property
+    def number_format(self):
+        return self._axis().tick_labels.number_format.get()
+
+    @number_format.setter
+    def number_format(self, value):
+        self._axis().tick_labels.number_format.set(value)
 
     @property
     def reverse_order(self):
-        self._unsupported()
+        return self._axis().reverse_plot_order.get()
 
     @reverse_order.setter
     def reverse_order(self, value):
-        self._unsupported()
+        self._axis().reverse_plot_order.set(value)
 
     @property
     def crosses(self):
-        self._unsupported()
+        return axis_crosses_k2s[self._axis().crosses.get()]
 
     @crosses.setter
     def crosses(self, value):
-        self._unsupported()
+        self._axis().crosses.set(axis_crosses_s2k[value])
 
     def set(
         self,
@@ -3702,7 +3768,36 @@ class ChartAxis(base_classes.ChartAxis):
         reverse_order=base_classes._UNSET,
         crosses=base_classes._UNSET,
     ):
-        self._unsupported()
+        attributes = (
+            title,
+            minimum_scale,
+            maximum_scale,
+            major_unit,
+            number_format,
+            reverse_order,
+            crosses,
+        )
+        if visible is True or (
+            visible is False
+            and any(value is not base_classes._UNSET for value in attributes)
+        ):
+            self.visible = True
+        if title is not base_classes._UNSET:
+            self.title = title
+        if minimum_scale is not base_classes._UNSET:
+            self.minimum_scale = minimum_scale
+        if maximum_scale is not base_classes._UNSET:
+            self.maximum_scale = maximum_scale
+        if major_unit is not base_classes._UNSET:
+            self.major_unit = major_unit
+        if number_format is not base_classes._UNSET:
+            self.number_format = number_format
+        if reverse_order is not base_classes._UNSET:
+            self.reverse_order = reverse_order
+        if crosses is not base_classes._UNSET:
+            self.crosses = crosses
+        if visible is False:
+            self.visible = False
 
 
 class ChartLegend(base_classes.ChartLegend):
@@ -4805,6 +4900,16 @@ marker_styles_k2s = {v: k for k, v in marker_styles_s2k.items()}
 
 axis_groups_s2k = {"primary": kw.primary_axis, "secondary": kw.secondary_axis}
 axis_groups_k2s = {v: k for k, v in axis_groups_s2k.items()}
+
+axis_crosses_s2k = {
+    "automatic": kw.axis_crosses_automatic,
+    "minimum": kw.axis_crosses_minimum,
+    "maximum": kw.axis_crosses_maximum,
+}
+axis_crosses_k2s = {
+    **{v: k for k, v in axis_crosses_s2k.items()},
+    kw.axis_crosses_custom: "custom",
+}
 
 # Note the differing keyword prefixes: horizontal_align_* vs vertical_alignment_*
 horizontal_alignments_s2k = {
