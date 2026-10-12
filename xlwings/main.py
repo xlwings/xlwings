@@ -2550,8 +2550,10 @@ class Range:
         return self.impl.formula
 
     @formula.setter
-    def formula(self, value: str | list[str] | list[list[str]]) -> None:
-        self.impl.formula = value
+    def formula(self, value: Any) -> None:
+        # Same conversions, options, and shape handling as `.value`; the
+        # backend still receives a formula write.
+        conversion.write(value, self, self._options, write_property="formula")
 
     @property
     def formula2(self) -> str | list[str] | list[list[str]]:
@@ -2559,8 +2561,10 @@ class Range:
         return self.impl.formula2
 
     @formula2.setter
-    def formula2(self, value: str | list[str] | list[list[str]]) -> None:
-        self.impl.formula2 = value
+    def formula2(self, value: Any) -> None:
+        # Same conversions, options, and shape handling as `.value`; the
+        # backend still receives a formula2 write.
+        conversion.write(value, self, self._options, write_property="formula2")
 
     @property
     def formula_array(self) -> str | None:

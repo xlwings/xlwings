@@ -134,7 +134,14 @@ class WriteValueToRangeStage:
         self.raw = raw
         self.options = options
 
-    def _write_value(self, rng, value, scalar):
+    @staticmethod
+    def _set_value(rng, value, write_property):
+        if write_property == "raw_value":
+            rng.raw_value = value
+        else:
+            setattr(rng.impl, write_property, value)
+
+    def _write_value(self, rng, value, scalar, write_property, engine_type):
         if rng.api and value:
             # it is assumed by this stage that value is a list of lists
             if scalar:
@@ -142,32 +149,46 @@ class WriteValueToRangeStage:
             else:
                 rng = rng.resize(len(value), len(value[0]))
 
-            chunksize = _resolve_write_chunksize(self.options, rng, value, scalar)
+            if scalar and (engine_type == "desktop" or write_property != "raw_value"):
+                # Desktop engines and formula writes hand a scalar to Excel,
+                # which fills it in a single call, adjusting relative references
+                # from the target's top-left cell. Chunking would restart them
+                # in every chunk (e.g., "=A1*2").
+                chunksize = None
+            else:
+                chunksize = _resolve_write_chunksize(self.options, rng, value, scalar)
             if not chunksize:
-                rng.raw_value = value
+                self._set_value(rng, value, write_property)
             elif scalar:
                 # Keep the scalar a scalar: each row slice fills itself with it
                 # (the engines expand a scalar to the target shape).
                 nrows = rng.shape[0]
                 for start in range(0, nrows, chunksize):
-                    rng[start : start + chunksize, :].raw_value = value
+                    self._set_value(
+                        rng[start : start + chunksize, :], value, write_property
+                    )
             else:
                 for ix, value_chunk in enumerate(chunk(value, chunksize)):
-                    rng[
-                        ix * chunksize : ix * chunksize + chunksize, :
-                    ].raw_value = value_chunk
+                    self._set_value(
+                        rng[ix * chunksize : ix * chunksize + chunksize, :],
+                        value_chunk,
+                        write_property,
+                    )
 
     def __call__(self, ctx):
         if ctx.range is not None and ctx.value:
+            write_property = ctx.meta.get("write_property", "raw_value")
             if self.raw:
-                ctx.range.raw_value = ctx.value
+                self._set_value(ctx.range, ctx.value, write_property)
                 return
 
             scalar = ctx.meta.get("scalar", False)
             if not scalar:
                 ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
 
-            self._write_value(ctx.range, ctx.value, scalar)
+            self._write_value(
+                ctx.range, ctx.value, scalar, write_property, ctx.engine.type
+            )
 
 
 class ReadValueFromRangeStage:

@@ -2141,27 +2141,14 @@ class Range(base_classes.Range):
 
     @formula.setter
     def formula(self, value):
-        nrows, ncols = self.shape
-        if not isinstance(value, list):
-            # Scalars broadcast over the whole range, like on the other engines.
-            self.append_json_action(func="setFormula", values=[[value] * ncols] * nrows)
-            return
-        if value and not isinstance(value[0], list):
-            # A flat list is a row, unless the target is a single column. This
-            # mirrors how `.value` treats flat lists.
-            value = [[item] for item in value] if ncols == 1 and nrows != 1 else [value]
-        if not value or not value[0]:
-            return
-        # Like `.value`, the data wins over the target's current shape: writing
-        # more formulas than the range holds expands it instead of raising.
-        target = self
-        if len(value) != nrows or len(value[0]) != ncols:
-            target = Range(
-                self.sheet,
-                self.arg1,
-                (self.arg1[0] + len(value) - 1, self.arg1[1] + len(value[0]) - 1),
-            )
-        target.append_json_action(func="setFormula", values=value)
+        # Like `raw_value`, this expects data prepared by the conversion
+        # pipeline, which `xlwings.Range.formula` runs first.
+        if not isinstance(value, list) and self.shape == (1, 1):
+            value = [[value]]
+        # A scalar for a bigger range is sent as is: the client assigns it to
+        # `range.formulas`, so Excel fills the range and adjusts relative
+        # references, as on desktop.
+        self.append_json_action(func="setFormula", values=value)
 
     @property
     def formula2(self):

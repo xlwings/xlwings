@@ -9,6 +9,7 @@ sent to Python), so the getters still raise NotImplementedError.
 """
 
 import datetime as dt
+import json
 import sys
 from types import ModuleType, SimpleNamespace
 
@@ -52,6 +53,14 @@ def last_action(book):
     return actions(book)[-1]
 
 
+def as_formula_actions(value_actions):
+    """The actions a value write produced, as the matching formula write sends them."""
+    return [
+        action | {"func": "setFormula"} if action["func"] == "setValues" else action
+        for action in value_actions
+    ]
+
+
 # --- setters ---
 
 
@@ -89,10 +98,31 @@ def test_hidden_rejects_non_boolean_without_queuing(book, axis, value):
     assert len(actions(book)) == before
 
 
-def test_formula_broadcasts_scalar_to_range(book):
-    book.sheets[0]["A1:B2"].formula = "=A1"
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("=A1*2", "=A1*2"),
+        (dt.datetime(2026, 10, 1), "2026-10-01"),
+        (None, ""),
+    ],
+)
+def test_formula_sends_scalar_for_range_unexpanded(
+    book, property_name, value, expected
+):
+    # Excel fills a scalar assigned to range.formulas, adjusting relative
+    # references; a pre-expanded matrix would repeat =A1*2 verbatim.
+    setattr(book.sheets[0]["B1:C3"], property_name, value)
     action = last_action(book)
-    assert action["values"] == [["=A1", "=A1"], ["=A1", "=A1"]]
+    assert action["func"] == "setFormula"
+    assert action["values"] == expected
+    assert (action["start_row"], action["start_column"]) == (0, 1)
+    assert (action["row_count"], action["column_count"]) == (3, 2)
+
+
+def test_formula_scalar_is_never_chunked(book):
+    book.sheets[0]["B1:B6"].options(chunksize=2).formula = "=A1*2"
+    assert [(a["values"], a["row_count"]) for a in actions(book)] == [("=A1*2", 6)]
 
 
 def test_formula_accepts_nested_list(book):
@@ -105,9 +135,9 @@ def test_formula_normalizes_flat_list_for_row(book):
     assert last_action(book)["values"] == [["=1", "=2"]]
 
 
-def test_formula_normalizes_flat_list_for_column(book):
+def test_formula_flat_list_writes_a_row_on_a_column_range(book):
     book.sheets[0]["A1:A2"].formula = ["=1", "=2"]
-    assert last_action(book)["values"] == [["=1"], ["=2"]]
+    assert last_action(book)["values"] == [["=1", "=2"]]
 
 
 def test_formula_expands_single_cell_to_fit_flat_list(book):
@@ -152,11 +182,197 @@ def test_formula_ignores_empty_list(book):
     assert len(actions(book)) == before
 
 
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+def test_formula_converts_dates_in_mixed_grid(book, property_name):
+    grid = [
+        ["text", 42, "=SUM(B1:B2)", None, dt.datetime(2026, 10, 1)],
+        ["", 3.5, '=IF(A1="text","yes","")', True, dt.date(2026, 10, 2)],
+        [False, 0, "=DATE(2026,10,1)", None, dt.datetime(2026, 10, 3, 12, 34, 56)],
+    ]
+    setattr(book.sheets[0]["B2"], property_name, grid)
+    action = last_action(book)
+    assert action["func"] == "setFormula"
+    assert action["values"] == [
+        ["text", 42, "=SUM(B1:B2)", "", "2026-10-01"],
+        ["", 3.5, '=IF(A1="text","yes","")', True, "2026-10-02"],
+        [False, 0, "=DATE(2026,10,1)", "", "2026-10-03 12:34:56"],
+    ]
+    assert (action["start_row"], action["start_column"]) == (1, 1)
+    assert (action["row_count"], action["column_count"]) == (3, 5)
+    assert grid[0][-1] == dt.datetime(2026, 10, 1)
+    assert json.loads(json.dumps(action)) == action
+
+
+@pytest.mark.parametrize(
+    "address,value,expected",
+    [
+        ("A1", dt.date(2026, 10, 1), [["2026-10-01"]]),
+        ("A1:B1", [dt.date(2026, 10, 1), "=A1+1"], [["2026-10-01", "=A1+1"]]),
+        ("A1:A2", [dt.date(2026, 10, 1), "=A1+1"], [["2026-10-01", "=A1+1"]]),
+        ("A1", [dt.date(2026, 10, 1), "=A1+1"], [["2026-10-01", "=A1+1"]]),
+    ],
+)
+def test_formula_date_conversion_preserves_shapes(book, address, value, expected):
+    book.sheets[0][address].formula = value
+    action = last_action(book)
+    assert action["values"] == expected
+    assert (action["row_count"], action["column_count"]) == (
+        len(expected),
+        len(expected[0]),
+    )
+
+
+@pytest.mark.parametrize("kind", ["numpy", "pandas"])
+def test_formula_converts_optional_datetime_types(book, kind):
+    if kind == "numpy":
+        value = pytest.importorskip("numpy").datetime64("2026-10-01T12:34:56")
+    else:
+        value = pytest.importorskip("pandas").Timestamp("2026-10-01T12:34:56")
+    book.sheets[0]["A1"].formula = [[value, "=A1+1"]]
+    assert last_action(book)["values"] == [["2026-10-01 12:34:56", "=A1+1"]]
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+def test_formula_converts_numpy_numbers_and_missing_values(book, property_name):
+    np = pytest.importorskip("numpy")
+    grid = [
+        [np.int64(42), np.float32(3.5), "=SUM(A1:B1)", None],
+        [np.nan, np.datetime64("NaT"), "", True],
+    ]
+    setattr(book.sheets[0]["A1"], property_name, grid)
+    action = last_action(book)
+    assert action["values"] == [
+        [42.0, 3.5, "=SUM(A1:B1)", ""],
+        ["", "", "", True],
+    ]
+    assert isinstance(action["values"][0][0], float)
+    assert isinstance(action["values"][0][1], float)
+    assert json.loads(json.dumps(action, allow_nan=False)) == action
+    assert isinstance(grid[0][0], np.int64)
+    assert np.isnan(grid[1][0])
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+def test_formula_converts_pandas_missing_values(book, property_name):
+    pd = pytest.importorskip("pandas")
+    setattr(book.sheets[0]["A1"], property_name, [[pd.NA, pd.NaT, "=1+1", None]])
+    action = last_action(book)
+    assert action["values"] == [["", "", "=1+1", ""]]
+    assert json.loads(json.dumps(action, allow_nan=False)) == action
+
+
+@pytest.mark.parametrize(
+    "address,as_list,expected",
+    [
+        ("A1", False, [[42.0]]),
+        ("A1:B1", True, [[42.0, "=A1+1"]]),
+        ("A1:A2", True, [[42.0, "=A1+1"]]),
+    ],
+)
+def test_formula_number_conversion_preserves_shapes(book, address, as_list, expected):
+    np = pytest.importorskip("numpy")
+    value = np.int64(42)
+    book.sheets[0][address].formula = [value, "=A1+1"] if as_list else value
+    action = last_action(book)
+    assert action["values"] == expected
+    assert isinstance(action["values"][0][0], float)
+    assert (action["row_count"], action["column_count"]) == (
+        len(expected),
+        len(expected[0]),
+    )
+
+
 def test_formula2_delegates_to_formula(book):
     book.sheets[0]["A1"].formula2 = "=SEQUENCE(3)"
     action = last_action(book)
     assert action["func"] == "setFormula"
     assert action["values"] == [["=SEQUENCE(3)"]]
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+@pytest.mark.parametrize(
+    "value,options",
+    [
+        (["=1", None], {"transpose": True}),
+        ([["=1", None], [dt.datetime(2026, 10, 1), 2]], {"chunksize": 1}),
+        (("=1", "=2"), {}),
+    ],
+)
+def test_formula_writes_match_value_with_options(book, property_name, value, options):
+    selection = book.sheets[0]["B2:B3"].options(**options)
+    selection.value = value
+    expected = actions(book).copy()
+    actions(book).clear()
+    setattr(selection, property_name, value)
+    assert actions(book) == as_formula_actions(expected)
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+@pytest.mark.parametrize("kind", ["numpy", "pandas"])
+def test_formula_converters_match_value(book, property_name, kind):
+    if kind == "numpy":
+        value = pytest.importorskip("numpy").array([["=1", "=2"], ["=3", "=4"]])
+        options = {}
+    else:
+        pd = pytest.importorskip("pandas")
+        value = pd.DataFrame(
+            {"formula": ["=1", "=2"], "date": [dt.datetime(2026, 10, 1), pd.NaT]}
+        )
+        options = {"index": False, "header": False}
+    selection = book.sheets[0]["B2"].options(**options)
+    selection.value = value
+    expected = actions(book).copy()
+    actions(book).clear()
+    setattr(selection, property_name, value)
+    assert actions(book) == as_formula_actions(expected)
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+def test_backend_formula_setters_send_prepared_data_as_is(book, property_name):
+    selection = book.sheets[0]["A1:C1"]
+    grid = [["=1+1", "", "2026-10-01"]]
+    selection.value = grid
+    expected = actions(book).copy()
+    actions(book).clear()
+    setattr(selection.impl, property_name, grid)
+    assert actions(book) == as_formula_actions(expected)
+
+
+@pytest.mark.parametrize("property_name", ["formula", "formula2"])
+@pytest.mark.parametrize(
+    "value,options,expected",
+    [
+        (["=1", "=2"], {}, [((1, 2), [["=1", "=2"]])]),
+        (["=1", "=2"], {"transpose": True}, [((2, 1), [["=1"], ["=2"]])]),
+        ([["=1"]], {}, [((1, 1), [["=1"]])]),
+        ("=A1*2", {"chunksize": 1}, [((2, 1), "=A1*2")]),
+        (
+            [["=1", None], ["=2", 3]],
+            {"chunksize": 1},
+            [((1, 2), [["=1", ""]]), ((1, 2), [["=2", 3]])],
+        ),
+    ],
+)
+def test_desktop_formula_writes_share_value_shapes(
+    book, monkeypatch, property_name, value, options, expected
+):
+    # Emulate a desktop engine: the pipeline must end in the native formula
+    # setter, never in a value write, and never chunk a scalar fill.
+    writes = []
+
+    def capture(impl, prepared):
+        writes.append((impl.shape, prepared))
+
+    def fail(impl, prepared):
+        pytest.fail("Formula writes must use the requested native setter")
+
+    other_property = "formula2" if property_name == "formula" else "formula"
+    monkeypatch.setattr(R.Engine, "type", property(lambda self: "desktop"))
+    monkeypatch.setattr(R.Range, property_name, property(fset=capture))
+    monkeypatch.setattr(R.Range, other_property, property(fset=fail))
+    monkeypatch.setattr(R.Range, "raw_value", property(fset=fail))
+    setattr(book.sheets[0]["B2:B3"].options(**options), property_name, value)
+    assert writes == expected
 
 
 def test_formula_array_targets_the_full_range(book):
