@@ -52,3 +52,16 @@ body[data-theme="dark"] .highlight .c1 {
     font-style: normal;
   }
 }
+
+/* Remove dark Pygments underlines from module and class names. */
+body[data-theme="dark"] .highlight .nn,
+body[data-theme="dark"] .highlight .nc {
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) .highlight .nn,
+  body:not([data-theme="light"]) .highlight .nc {
+    text-decoration: none;
+  }
+}

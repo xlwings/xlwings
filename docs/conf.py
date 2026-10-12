@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Render decorator APIs from their Office.js implementations on every platform.
+os.environ["XLWINGS_ON_SERVER"] = "true"
+
 sys.path.insert(0, os.path.abspath(".."))
 
 # -- Handle unavailable packages/modules on build machine -----------------------
@@ -79,6 +82,7 @@ extensions = [
     "sphinx_design",
     "sphinx_llm.txt",
     "myst_docstrings",
+    "implementation_signatures",
 ]
 
 templates_path = ["_templates"]

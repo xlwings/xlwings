@@ -9,7 +9,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - Added secondary chart axes and combination charts: {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>`, {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`, {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`, and {attr}`ChartSeries.chart_type <xlwings.main.ChartSeries.chart_type>`.
 - Added {attr}`ChartAxis.reverse_order <xlwings.main.ChartAxis.reverse_order>` and {attr}`ChartAxis.crosses <xlwings.main.ChartAxis.crosses>`, e.g., to flip the bar order of a bar chart while keeping the value axis at the bottom.
 - Bug fix: {class}`ChartAxis <xlwings.main.ChartAxis>` now works on macOS, too.
-- Bug fix: Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` on desktop Excel restarted its relative references in every automatic chunk. Desktop scalar fills are no longer chunked.
+- Bug fix: Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` with classic xlwings restarted its relative references in every automatic chunk. Scalar fills with classic xlwings are no longer chunked.
 - {bdg-danger}`Breaking Change` Writing to {attr}`Range.formula <xlwings.Range.formula>` and {attr}`Range.formula2 <xlwings.Range.formula2>` now works like writing to {attr}`Range.value <xlwings.Range.value>` on all engines, see [](converters.md#writing-formulas).
 
 ## v0.37.5 (Sep 27, 2026)

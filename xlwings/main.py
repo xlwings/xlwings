@@ -583,9 +583,8 @@ class App:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> wb.app.calculation = 'manual'
+            >>> # Assumes an existing workbook object named book.
+            >>> book.app.calculation = 'manual'
             ```
 
         ```{versionchanged} 0.9.0
@@ -745,7 +744,6 @@ class App:
 
         Examples:
             ```python
-            import xlwings as xw
             app = App()
 
             # Sets app.display_alerts = False
@@ -1036,6 +1034,8 @@ class Book:
         """Returns the native object (`pywin32` or `appscript` obj) of the engine being
         used.
 
+        In xlwings Lite, this is the remote backend's internal workbook data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
+
         ```{versionadded} 0.9.0
         ```
         """
@@ -1052,7 +1052,21 @@ class Book:
         return self.impl.json()
 
     async def flush(self) -> None:
-        """Flushes all pending actions to Excel and the Output pane.
+        """Flushes all pending actions to Excel and lets the Output pane update.
+
+        In xlwings Lite, writes and other workbook changes are queued until the script returns or you call `await book.flush()`. Call this method before reading back a change within the same script. Asynchronous getters do not flush pending actions automatically.
+
+        Flushing does not refresh cell values previously loaded for synchronous {attr}`Range.value <xlwings.Range.value>` reads. Use `await rng.get_value()` to read the changed cells, or `await book.load(values=True)` to reload values before using `.value`.
+
+        Examples:
+            Inside an asynchronous script with a supplied `book` parameter:
+
+            ```python
+            rng = book.sheets["Sheet1"]["A1"]
+            rng.value = "Hello"
+            await book.flush()
+            print(await rng.get_value())  # Hello
+            ```
 
         Requires xlwings Lite.
 
@@ -1273,10 +1287,9 @@ class Book:
 
         Example:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> wb.save()
-            >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
+            >>> # Assumes an existing workbook object named book.
+            >>> book.save()
+            >>> book.save(r'C:\\path\\to\\new_file_name.xlsx')
             ```
 
         ```{note}
@@ -1385,9 +1398,9 @@ class Book:
 
         Examples:
             ```pycon
-            >>> wb = xw.Book()
-            >>> wb.sheets[0]['A1'].value = 'PDF'
-            >>> wb.to_pdf()
+            >>> # Assumes an existing workbook object named book.
+            >>> book.sheets[0]['A1'].value = 'PDF'
+            >>> book.to_pdf()
             ```
 
             See also `xlwings.Sheet.to_pdf`
@@ -1423,8 +1436,7 @@ class Book:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> book = xw.Book()
+            >>> # Assumes an existing workbook object named book.
             >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
             >>> book.render_template(myvar='test')
             ```
@@ -1478,13 +1490,12 @@ class Sheet:
     """A sheet object is a member of the `sheets` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> wb = xw.Book()
-    >>> wb.sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0]
     <Sheet [Book1]Sheet1>
-    >>> wb.sheets['Sheet1']
+    >>> book.sheets['Sheet1']
     <Sheet [Book1]Sheet1>
-    >>> wb.sheets.add()
+    >>> book.sheets.add()
     <Sheet [Book1]Sheet2>
     ```
 
@@ -1502,6 +1513,8 @@ class Sheet:
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
+
+        In xlwings Lite, this is the remote backend's internal worksheet data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
 
         ```{versionadded} 0.9.0
         ```
@@ -1682,11 +1695,10 @@ class Sheet:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> wb.sheets['Sheet1'].autofit('c')
-            >>> wb.sheets['Sheet1'].autofit('r')
-            >>> wb.sheets['Sheet1'].autofit()
+            >>> # Assumes an existing workbook object named book.
+            >>> book.sheets['Sheet1'].autofit('c')
+            >>> book.sheets['Sheet1'].autofit('r')
+            >>> book.sheets['Sheet1'].autofit()
             ```
 
         ```{versionadded} 0.2.3
@@ -1744,8 +1756,8 @@ class Sheet:
 
         Examples:
             ```pycon
-            >>> wb = xw.Book()
-            >>> sheet = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet = book.sheets[0]
             >>> sheet['A1'].value = 'PDF'
             >>> sheet.to_pdf()
             ```
@@ -1877,8 +1889,7 @@ class Sheet:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> book = xw.Book()
+            >>> # Assumes an existing workbook object named book.
             >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
             >>> book.sheets[0].render_template(myvar='test')
             ```
@@ -2064,8 +2075,8 @@ class Range:
 
     Examples:
         ```python
-        import xlwings as xw
-        sheet1 = xw.Book("MyBook.xlsx").sheets[0]
+        # Assumes an existing workbook object named book.
+        sheet1 = book.sheets[0]
 
         sheet1.range("A1")
         sheet1.range("A1:C3")
@@ -2211,7 +2222,7 @@ class Range:
             chunksize: Number of rows per chunk when reading or writing large
                 amounts of data, e.g. `10000`. Large ranges are chunked
                 automatically (reads above 4,000,000 cells, writes above
-                100,000 cells on desktop Excel and the remote engines); set
+                100,000 cells with classic xlwings and the remote engines); set
                 `chunksize` explicitly to tune the row count, e.g. to prevent
                 timeout, memory or payload-size issues, or `chunksize=None` to
                 disable chunking. Works with all formats, including DataFrames,
@@ -2220,7 +2231,9 @@ class Range:
                 strings. By default, they will be converted to `None`.
                 *New in version 0.28.0.*
 
-        For converter-specific options, see `converters`.
+        Without an explicit converter, a single cell returns a scalar, a single row or column returns a flat list, and a two-dimensional range returns a list of lists. Use `ndim=2` when code needs a list of rows regardless of the range shape: a single cell becomes `[[value]]`, one row becomes `[[a, b]]`, and one column becomes `[[a], [b]]`.
+
+        Options apply to both {attr}`value <xlwings.Range.value>` and, in xlwings Lite, {meth}`get_value <xlwings.Range.get_value>`. For example, `rng.options(ndim=2).value` and `await rng.options(ndim=2).get_value()` both request a two-dimensional result. Converter-specific options are described in `converters`.
 
 
         """
@@ -2391,9 +2404,9 @@ class Range:
         cell_type: Literal["blanks", "constants", "formulas", "visible"],
         value_type: Literal["numbers", "text", "logical", "errors"] | None = None,
     ) -> list[Range] | Awaitable[list[Range]]:
-        """Return the rectangular areas of matching cells within this range.
+        """Return matching rectangular areas; in xlwings Lite, use `await rng.get_special_cells(...)`.
 
-        `cell_type` is `"blanks"`, `"constants"`, `"formulas"`, or `"visible"`. For constants or formulas, `value_type` may be `"numbers"`, `"text"`, `"logical"`, or `"errors"`; omitting it selects all value types. Returns an empty list when no cells match. Desktop Python returns the list directly; in xlwings Lite use `await range.get_special_cells(...)`.
+        `cell_type` is `"blanks"`, `"constants"`, `"formulas"`, or `"visible"`. For constants or formulas, `value_type` may be `"numbers"`, `"text"`, `"logical"`, or `"errors"`; omitting it selects all value types. Returns an empty list when no cells match. Classic xlwings returns the list directly.
         """
         if not isinstance(cell_type, str):
             raise TypeError("cell_type must be a string")
@@ -2430,9 +2443,9 @@ class Range:
         order: str = "rows",
         match_case: bool = False,
     ) -> Range | None | Awaitable[Range | None]:
-        """Find the first matching cell in this range, or return `None`.
+        """Find the first matching cell or return `None`; in xlwings Lite, use `await rng.find(...)`.
 
-        Classic xlwings returns the result directly. In xlwings Lite, await the result because Excel must be queried asynchronously. The search starts at the first cell in the requested traversal direction and is restricted to this range.
+        Classic xlwings returns the result directly. The search starts at the first cell in the requested traversal direction and is restricted to this range.
 
         Args:
             text: Text to find. An empty string is not allowed.
@@ -2442,12 +2455,11 @@ class Range:
             match_case: Whether matching is case-sensitive.
 
         Examples:
-            In desktop Python:
+            With classic xlwings:
 
             ```python
-            import xlwings as xw
-
-            sheet = xw.Book().sheets[0]
+            # Assumes an existing workbook object named book.
+            sheet = book.sheets[0]
             sheet["A1:A3"].value = [["North"], ["South"], ["North"]]
             found = sheet["A1:A3"].find("South", whole=True)
             print(found.address if found else None)  # $A$2
@@ -2456,7 +2468,12 @@ class Range:
             In xlwings Lite, await the same search:
 
             ```python
+            # Assumes an existing workbook object named book.
+            sheet = book.sheets["Sheet1"]
+            sheet["A1:A3"].value = [["North"], ["South"], ["North"]]
+            await book.flush()
             found = await sheet["A1:A3"].find("South", whole=True)
+            print(found.address if found else None)  # $A$2
             ```
         """
         if not isinstance(text, str):
@@ -2495,12 +2512,22 @@ class Range:
 
         Examples:
             ```python
-            import xlwings as xw
-
-            sheet = xw.Book().sheets[0]
+            # Assumes an existing workbook object named book.
+            sheet = book.sheets[0]
             sheet["A1:A2"].value = [["Draft"], ["Draft report"]]
             sheet["A1:A2"].replace_all("Draft", "Final")
             print(sheet["A2"].value)  # Final report
+            ```
+
+            In xlwings Lite, inside an asynchronous script with a supplied `book` parameter:
+
+            ```python
+            # Assumes an existing workbook object named book.
+            sheet = book.sheets["Sheet1"]
+            sheet["A1:A2"].value = [["Draft"], ["Draft report"]]
+            sheet["A1:A2"].replace_all("Draft", "Final")
+            await book.flush()
+            print(await sheet["A2"].get_value())  # Final report
             ```
         """
         if not isinstance(old, str) or not isinstance(new, str):
@@ -2529,9 +2556,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = xw.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range('A1:B2').value = 1
             >>> sheet1.range('A1').end('down')
             <Range [Book1]Sheet1!$A$2>
@@ -2546,7 +2572,12 @@ class Range:
 
     @property
     def formula(self) -> str | list[str] | list[list[str]]:
-        """Gets or sets the formula for the given Range."""
+        """Gets or sets formulas using Excel's implicit-intersection formula semantics with classic xlwings.
+
+        Assign a formula string to fill the range, or a list or list of lists to write formulas to individual cells. Writing accepts the converters and shape options supported by {meth}`Range.options <xlwings.Range.options>`.
+
+        For dynamic-array formulas with classic xlwings, use {attr}`formula2 <xlwings.Range.formula2>`. In xlwings Lite, both properties write through the same Office.js formula API, which supports dynamic arrays. Synchronous formula reads are not supported in xlwings Lite; use `await rng.get_formula()`.
+        """
         return self.impl.formula
 
     @formula.setter
@@ -2557,7 +2588,12 @@ class Range:
 
     @property
     def formula2(self) -> str | list[str] | list[list[str]]:
-        """Gets or sets the formula2 for the given Range."""
+        """Gets or sets formulas using Excel's dynamic-array formula semantics with classic xlwings.
+
+        Assign a formula string to fill the range, or a list or list of lists to write formulas to individual cells. Writing accepts the converters and shape options supported by {meth}`Range.options <xlwings.Range.options>`.
+
+        In xlwings Lite, this property writes through the same Office.js formula API as {attr}`formula <xlwings.Range.formula>`. Read formulas with `await rng.get_formula()`; there is no separate `get_formula2()` method.
+        """
         return self.impl.formula2
 
     @formula2.setter
@@ -2581,6 +2617,7 @@ class Range:
 
     @property
     def font(self) -> Font:
+        """Returns the {class}`Font <xlwings.main.Font>` object for the range, used to read or change font formatting."""
         return Font(impl=self.impl.font)
 
     @property
@@ -2660,16 +2697,14 @@ class Range:
 
     @property
     def characters(self) -> Characters:
+        """Returns the {class}`Characters <xlwings.main.Characters>` object for the range, used to format part of the text."""
         return Characters(impl=self.impl.characters)
 
     @property
     def column_width(self) -> float | None:
         """Gets or sets the width of a Range.
 
-        The unit depends on the engine: **characters** on the classic, locally
-        installed xlwings, where one unit is the width of one character in the
-        Normal style (for proportional fonts, the character 0), and **points**
-        on xlwings Server and xlwings Lite.
+        The unit depends on the engine: **characters** with classic xlwings, where one unit is the width of one character in the Normal style (for proportional fonts, the character 0), and **points** with xlwings Server and xlwings Lite.
 
         If all columns in the Range have the same width, returns the width.
         If columns in the Range have different widths, returns None.
@@ -2754,9 +2789,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range('A1').number_format
             'General'
             >>> sheet1.range('A1:C3').number_format = '0.00%'
@@ -2798,9 +2832,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range((1,1)).get_address()
             '$A$1'
             >>> sheet1.range((1,1)).get_address(False, False)
@@ -2875,9 +2908,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = xw.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range('A1').color = (255, 255, 255)  # or '#ffffff'
             >>> sheet1.range('A2').color
             (255, 255, 255)
@@ -2953,9 +2985,11 @@ class Range:
 
     @property
     def value(self) -> Any:
-        """Gets and sets the values for the given Range. See `xlwings.Range.options`
-        about how to set options, e.g., to transform it into a DataFrame or how to set
-        a chunksize.
+        """Gets and sets the values for the given range.
+
+        Without an explicit converter, a single cell returns a scalar, a single row or column returns a flat list, and a two-dimensional range returns a list of lists. Use {meth}`options <xlwings.Range.options>` to control dimensionality, convert values to a DataFrame, or set a chunk size.
+
+        In xlwings Lite, reads use the cell values loaded for the script. A script annotated with {class}`BookAsync <xlwings.BookAsync>` does not preload cell values: use `await rng.get_value()` to read them.
         """
         return conversion.read(self, None, self._options)
 
@@ -2964,7 +2998,17 @@ class Range:
         conversion.write(data, self, self._options)
 
     async def get_value(self) -> Any:
-        """Fetch values on demand.
+        """Reads the range's current values from Excel asynchronously.
+
+        Supports the same converters and options as {attr}`value <xlwings.Range.value>`, including DataFrames, `ndim`, `transpose`, and `chunksize`. Without an explicit converter, a single cell returns a scalar, a single row or column returns a flat list, and a two-dimensional range returns a list of lists. Use `rng.options(ndim=2)` to always receive a list of rows.
+
+        Examples:
+            Inside an asynchronous script with a supplied `book` parameter:
+
+            ```python
+            sheet = book.sheets["Sheet1"]
+            rows = await sheet["A1:B10"].options(ndim=2).get_value()
+            ```
 
         Requires xlwings Lite.
         """
@@ -3300,9 +3344,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range('A1').value = [[None, 1], [2, 3]]
             >>> sheet1.range('A1').expand().address
             $A$1:$B$2
@@ -3477,9 +3520,8 @@ class Range:
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> sheet1.range('A1').value
             'www.xlwings.org'
             >>> sheet1.range('A1').hyperlink
@@ -3573,9 +3615,8 @@ class Range:
 
         Example:
             ```pycon
-            >>> import xlwings as xw
-            >>> wb = xw.Book()
-            >>> sheet1 = wb.sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet1 = book.sheets[0]
             >>> myrange = sheet1.range('A1:E4')
             >>> myrange.last_cell.row, myrange.last_cell.column
             (4, 5)
@@ -3658,10 +3699,7 @@ class Range:
         The default is `'general'`, which right-aligns numbers and dates and
         left-aligns text.
 
-        Reading this property synchronously requires a locally installed Excel.
-        Setting it is also supported on xlwings Lite
-        and xlwings Server; in xlwings Lite, read it via
-        {meth}`get_horizontal_alignment() <xlwings.Range.get_horizontal_alignment>`.
+        Reading this property synchronously requires classic xlwings. Setting it is also supported with xlwings Lite and xlwings Server; in xlwings Lite, read it via {meth}`get_horizontal_alignment() <xlwings.Range.get_horizontal_alignment>`.
 
         Examples:
             ```pycon
@@ -3687,10 +3725,7 @@ class Range:
         Returns `None` if the cells in the range don't all have the same
         alignment. The default is `'bottom'`.
 
-        Reading this property synchronously requires a locally installed Excel.
-        Setting it is alos supported with xlwings Lite
-        and xlwings Server; in xlwings Lite, read it via
-        {meth}`get_vertical_alignment() <xlwings.Range.get_vertical_alignment>`.
+        Reading this property synchronously requires classic xlwings. Setting it is also supported with xlwings Lite and xlwings Server; in xlwings Lite, read it via {meth}`get_vertical_alignment() <xlwings.Range.get_vertical_alignment>`.
 
         Examples:
             ```pycon
@@ -3908,7 +3943,7 @@ class AutoFilterCriteria:
     def count(self) -> int | None:
         """The number of items for a top/bottom items filter, otherwise `None`.
 
-        This may be `None` when the native desktop engine only exposes the calculated cutoff value rather than the requested item count.
+        This may be `None` when the classic xlwings engine only exposes the calculated cutoff value rather than the requested item count.
         """
         return self.impl.get("count")
 
@@ -3916,7 +3951,7 @@ class AutoFilterCriteria:
     def percent(self) -> float | None:
         """The percentage for a top/bottom percent filter, otherwise `None`.
 
-        This may be `None` when the native desktop engine only exposes the calculated cutoff value rather than the requested percentage.
+        This may be `None` when the classic xlwings engine only exposes the calculated cutoff value rather than the requested percentage.
         """
         return self.impl.get("percent")
 
@@ -3932,9 +3967,8 @@ class AutoFilter:
         ```python
         from datetime import date
 
-        import xlwings as xw
-
-        sheet = xw.Book().sheets[0]
+        # Assumes an existing workbook object named book.
+        sheet = book.sheets[0]
         myrange = sheet["A1:C6"]
         myrange.value = [
             ["Region", "Order date", "Amount"],
@@ -4154,10 +4188,8 @@ class RangeRows(Ranges):
 
     Example:
         ```python
-        import xlwings as xw
-
-        wb = xw.Book("MyBook.xlsx")
-        sheet1 = wb.sheets[0]
+        # Assumes an existing workbook object named book.
+        sheet1 = book.sheets[0]
         myrange = sheet1.range('A1:C4')
 
         assert len(myrange.rows) == 4  # or myrange.rows.count
@@ -4168,7 +4200,7 @@ class RangeRows(Ranges):
         assert myrange.rows(2) == sheet1.range('A2:C2')
 
         for r in myrange.rows:
-        print(r.address)
+            print(r.address)
         ```
     """
 
@@ -4242,10 +4274,8 @@ class RangeColumns(Ranges):
 
     Example:
         ```python
-        import xlwings as xw
-
-        wb = xw.Book("MyFile.xlsx")
-        sheet1 = wb.sheets[0]
+        # Assumes an existing workbook object named book.
+        sheet1 = book.sheets[0]
         myrange = sheet1.range('A1:C4')
 
         assert len(myrange.columns) == 3  # or myrange.columns.count
@@ -4256,7 +4286,7 @@ class RangeColumns(Ranges):
         assert myrange.columns(2) == sheet1.range('B1:B4')
 
         for c in myrange.columns:
-        print(c.address)
+            print(c.address)
         ```
     """
 
@@ -4328,8 +4358,8 @@ class Shape:
     """The shape object is a member of the `shapes` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> sheet = book.sheets[0]
     >>> sheet.shapes[0]  # or sheet.shapes['ShapeName']
     <Shape 'Rectangle 1' in Sheet1>
     ```
@@ -4522,10 +4552,12 @@ class Shape:
 
     @property
     def font(self) -> Font:
+        """Returns the {class}`Font <xlwings.main.Font>` object for the shape text, used to read or change font formatting."""
         return Font(impl=self.impl.font)
 
     @property
     def characters(self) -> Characters:
+        """Returns the {class}`Characters <xlwings.main.Characters>` object for the shape text, used to format part of the text."""
         return Characters(impl=self.impl.characters)
 
     @property
@@ -4564,8 +4596,8 @@ class Shapes(Collection[Shape]):
     """A collection of all `shape` objects on the specified sheet:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.books['Book1'].sheets[0].shapes
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0].shapes
     Shapes([<Shape 'Oval 1' in Sheet1>,
             <Shape 'Rectangle 1' in Sheet1>])
     ```
@@ -5237,9 +5269,7 @@ class Notes:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        book = xw.Book()
+        # Assumes an existing workbook object named book.
         sheet = book.sheets[0]
         other_sheet = book.sheets.add(after=sheet)
         sheet["A1"].add_note("Review")
@@ -5302,9 +5332,7 @@ class Note:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        book = xw.Book()
+        # Assumes an existing workbook object named book.
         cell = book.sheets[0]["A1"]
         note = cell.add_note("Review this value")
         print(note.text)
@@ -5334,10 +5362,11 @@ class Note:
 
         Examples:
             ```pycon
-            >>> sheet = xw.Book(...).sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet = book.sheets[0]
             >>> sheet['A1'].note.text = 'mynote'
             >>> sheet['A1'].note.text
-            >>> 'mynote'
+            'mynote'
             ```
 
         ```{versionadded} 0.24.2
@@ -5421,9 +5450,7 @@ class Comments:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        book = xw.Book()
+        # Assumes an existing workbook object named book.
         sheet = book.sheets[0]
         sheet["A1"].add_comment("Review")
         for comment in book.comments:
@@ -5491,9 +5518,8 @@ class Comment:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        cell = xw.Book().sheets[0]["A1"]
+        # Assumes an existing workbook object named book.
+        cell = book.sheets[0]["A1"]
         comment = cell.add_comment("Review this value")
         comment.text = "Review the updated value"
         print(comment.author, comment.text)
@@ -5612,9 +5638,8 @@ class CommentReply:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        comment = xw.Book().sheets[0]["A1"].add_comment("Review")
+        # Assumes an existing workbook object named book.
+        comment = book.sheets[0]["A1"].add_comment("Review")
         comment.add_reply("Checked")
         print(comment.replies[0].text)
         ```
@@ -5640,8 +5665,8 @@ class Table:
     """The table object is a member of the `tables` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> sheet = book.sheets[0]
     >>> sheet.tables[0]  # or sheet.tables['TableName']
     <Table 'Table 1' in Sheet1>
     ```
@@ -5848,9 +5873,9 @@ class Table:
         Examples:
             ```python
             import pandas as pd
-            import xlwings as xw
 
-            sheet = xw.Book('Book1.xlsx').sheets[0]
+            # Assumes an existing workbook object named book.
+            sheet = book.sheets[0]
             table_name = 'mytable'
 
             # Sample DataFrame
@@ -5988,9 +6013,8 @@ class TableRow:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        table = xw.Book().sheets[0].tables["Table1"]
+        # Assumes an existing workbook object named book.
+        table = book.sheets[0].tables["Table1"]
         row = table.rows[0]  # First data row; row.index is 1
         print(row.range.value)
         row.delete()
@@ -6024,9 +6048,8 @@ class TableRows(Collection[TableRow]):
 
     Examples:
         ```python
-        import xlwings as xw
-
-        rows = xw.Book().sheets[0].tables["Table1"].rows
+        # Assumes an existing workbook object named book.
+        rows = book.sheets[0].tables["Table1"].rows
         rows.add(["Pencil", 2])  # Append
         rows.add(["Pen", 3], index=1)  # Insert before the first data row
         print(rows[0].range.value)  # ["Pen", 3]
@@ -6089,9 +6112,8 @@ class TableColumn:
 
     Examples:
         ```python
-        import xlwings as xw
-
-        table = xw.Book().sheets[0].tables["Table1"]
+        # Assumes an existing workbook object named book.
+        table = book.sheets[0].tables["Table1"]
         column = table.columns["MyColumn"]
         print(column.index)
         print(column.data_body_range.value)
@@ -6142,9 +6164,8 @@ class TableColumns(Collection[TableColumn]):
 
     Examples:
         ```python
-        import xlwings as xw
-
-        columns = xw.Book().sheets[0].tables["Table1"].columns
+        # Assumes an existing workbook object named book.
+        columns = book.sheets[0].tables["Table1"].columns
         columns.add("Tax", index=2)
         print(columns[1].name)
         ```
@@ -6176,8 +6197,8 @@ class Tables(Collection[Table]):
     """A collection of all `table` objects on the specified sheet:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.books['Book1'].sheets[0].tables
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0].tables
     Tables([<Table 'Table1' in Sheet1>,
             <Table 'Table2' in Sheet1>])
     ```
@@ -6217,8 +6238,8 @@ class Tables(Collection[Table]):
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> sheet = xw.Book().sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet = book.sheets[0]
             >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
             >>> table = sheet.tables.add(source=sheet['A1'].expand(), name='MyTable')
             >>> table
@@ -6358,8 +6379,8 @@ class Chart:
     """The chart object is a member of the `charts` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> sheet = book.sheets[0]
     >>> sheet.charts[0]  # or sheet.charts['ChartName']
     <Chart 'Chart 1' in Sheet1>
     ```
@@ -6648,7 +6669,7 @@ class Chart:
         """Sets the source data range for the chart.
 
         Args:
-            source: Range object, e.g. `xw.books['Book1'].sheets[0].range('A1')`
+            source: Range object, e.g. `book.sheets[0].range('A1')`
             plot_by: Whether the data series come from the `"rows"` or from the
                 `"columns"` of the source range. Defaults to letting Excel decide.
                 *New in version 0.37.3.*
@@ -6788,7 +6809,8 @@ class ChartAxis:
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
 
     ```pycon
-    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> chart = book.sheets[0].charts[0]
     >>> chart.value_axis.set(
     ...     title="Revenue", minimum_scale=0, major_unit=10_000
     ... )
@@ -7026,7 +7048,8 @@ class ChartSeries:
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch current values from Excel.
 
     ```pycon
-    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> chart = book.sheets[0].charts[0]
     >>> series = chart.series[0]
     >>> series.set(name="Revenue", marker_style="circle", marker_size=8)
     ```
@@ -7289,7 +7312,8 @@ class ChartSeriesCollection(Collection[ChartSeries]):
     Series names aren't unique in Excel, so string lookup isn't supported.
 
     ```pycon
-    >>> chart = xw.books["Book1"].sheets[0].charts[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> chart = book.sheets[0].charts[0]
     >>> series = chart.series
     >>> len(series)
     2
@@ -7309,7 +7333,8 @@ class ChartLegend:
     """The legend of a chart, accessed via `mychart.legend`:
 
     ```pycon
-    >>> chart = xw.books['Book1'].sheets[0].charts[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> chart = book.sheets[0].charts[0]
     >>> chart.legend.position = "bottom"
     >>> chart.legend.visible = False
     ```
@@ -7364,8 +7389,8 @@ class Charts(Collection[Chart]):
     """A collection of all `chart` objects on the specified sheet:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.books['Book1'].sheets[0].charts
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0].charts
     Charts([<Chart 'Chart 1' in Sheet1>,
             <Chart 'Chart 1' in Sheet1>])
     ```
@@ -7421,8 +7446,8 @@ class Charts(Collection[Chart]):
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> sheet = xw.Book().sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet = book.sheets[0]
             >>> sheet.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
             >>> chart = sheet.charts.add(
             ...     source=sheet.range('A1').expand(),
@@ -7544,8 +7569,8 @@ class PivotTable:
     {attr}`pivot_tables <xlwings.Sheet.pivot_tables>` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> mysheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> mysheet = book.sheets[0]
     >>> mysheet.pivot_tables[0]  # or mysheet.pivot_tables['PivotTable1']
     <PivotTable 'PivotTable1' in Sheet1>
     ```
@@ -7720,7 +7745,8 @@ class PivotField:
     collections:
 
     ```pycon
-    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> pt = book.sheets[0].pivot_tables[0]
     >>> field = pt.rows.add('Region')
     >>> field.name
     'Region'
@@ -7750,7 +7776,7 @@ class PivotField:
 
     @property
     def name(self) -> str:
-        """The name of the source field."""
+        """The name of the source field. Read-only; this property has no setter."""
         return self.impl.name
 
     def remove(self) -> None:
@@ -7776,7 +7802,8 @@ class PivotFields(Collection[PivotField]):
     or `pt.filters`. Iteration follows the field order.
 
     ```pycon
-    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> pt = book.sheets[0].pivot_tables[0]
     >>> pt.rows
     PivotFields([<PivotField 'Region' in 'PivotTable1'>])
     >>> pt.rows[0]  # or pt.rows['Region']
@@ -7813,7 +7840,8 @@ class PivotValueField:
     """A field in the *Values* area of a pivot table, accessed via {class}`PivotValueFields <xlwings.PivotValueFields>`:
 
     ```pycon
-    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> pt = book.sheets[0].pivot_tables[0]
     >>> value_field = pt.values.add('Sales')
     >>> value_field.name, value_field.function
     ('Sum of Sales', 'sum')
@@ -7918,7 +7946,8 @@ class PivotValueFields(Collection[PivotValueField]):
     Iteration follows the field order.
 
     ```pycon
-    >>> pt = xw.books['Book1'].sheets[0].pivot_tables[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> pt = book.sheets[0].pivot_tables[0]
     >>> pt.values
     PivotValueFields([<PivotValueField 'Sum of Sales' in 'PivotTable1'>])
     >>> pt.values[0]  # or pt.values['Sum of Sales']
@@ -7975,8 +8004,8 @@ class PivotTables(Collection[PivotTable]):
     objects on the specified sheet:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.books['Book1'].sheets[0].pivot_tables
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0].pivot_tables
     PivotTables([<PivotTable 'PivotTable1' in Sheet1>])
     ```
 
@@ -8035,8 +8064,7 @@ class PivotTables(Collection[PivotTable]):
 
         Examples:
             ```pycon
-            >>> import xlwings as xw
-            >>> book = xw.Book()
+            >>> # Assumes an existing workbook object named book.
             >>> data = book.sheets[0]
             >>> report = book.sheets.add('Report', after=data)
             >>> data['A1'].value = [['Region', 'Year', 'Sales'],
@@ -8110,8 +8138,8 @@ class Picture:
     collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> sheet = book.sheets[0]
     >>> sheet.pictures[0]  # or sheet.charts['PictureName']
     <Picture 'Picture 1' in Sheet1>
     ```
@@ -8294,8 +8322,8 @@ class Pictures(Collection[Picture]):
     """A collection of all `picture` objects on the specified sheet:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.books['Book1'].sheets[0].pictures
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets[0].pictures
     Pictures([<Picture 'Picture 1' in Sheet1>,
               <Picture 'Picture 2' in Sheet1>])
     ```
@@ -8362,8 +8390,8 @@ class Pictures(Collection[Picture]):
             1. Picture
 
             ```pycon
-            >>> import xlwings as xw
-            >>> sheet = xw.Book().sheets[0]
+            >>> # Assumes an existing workbook object named book.
+            >>> sheet = book.sheets[0]
             >>> sheet.pictures.add(r'C:\\path\\to\\file.png')
             <Picture 'Picture 1' in Sheet1>
             ```
@@ -8474,8 +8502,7 @@ class Names:
     Examples:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> book = xw.books['Book1']  # book scope and sheet scope
+    >>> # Assumes an existing workbook object named book.
     >>> book.names
     [<Name 'MyName': =Sheet1!$A$3>]
     >>> book.sheets[0].names  # sheet scope only
@@ -8536,7 +8563,7 @@ class Names:
     def add(self, name: str, refers_to: str) -> Name:
         """Defines a new name for a range, constant, or formula (including a LAMBDA).
 
-        Full support for named constants and formulas requires Excel desktop, xlwings Lite, or xlwings Server. Google Sheets supports named ranges only; Office Scripts only returns named ranges in its snapshot.
+        Full support for named constants and formulas requires classic xlwings, xlwings Lite, or xlwings Server. Google Sheets supports named ranges only; Office Scripts only returns named ranges in its snapshot.
 
         Args:
             name: Specifies the text to use as the name. Names cannot include spaces and
@@ -8595,8 +8622,8 @@ class Name:
     """The name object is a member of the `names` collection:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> sheet = xw.books['Book1'].sheets[0]
+    >>> # Assumes an existing workbook object named book.
+    >>> sheet = book.sheets[0]
     >>> sheet.names[0]  # or sheet.names['MyName']
     <Name 'MyName': =Sheet1!$A$3>
     ```
@@ -9725,7 +9752,7 @@ class Border:
 
         `"none"` for a missing border. No engine detects a side whose
         segments differ from cell to cell, but xlwings Lite and xlwings Server
-        report a different value than the desktop engines do: an edge reports
+        report a different value than the classic xlwings engines do: an edge reports
         its first segment's value rather than the range's, and an inside
         border of a range whose cells don't share the same border formatting
         reads `"none"` even though every cell's own borders are intact.
@@ -9738,7 +9765,7 @@ class Border:
         """Fetch the weight on demand.
 
         xlwings Lite and xlwings Server report a mixed side differently than
-        the desktop engines, see
+        the classic xlwings engines, see
         {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -9749,7 +9776,7 @@ class Border:
         """Fetch the color on demand, as an RGB tuple.
 
         `None` for a removed border. xlwings Lite and xlwings Server report a
-        mixed side differently than the desktop engines, see
+        mixed side differently than the classic xlwings engines, see
         {meth}`get_line_style() <xlwings.main.Border.get_line_style>`.
 
         Requires xlwings Lite.
@@ -10105,10 +10132,8 @@ class Sheets(Collection[Sheet]):
     """A collection of all `sheet` objects:
 
     ```pycon
-    >>> import xlwings as xw
-    >>> xw.sheets  # active book
-    Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
-    >>> xw.Book('Book1').sheets  # specific book
+    >>> # Assumes an existing workbook object named book.
+    >>> book.sheets
     Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
     ```
 
