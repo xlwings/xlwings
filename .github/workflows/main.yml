@@ -111,7 +111,7 @@ jobs:
       fail-fast: false
       matrix:
         # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
         platform:
           [
             { os: "windows-latest", target: "x86_64" },
@@ -128,12 +128,12 @@ jobs:
             {
               os: "ubuntu-latest",
               target: "x86_64",
-              manylinux: "musllinux_1_1",
+              manylinux: "musllinux_1_2",
             },
             {
               os: "ubuntu-latest",
               target: "aarch64",
-              manylinux: "musllinux_1_1",
+              manylinux: "musllinux_1_2",
             },
           ]
 
@@ -166,7 +166,7 @@ jobs:
           platforms: all
 
       - name: Build source distribution
-        if: matrix.python-version == '3.13' && matrix.platform.os == 'ubuntu-latest' && matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_1'
+        if: matrix.python-version == '3.13' && matrix.platform.os == 'ubuntu-latest' && matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_2'
         shell: bash
         run: |
           python -m build --sdist
@@ -177,7 +177,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux || 'auto' }}
-          maturin-version: v1.5.1
+          maturin-version: v1.15.0
           command: build
           args: --release --out dist --interpreter ${{ matrix.python-version }}
 
@@ -206,7 +206,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Tests
-        if: matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_1' && !(matrix.platform.target == 'x86_64' && contains(matrix.platform.os, 'macos'))
+        if: matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_2' && !(matrix.platform.target == 'x86_64' && contains(matrix.platform.os, 'macos'))
         shell: bash
         env:
           XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
