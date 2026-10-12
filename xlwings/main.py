@@ -2012,6 +2012,41 @@ class Sheet:
         return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
 
+def _normalize_sort_keys(
+    keys: Any, ascending: Any, column_count: int, owner: str
+) -> tuple[list[int], list[bool]]:
+    if isinstance(keys, bool):
+        raise TypeError("keys must be one-based column positions")
+    if isinstance(keys, int):
+        normalized_keys = [keys]
+    elif isinstance(keys, Sequence) and not isinstance(keys, (str, bytes)):
+        normalized_keys = list(keys)
+    else:
+        raise TypeError("keys must be an integer or a sequence of integers")
+    if not normalized_keys:
+        raise ValueError("keys must contain at least one column")
+    if any(
+        not isinstance(key, int) or isinstance(key, bool) for key in normalized_keys
+    ):
+        raise TypeError("keys must contain only integers")
+    if any(key < 1 or key > column_count for key in normalized_keys):
+        raise ValueError(f"sort keys must be within the {owner}'s columns")
+    if len(set(normalized_keys)) != len(normalized_keys):
+        raise ValueError("sort keys must be unique")
+
+    if isinstance(ascending, bool):
+        normalized_ascending = [ascending] * len(normalized_keys)
+    elif isinstance(ascending, Sequence) and not isinstance(ascending, (str, bytes)):
+        normalized_ascending = list(ascending)
+        if len(normalized_ascending) != len(normalized_keys):
+            raise ValueError("ascending must have one boolean per key")
+        if any(not isinstance(direction, bool) for direction in normalized_ascending):
+            raise TypeError("ascending must contain only booleans")
+    else:
+        raise TypeError("ascending must be a boolean or a sequence of booleans")
+    return normalized_keys, normalized_ascending
+
+
 class Range:
     """Returns a Range object that represents a cell or a range of cells.
 
@@ -2266,46 +2301,16 @@ class Range:
             ascending: One direction for every key, or one boolean per key.
             has_headers: Whether to keep the first row in place as a header.
 
-        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported.
+        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported; use {meth}`Table.sort <xlwings.main.Table.sort>` instead.
 
         Examples:
             ```python
             sheet["A1:D20"].sort([2, 1], [False, True], has_headers=True)
             ```
         """
-        if isinstance(keys, bool):
-            raise TypeError("keys must be one-based column positions")
-        if isinstance(keys, int):
-            normalized_keys = [keys]
-        elif isinstance(keys, Sequence) and not isinstance(keys, (str, bytes)):
-            normalized_keys = list(keys)
-        else:
-            raise TypeError("keys must be an integer or a sequence of integers")
-        if not normalized_keys:
-            raise ValueError("keys must contain at least one column")
-        if any(
-            not isinstance(key, int) or isinstance(key, bool) for key in normalized_keys
-        ):
-            raise TypeError("keys must contain only integers")
-        if any(key < 1 or key > self.shape[1] for key in normalized_keys):
-            raise ValueError("sort keys must be within the range's columns")
-        if len(set(normalized_keys)) != len(normalized_keys):
-            raise ValueError("sort keys must be unique")
-
-        if isinstance(ascending, bool):
-            normalized_ascending = [ascending] * len(normalized_keys)
-        elif isinstance(ascending, Sequence) and not isinstance(
-            ascending, (str, bytes)
-        ):
-            normalized_ascending = list(ascending)
-            if len(normalized_ascending) != len(normalized_keys):
-                raise ValueError("ascending must have one boolean per key")
-            if any(
-                not isinstance(direction, bool) for direction in normalized_ascending
-            ):
-                raise TypeError("ascending must contain only booleans")
-        else:
-            raise TypeError("ascending must be a boolean or a sequence of booleans")
+        normalized_keys, normalized_ascending = _normalize_sort_keys(
+            keys, ascending, self.shape[1], "range"
+        )
         if not isinstance(has_headers, bool):
             raise TypeError("has_headers must be a boolean")
         if has_headers and self.shape[0] < 2:
@@ -2322,7 +2327,8 @@ class Range:
                 and table_range.column <= self.column + self.shape[1] - 1
             ):
                 raise ValueError(
-                    "Range.sort() does not support ranges intersecting a table"
+                    "Range.sort() does not support ranges intersecting a table; "
+                    "use Table.sort() instead"
                 )
 
         self.impl.sort(normalized_keys, normalized_ascending, has_headers)
@@ -5919,6 +5925,33 @@ class Table:
             return self
         else:
             raise TypeError(type_error_msg)
+
+    def sort(
+        self,
+        keys: int | Sequence[int],
+        ascending: bool | Sequence[bool] = True,
+    ) -> None:
+        """Sort the table's data rows by one or more columns using Excel's native table sort.
+
+        Args:
+            keys: One-based column positions within the table, in priority order.
+            ascending: One direction for every key, or one boolean per key.
+
+        The header and totals rows stay in place. Calculated columns, row formatting, and the table's sort state are kept. In xlwings Lite, the sort is queued until the next sync.
+
+        ```{versionadded} 0.37.6
+        ```
+
+        Examples:
+            ```python
+            table = sheet.tables["Products"]
+            table.sort([3, 1], [False, True])
+            ```
+        """
+        normalized_keys, normalized_ascending = _normalize_sort_keys(
+            keys, ascending, self.range.shape[1], "table"
+        )
+        self.impl.sort(normalized_keys, normalized_ascending)
 
     def resize(self, range: Range) -> None:
         """Resize a Table by providing an xlwings range object

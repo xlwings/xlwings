@@ -3261,6 +3261,34 @@ class Table(base_classes.Table):
     def autofilter(self):
         return AutoFilter(self, is_table=True)
 
+    def sort(self, keys, ascending):
+        if not self.xl.ShowHeaders:
+            # Once a table was sorted with its header row shown, Excel rejects
+            # Sort.Header = xlNo after the header is hidden (also on macOS). Sort
+            # the data body through the worksheet instead: despite the SetRange
+            # docs' note on tables, Excel accepts it and keeps formulas, formats,
+            # and the totals row (see test_table.py::test_sort_hidden_headers).
+            body = self.data_body_range
+            if body:
+                body.sort(keys, ascending, False)
+            return
+        sort = self.xl.Sort
+        sort.SortFields.Clear()
+        for key, direction in zip(keys, ascending):
+            sort.SortFields.Add(
+                Key=self.xl.ListColumns(key).Range,
+                SortOn=constants.SortOn.xlSortOnValues,
+                Order=(
+                    constants.SortOrder.xlAscending
+                    if direction
+                    else constants.SortOrder.xlDescending
+                ),
+            )
+        sort.Header = constants.YesNoGuess.xlYes
+        sort.MatchCase = False
+        sort.Orientation = constants.Constants.xlTopToBottom
+        sort.Apply()
+
     @property
     def show_autofilter(self):
         return self.xl.ShowAutoFilter
