@@ -1222,6 +1222,150 @@ def test_chart_axis_set_validates_before_queueing(kwargs, match):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_secondary_axes_use_their_own_axis_type_and_state():
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+
+    chart.value_axis.set(title="Revenue", number_format="$#,##0")
+    chart.secondary_value_axis.set(title="Margin", number_format="0%")
+    chart.secondary_category_axis.visible = True
+
+    # The group is part of the axis type rather than an extra argument, so
+    # older JS, which ignores extra arguments, rejects it instead of
+    # formatting the primary axis.
+    assert [(action["func"], action["args"]) for action in _actions(book)] == [
+        ("setChartAxis", [0, "value", {"title": "Revenue", "number_format": "$#,##0"}]),
+        (
+            "setChartAxis",
+            [0, "secondary_value", {"title": "Margin", "number_format": "0%"}],
+        ),
+        ("setChartAxis", [0, "secondary_category", {"visible": True}]),
+    ]
+    assert chart.value_axis.title == "Revenue"
+    assert chart.value_axis.number_format == "$#,##0"
+    assert chart.secondary_value_axis.title == "Margin"
+    assert chart.secondary_value_axis.number_format == "0%"
+    assert chart.secondary_category_axis.visible is True
+    with pytest.raises(NotImplementedError, match="get_visible"):
+        chart.category_axis.visible
+    with pytest.raises(
+        NotImplementedError,
+        match=re.escape("chart.secondary_value_axis.get_minimum_scale()"),
+    ):
+        chart.secondary_value_axis.minimum_scale
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_pending_chart_rejects_secondary_axes_before_queueing():
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts.add()
+
+    with pytest.raises(xw.XlwingsError, match="no secondary axis group"):
+        chart.secondary_value_axis.set(title="Margin")
+    with pytest.raises(xw.XlwingsError, match="no secondary axis group"):
+        chart.secondary_category_axis.visible = True
+    assert "secondary_value_axis_title" not in chart.impl.api
+
+    chart.set_source_data(sheet["A1:B2"])
+    assert [action["func"] for action in _actions(book)] == ["addChart"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_series_type_and_axis_group_go_first_and_reset_secondary_state():
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    chart.value_axis.title = "Revenue"
+    chart.secondary_value_axis.title = "Margin"
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 2))
+
+    series.set(line_color="#010203", axis_group="primary", chart_type="line_markers")
+
+    assert _actions(book)[-1]["func"] == "setChartSeries"
+    values = _actions(book)[-1]["args"][2]
+    assert _actions(book)[-1]["args"][:2] == [0, 1]
+    assert list(values) == ["chart_type", "axis_group", "line_color"]
+    assert values == {
+        "chart_type": "LineMarkers",
+        "axis_group": "Primary",
+        "line_color": "#010203",
+    }
+    assert series.chart_type == "line_markers"
+    assert series.axis_group == "primary"
+    # Moving the last series off the secondary group removes the secondary
+    # axes in Excel, so the earlier write no longer describes the chart.
+    with pytest.raises(NotImplementedError, match="get_title"):
+        chart.secondary_value_axis.title
+    assert chart.value_axis.title == "Revenue"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        ({"axis_group": "Secondary"}, "Invalid axis_group"),
+        ({"axis_group": 2}, "Invalid axis_group"),
+        ({"chart_type": "LineMarkers"}, "Invalid chart type"),
+    ],
+)
+def test_chart_series_type_and_axis_group_validate_before_queueing(kwargs, match):
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 1))
+    with pytest.raises(ValueError, match=match):
+        series.set(name="Revenue", **kwargs)
+    assert _actions(book) == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_series_and_secondary_axis_async_reads_map_js_values():
+    import sys
+    import types
+
+    from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
+
+    book = _fresh_book()
+    chart = book.sheets[0].charts[0]
+    series = ChartSeries(impl=RemoteChartSeries(chart.impl, 2))
+    calls = []
+
+    class Result(dict):
+        def to_py(self):
+            return dict(self)
+
+    async def get_series_data(sheet, chart_index, series_index, keys):
+        calls.append(("series", chart_index, series_index, keys))
+        return Result(chart_type="LineMarkers", axis_group="Secondary")
+
+    async def get_axis_data(sheet, chart_index, axis_type, keys):
+        calls.append(("axis", chart_index, axis_type, keys))
+        return Result(number_format="0%")
+
+    js = types.SimpleNamespace(
+        xlwings=types.SimpleNamespace(
+            getChartSeriesData=get_series_data, getChartAxisData=get_axis_data
+        )
+    )
+    ffi = types.SimpleNamespace(to_js=lambda value: value)
+    modules = {"js": js, "pyodide": types.ModuleType("pyodide"), "pyodide.ffi": ffi}
+    with mock.patch.object(sys, "platform", "emscripten"):
+        with mock.patch.dict(sys.modules, modules):
+            assert asyncio.run(series.get_chart_type()) == "line_markers"
+            assert asyncio.run(series.get_axis_group()) == "secondary"
+            axis = chart.secondary_value_axis
+            assert asyncio.run(axis.get_number_format()) == "0%"
+    assert calls == [
+        ("series", 0, 1, ["chart_type"]),
+        ("series", 0, 1, ["axis_group"]),
+        ("axis", 0, "secondary_value", ["number_format"]),
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_series_bulk_set_queues_one_action_and_writes_through():
     from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
 
@@ -1334,6 +1478,8 @@ def test_chart_series_sync_getters_and_api_raise_before_write():
         "marker_background_color",
         "line_color",
         "fill_color",
+        "chart_type",
+        "axis_group",
     ]:
         with pytest.raises(NotImplementedError, match=f"get_{attribute}"):
             getattr(series, attribute)
