@@ -284,6 +284,7 @@ BORDER_GRID_SIDES = BORDER_SIDES[:6]
 # main.Chart validates them so engines only ever see the canonical names.
 ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
 ChartPlotBy = Literal["rows", "columns"]
+ChartAxisGroup = Literal["primary", "secondary"]
 ChartMarkerStyle = Literal[
     "automatic",
     "none",
@@ -299,6 +300,7 @@ ChartMarkerStyle = Literal[
 ]
 CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
 CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
+CHART_AXIS_GROUPS: tuple[str, ...] = get_args(ChartAxisGroup)
 CHART_MARKER_STYLES: tuple[str, ...] = get_args(ChartMarkerStyle)
 
 # The pivot table vocabulary. PivotFunction lists Excel's "Summarize Values By"
@@ -2208,6 +2210,14 @@ class Chart:
         raise NotImplementedError()
 
     @property
+    def secondary_category_axis(self):
+        raise NotImplementedError()
+
+    @property
+    def secondary_value_axis(self):
+        raise NotImplementedError()
+
+    @property
     def series(self):
         raise NotImplementedError()
 
@@ -2426,6 +2436,22 @@ class ChartSeries:
     def fill_color(self, value):
         raise NotImplementedError()
 
+    @property
+    def chart_type(self):
+        raise NotImplementedError()
+
+    @chart_type.setter
+    def chart_type(self, value):
+        raise NotImplementedError()
+
+    @property
+    def axis_group(self):
+        raise NotImplementedError()
+
+    @axis_group.setter
+    def axis_group(self, value):
+        raise NotImplementedError()
+
     def set(
         self,
         *,
@@ -2436,6 +2462,8 @@ class ChartSeries:
         marker_background_color=_UNSET,
         line_color=_UNSET,
         fill_color=_UNSET,
+        chart_type=_UNSET,
+        axis_group=_UNSET,
     ):
         raise NotImplementedError()
 
@@ -2465,6 +2493,12 @@ class ChartSeries:
 
     async def get_fill_color(self):
         raise NotImplementedError("get_fill_color() is only supported in xlwings Lite")
+
+    async def get_chart_type(self):
+        raise NotImplementedError("get_chart_type() is only supported in xlwings Lite")
+
+    async def get_axis_group(self):
+        raise NotImplementedError("get_axis_group() is only supported in xlwings Lite")
 
 
 class ChartSeriesCollection(Collection):

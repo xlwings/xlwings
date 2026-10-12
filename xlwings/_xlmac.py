@@ -3357,6 +3357,14 @@ class Chart(base_classes.Chart):
         return ChartAxis(self, "value")
 
     @property
+    def secondary_category_axis(self):
+        return ChartAxis(self, "secondary_category")
+
+    @property
+    def secondary_value_axis(self):
+        return ChartAxis(self, "secondary_value")
+
+    @property
     def series(self):
         return ChartSeriesCollection(self)
 
@@ -3543,6 +3551,22 @@ class ChartSeries(base_classes.ChartSeries):
         fill.solid()
         fill.fore_color.set(value)
 
+    @property
+    def chart_type(self):
+        return chart_types_k2s[self.xl.chart_type.get()]
+
+    @chart_type.setter
+    def chart_type(self, value):
+        self.xl.chart_type.set(chart_types_s2k[value])
+
+    @property
+    def axis_group(self):
+        return axis_groups_k2s[self.xl.axis_group.get()]
+
+    @axis_group.setter
+    def axis_group(self, value):
+        self.xl.axis_group.set(axis_groups_s2k[value])
+
     def set(
         self,
         *,
@@ -3553,8 +3577,14 @@ class ChartSeries(base_classes.ChartSeries):
         marker_background_color=base_classes._UNSET,
         line_color=base_classes._UNSET,
         fill_color=base_classes._UNSET,
+        chart_type=base_classes._UNSET,
+        axis_group=base_classes._UNSET,
     ):
         for attribute, value in (
+            # Changing the chart type or axis group can make Excel create or
+            # delete axes and reformat the series, so apply them first.
+            ("chart_type", chart_type),
+            ("axis_group", axis_group),
             ("name", name),
             # Excel may propagate series line/fill formatting to markers. Apply
             # explicit marker overrides afterwards so one bulk set preserves
@@ -4754,6 +4784,9 @@ marker_styles_s2k = {
     "plus": kw.marker_style_plus,
 }
 marker_styles_k2s = {v: k for k, v in marker_styles_s2k.items()}
+
+axis_groups_s2k = {"primary": kw.primary_axis, "secondary": kw.secondary_axis}
+axis_groups_k2s = {v: k for k, v in axis_groups_s2k.items()}
 
 # Note the differing keyword prefixes: horizontal_align_* vs vertical_alignment_*
 horizontal_alignments_s2k = {

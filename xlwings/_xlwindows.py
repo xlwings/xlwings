@@ -3591,6 +3591,14 @@ class Chart(base_classes.Chart):
         return ChartAxis(self, "value")
 
     @property
+    def secondary_category_axis(self):
+        return ChartAxis(self, "category", group="secondary")
+
+    @property
+    def secondary_value_axis(self):
+        return ChartAxis(self, "value", group="secondary")
+
+    @property
     def series(self):
         return ChartSeriesCollection(self.xl.SeriesCollection())
 
@@ -3759,6 +3767,22 @@ class ChartSeries(base_classes.ChartSeries):
         fill.Solid()
         fill.ForeColor.RGB = rgb_to_int(value)
 
+    @property
+    def chart_type(self):
+        return chart_types_i2s[self.xl.ChartType]
+
+    @chart_type.setter
+    def chart_type(self, value):
+        self.xl.ChartType = chart_types_s2i[value]
+
+    @property
+    def axis_group(self):
+        return axis_groups_i2s[self.xl.AxisGroup]
+
+    @axis_group.setter
+    def axis_group(self, value):
+        self.xl.AxisGroup = axis_groups_s2i[value]
+
     def set(
         self,
         *,
@@ -3769,8 +3793,14 @@ class ChartSeries(base_classes.ChartSeries):
         marker_background_color=base_classes._UNSET,
         line_color=base_classes._UNSET,
         fill_color=base_classes._UNSET,
+        chart_type=base_classes._UNSET,
+        axis_group=base_classes._UNSET,
     ):
         for attribute, value in (
+            # Changing the chart type or axis group can make Excel create or
+            # delete axes and reformat the series, so apply them first.
+            ("chart_type", chart_type),
+            ("axis_group", axis_group),
             ("name", name),
             # Excel may propagate series line/fill formatting to markers. Apply
             # explicit marker overrides afterwards so one bulk set preserves
@@ -3801,13 +3831,30 @@ class ChartAxis(base_classes.ChartAxis):
         "value": AxisType.xlValue,
     }
 
-    def __init__(self, parent, axis_type):
+    def __init__(self, parent, axis_type, group="primary"):
         self.parent = parent
         self.axis_type = axis_type
+        self.group = group
 
     @property
     def _xl_axis_type(self):
         return self._axis_types[self.axis_type]
+
+    @property
+    def _xl_axis_group(self):
+        if self.group == "primary":
+            return AxisGroup.xlPrimary
+        # Excel only has secondary axes while a series is plotted on them.
+        collection = self.parent.xl.SeriesCollection()
+        if not any(
+            collection.Item(ix).AxisGroup == AxisGroup.xlSecondary
+            for ix in range(1, collection.Count + 1)
+        ):
+            raise xlwings.XlwingsError(
+                "The chart has no secondary axis group. Move a series to it "
+                "first with series.axis_group = 'secondary'."
+            )
+        return AxisGroup.xlSecondary
 
     @property
     def visible(self):
@@ -3824,7 +3871,7 @@ class ChartAxis(base_classes.ChartAxis):
                 pythoncom.DISPATCH_PROPERTYGET,
                 1,
                 self._xl_axis_type,
-                AxisGroup.xlPrimary,
+                self._xl_axis_group,
             )
         )
 
@@ -3841,16 +3888,16 @@ class ChartAxis(base_classes.ChartAxis):
             pythoncom.DISPATCH_PROPERTYPUT,
             0,
             self._xl_axis_type,
-            AxisGroup.xlPrimary,
+            self._xl_axis_group,
             bool(value),
         )
 
     def _axis(self):
         if not self.visible:
             raise xlwings.XlwingsError(
-                f"The chart has no visible primary {self.axis_type} axis."
+                f"The chart has no visible {self.group} {self.axis_type} axis."
             )
-        return self.parent.xl.Axes(self._xl_axis_type, AxisGroup.xlPrimary)
+        return self.parent.xl.Axes(self._xl_axis_type, self._xl_axis_group)
 
     @property
     def api(self):
@@ -4593,6 +4640,12 @@ chart_types_s2i = {
 chart_types_i2s = {v: k for k, v in chart_types_s2i.items()}
 
 plot_by_s2i = {"rows": RowCol.xlRows, "columns": RowCol.xlColumns}
+
+axis_groups_s2i = {
+    "primary": AxisGroup.xlPrimary,
+    "secondary": AxisGroup.xlSecondary,
+}
+axis_groups_i2s = {v: k for k, v in axis_groups_s2i.items()}
 plot_by_i2s = {v: k for k, v in plot_by_s2i.items()}
 
 legend_positions_s2i = {

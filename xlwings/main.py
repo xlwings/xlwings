@@ -49,6 +49,7 @@ from .base_classes import (
     AUTOFILTER_CRITERIA_TYPES,
     BORDER_GRID_SIDES,
     BORDER_SIDES,
+    CHART_AXIS_GROUPS,
     CHART_LEGEND_POSITIONS,
     CHART_MARKER_STYLES,
     CHART_PLOT_BY,
@@ -69,6 +70,7 @@ from .base_classes import (
     BorderLineStyle,
     BorderSide,
     BorderWeight,
+    ChartAxisGroup,
     ChartLegendPosition,
     ChartMarkerStyle,
     ChartPlotBy,
@@ -6293,6 +6295,15 @@ def _chart_axis_scale(value: Any, name: str, *, positive: bool = False) -> float
     raise ValueError(f"Invalid {name} {value!r}. Must be {requirement} or None.")
 
 
+def _chart_axis_group(value: Any) -> ChartAxisGroup:
+    if isinstance(value, str) and value in CHART_AXIS_GROUPS:
+        return cast(ChartAxisGroup, value)
+    raise ValueError(
+        f"Invalid axis_group {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_AXIS_GROUPS)}."
+    )
+
+
 def _chart_marker_style(value: Any) -> ChartMarkerStyle:
     if isinstance(value, str) and value in CHART_MARKER_STYLES:
         return cast(ChartMarkerStyle, value)
@@ -6527,6 +6538,33 @@ class Chart:
         return ChartAxis(impl=self.impl.value_axis)
 
     @property
+    def secondary_category_axis(self) -> ChartAxis:
+        """Returns the chart's secondary category axis.
+
+        A chart only has secondary axes while at least one series is plotted on them, see {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`. Excel hides the secondary category axis by default; set `visible=True` to show it.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return ChartAxis(impl=self.impl.secondary_category_axis)
+
+    @property
+    def secondary_value_axis(self) -> ChartAxis:
+        """Returns the chart's secondary value axis.
+
+        A chart only has secondary axes while at least one series is plotted on them, see {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`.
+
+        ```pycon
+        >>> chart.series[1].set(chart_type="line_markers", axis_group="secondary")
+        >>> chart.secondary_value_axis.set(title="Margin", number_format="0%")
+        ```
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return ChartAxis(impl=self.impl.secondary_value_axis)
+
+    @property
     def series(self) -> ChartSeriesCollection:
         """Returns the chart's ordered series collection.
 
@@ -6730,7 +6768,7 @@ class Chart:
 
 
 class ChartAxis:
-    """A primary chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` or {attr}`Chart.value_axis <xlwings.Chart.value_axis>`.
+    """A chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` and {attr}`Chart.value_axis <xlwings.Chart.value_axis>` for the primary axes, or {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>` and {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>` for the secondary axes.
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
 
@@ -7000,6 +7038,32 @@ class ChartSeries:
     def fill_color(self, value: tuple[int, int, int] | str | int) -> None:
         self.set(fill_color=value)
 
+    @property
+    def chart_type(self) -> str:
+        """Returns or sets the series chart type, which turns the chart into a combination chart, e.g., columns and a line. See {attr}`Chart.chart_type <xlwings.Chart.chart_type>` for the possible values. Excel rejects combinations it doesn't support.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return self.impl.chart_type
+
+    @chart_type.setter
+    def chart_type(self, value: str) -> None:
+        self.set(chart_type=value)
+
+    @property
+    def axis_group(self) -> ChartAxisGroup:
+        """Returns or sets whether the series is plotted on the `"primary"` or `"secondary"` axes. Format the secondary axes via {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>` and {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return self.impl.axis_group
+
+    @axis_group.setter
+    def axis_group(self, value: ChartAxisGroup) -> None:
+        self.set(axis_group=value)
+
     def set(
         self,
         *,
@@ -7010,12 +7074,24 @@ class ChartSeries:
         marker_background_color: tuple[int, int, int] | str | int = _UNSET,
         line_color: tuple[int, int, int] | str | int = _UNSET,
         fill_color: tuple[int, int, int] | str | int = _UNSET,
+        chart_type: str = _UNSET,
+        axis_group: ChartAxisGroup = _UNSET,
     ) -> None:
         """Sets one or more series attributes in one operation.
 
         Only supplied attributes are changed, and all arguments are validated
-        before anything is written.
+        before anything is written. `chart_type` and `axis_group` are applied
+        before the formatting attributes, whatever the argument order, as
+        changing them can make Excel reformat the series.
+
+        ```pycon
+        >>> series.set(chart_type="line_markers", axis_group="secondary")
+        ```
         """
+        if chart_type is not _UNSET:
+            chart_type = _chart_type(chart_type)
+        if axis_group is not _UNSET:
+            axis_group = _chart_axis_group(axis_group)
         if name is not _UNSET:
             name = _chart_series_name(name)
         if marker_style is not _UNSET:
@@ -7049,6 +7125,8 @@ class ChartSeries:
                 marker_background_color,
                 line_color,
                 fill_color,
+                chart_type,
+                axis_group,
             )
         ):
             return
@@ -7060,6 +7138,8 @@ class ChartSeries:
             marker_background_color=marker_background_color,
             line_color=line_color,
             fill_color=fill_color,
+            chart_type=chart_type,
+            axis_group=axis_group,
         )
 
     async def get_name(self) -> str:
@@ -7110,6 +7190,26 @@ class ChartSeries:
         Requires xlwings Lite.
         """
         return await self.impl.get_fill_color()
+
+    async def get_chart_type(self) -> str:
+        """Fetches the series chart type.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return await self.impl.get_chart_type()
+
+    async def get_axis_group(self) -> ChartAxisGroup:
+        """Fetches whether the series is plotted on the primary or secondary axes.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return await self.impl.get_axis_group()
 
     def __repr__(self) -> str:
         return "<ChartSeries>"
