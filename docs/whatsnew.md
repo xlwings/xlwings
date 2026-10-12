@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.6 (unreleased)
+
+- Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.
+
 ## v0.37.5 (Sep 27, 2026)
 
 - xlwings Lite: added `await` {meth}`PivotTable.get_range <xlwings.PivotTable.get_range>` and `await` {meth}`PivotTable.get_data_body_range <xlwings.PivotTable.get_data_body_range>`.

@@ -9151,6 +9151,63 @@ class Font:
     def name(self, value: str) -> None:
         self.impl.name = value
 
+    def set(
+        self,
+        *,
+        bold: bool = _UNSET,
+        italic: bool = _UNSET,
+        size: float = _UNSET,
+        color: tuple[int, int, int] | str | int = _UNSET,
+        name: str = _UNSET,
+    ) -> None:
+        """Sets one or more font attributes in one go.
+
+        Only the attributes you pass are written. All arguments are validated before anything is written.
+
+        Args:
+            bold: See {attr}`Font.bold <xlwings.main.Font.bold>`.
+            italic: See {attr}`Font.italic <xlwings.main.Font.italic>`.
+            size: A positive font size, see {attr}`Font.size <xlwings.main.Font.size>`.
+            color: An RGB tuple, a hex string or an Excel color integer, see {attr}`Font.color <xlwings.main.Font.color>`.
+            name: See {attr}`Font.name <xlwings.main.Font.name>`.
+
+        Examples:
+            ```pycon
+            >>> sheet["A1:D1"].font.set(bold=True, size=14, color="#ff0000")
+            >>> sheet.shapes[0].font.set(italic=True, name="Arial")
+            ```
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        if bold is not _UNSET and not isinstance(bold, bool):
+            raise ValueError(f"Invalid bold {bold!r}. Must be True or False.")
+        if italic is not _UNSET and not isinstance(italic, bool):
+            raise ValueError(f"Invalid italic {italic!r}. Must be True or False.")
+        if size is not _UNSET and (
+            isinstance(size, bool)
+            or not isinstance(size, (int, float))
+            or not math.isfinite(size)
+            or size <= 0
+        ):
+            raise ValueError(
+                f"Invalid size {size!r}. Must be a positive finite number."
+            )
+        if color is not _UNSET:
+            color = _chart_series_color(color, "color")
+        if name is not _UNSET and (not isinstance(name, str) or not name):
+            raise ValueError(f"Invalid name {name!r}. Must be a non-empty string.")
+        if bold is not _UNSET:
+            self.impl.bold = bold
+        if italic is not _UNSET:
+            self.impl.italic = italic
+        if size is not _UNSET:
+            self.impl.size = size
+        if color is not _UNSET:
+            self.impl.color = color
+        if name is not _UNSET:
+            self.impl.name = name
+
     async def get_bold(self) -> bool | None:
         """Fetch the bold property on demand.
 
