@@ -96,3 +96,26 @@ def test_remote_row_get_count_preserves_queued_changes(monkeypatch):
     monkeypatch.setitem(sys.modules, "js", js)
     assert asyncio.run(rows.get_count()) == 2
     assert len(rows) == 3
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        ("B6:C8", r"use sheet\['B6:C8'\]"),
+        (None, "not NoneType"),
+    ],
+)
+def test_remote_table_add_requires_range_source(source, message):
+    sheet = remote_table().parent
+    with pytest.raises(TypeError, match=message):
+        sheet.tables.add(source=source)
+    assert sheet.book.json()["actions"] == []
+
+
+def test_remote_table_row_add_explains_nested_and_wrong_length_values():
+    table = remote_table()
+    with pytest.raises(ValueError, match="flat list"):
+        table.rows.add([["new", 3]])
+    with pytest.raises(ValueError, match="expected 2, got 1"):
+        table.rows.add(["new"])
+    assert table.parent.book.json()["actions"] == []
