@@ -682,6 +682,41 @@ def test_wrap_text_sends_real_booleans(book, value):
     assert last_action(book)["args"] == [value]
 
 
+def test_font_set_queues_supplied_attributes(book):
+    book.sheets[0]["A1:B2"].font.set(bold=True, size=14, color="#FF0000")
+    assert [a["func"] for a in actions(book)] == ["setFontProperty"] * 3
+    assert [a["args"] for a in actions(book)] == [
+        ["bold", True],
+        ["size", 14],
+        ["color", "#ff0000"],
+    ]
+
+
+def test_font_set_without_arguments_is_a_no_op(book):
+    book.sheets[0]["A1"].font.set()
+    assert actions(book) == []
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"bold": 1},
+        {"italic": "yes"},
+        {"size": 0},
+        {"size": True},
+        {"size": float("nan")},
+        {"size": float("inf")},
+        {"color": "#ff00"},
+        {"color": None},
+        {"name": ""},
+    ],
+)
+def test_font_set_validates_before_writing(book, kwargs):
+    with pytest.raises(ValueError):
+        book.sheets[0]["A1"].font.set(**{"name": "Arial", **kwargs})
+    assert actions(book) == []
+
+
 # --- action methods ---
 
 

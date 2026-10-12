@@ -49,6 +49,8 @@ from .base_classes import (
     AUTOFILTER_CRITERIA_TYPES,
     BORDER_GRID_SIDES,
     BORDER_SIDES,
+    CHART_AXIS_CROSSES,
+    CHART_AXIS_GROUPS,
     CHART_LEGEND_POSITIONS,
     CHART_MARKER_STYLES,
     CHART_PLOT_BY,
@@ -69,6 +71,8 @@ from .base_classes import (
     BorderLineStyle,
     BorderSide,
     BorderWeight,
+    ChartAxisCrosses,
+    ChartAxisGroup,
     ChartLegendPosition,
     ChartMarkerStyle,
     ChartPlotBy,
@@ -2012,6 +2016,41 @@ class Sheet:
         return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
 
+def _normalize_sort_keys(
+    keys: Any, ascending: Any, column_count: int, owner: str
+) -> tuple[list[int], list[bool]]:
+    if isinstance(keys, bool):
+        raise TypeError("keys must be one-based column positions")
+    if isinstance(keys, int):
+        normalized_keys = [keys]
+    elif isinstance(keys, Sequence) and not isinstance(keys, (str, bytes)):
+        normalized_keys = list(keys)
+    else:
+        raise TypeError("keys must be an integer or a sequence of integers")
+    if not normalized_keys:
+        raise ValueError("keys must contain at least one column")
+    if any(
+        not isinstance(key, int) or isinstance(key, bool) for key in normalized_keys
+    ):
+        raise TypeError("keys must contain only integers")
+    if any(key < 1 or key > column_count for key in normalized_keys):
+        raise ValueError(f"sort keys must be within the {owner}'s columns")
+    if len(set(normalized_keys)) != len(normalized_keys):
+        raise ValueError("sort keys must be unique")
+
+    if isinstance(ascending, bool):
+        normalized_ascending = [ascending] * len(normalized_keys)
+    elif isinstance(ascending, Sequence) and not isinstance(ascending, (str, bytes)):
+        normalized_ascending = list(ascending)
+        if len(normalized_ascending) != len(normalized_keys):
+            raise ValueError("ascending must have one boolean per key")
+        if any(not isinstance(direction, bool) for direction in normalized_ascending):
+            raise TypeError("ascending must contain only booleans")
+    else:
+        raise TypeError("ascending must be a boolean or a sequence of booleans")
+    return normalized_keys, normalized_ascending
+
+
 class Range:
     """Returns a Range object that represents a cell or a range of cells.
 
@@ -2266,46 +2305,16 @@ class Range:
             ascending: One direction for every key, or one boolean per key.
             has_headers: Whether to keep the first row in place as a header.
 
-        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported.
+        The range is not expanded to adjacent data. Ranges intersecting an Excel table are not supported; use {meth}`Table.sort <xlwings.main.Table.sort>` instead.
 
         Examples:
             ```python
             sheet["A1:D20"].sort([2, 1], [False, True], has_headers=True)
             ```
         """
-        if isinstance(keys, bool):
-            raise TypeError("keys must be one-based column positions")
-        if isinstance(keys, int):
-            normalized_keys = [keys]
-        elif isinstance(keys, Sequence) and not isinstance(keys, (str, bytes)):
-            normalized_keys = list(keys)
-        else:
-            raise TypeError("keys must be an integer or a sequence of integers")
-        if not normalized_keys:
-            raise ValueError("keys must contain at least one column")
-        if any(
-            not isinstance(key, int) or isinstance(key, bool) for key in normalized_keys
-        ):
-            raise TypeError("keys must contain only integers")
-        if any(key < 1 or key > self.shape[1] for key in normalized_keys):
-            raise ValueError("sort keys must be within the range's columns")
-        if len(set(normalized_keys)) != len(normalized_keys):
-            raise ValueError("sort keys must be unique")
-
-        if isinstance(ascending, bool):
-            normalized_ascending = [ascending] * len(normalized_keys)
-        elif isinstance(ascending, Sequence) and not isinstance(
-            ascending, (str, bytes)
-        ):
-            normalized_ascending = list(ascending)
-            if len(normalized_ascending) != len(normalized_keys):
-                raise ValueError("ascending must have one boolean per key")
-            if any(
-                not isinstance(direction, bool) for direction in normalized_ascending
-            ):
-                raise TypeError("ascending must contain only booleans")
-        else:
-            raise TypeError("ascending must be a boolean or a sequence of booleans")
+        normalized_keys, normalized_ascending = _normalize_sort_keys(
+            keys, ascending, self.shape[1], "range"
+        )
         if not isinstance(has_headers, bool):
             raise TypeError("has_headers must be a boolean")
         if has_headers and self.shape[0] < 2:
@@ -2322,7 +2331,8 @@ class Range:
                 and table_range.column <= self.column + self.shape[1] - 1
             ):
                 raise ValueError(
-                    "Range.sort() does not support ranges intersecting a table"
+                    "Range.sort() does not support ranges intersecting a table; "
+                    "use Table.sort() instead"
                 )
 
         self.impl.sort(normalized_keys, normalized_ascending, has_headers)
@@ -5924,6 +5934,33 @@ class Table:
         else:
             raise TypeError(type_error_msg)
 
+    def sort(
+        self,
+        keys: int | Sequence[int],
+        ascending: bool | Sequence[bool] = True,
+    ) -> None:
+        """Sort the table's data rows by one or more columns using Excel's native table sort.
+
+        Args:
+            keys: One-based column positions within the table, in priority order.
+            ascending: One direction for every key, or one boolean per key.
+
+        The header and totals rows stay in place. Calculated columns, row formatting, and the table's sort state are kept. In xlwings Lite, the sort is queued until the next sync.
+
+        ```{versionadded} 0.37.6
+        ```
+
+        Examples:
+            ```python
+            table = sheet.tables["Products"]
+            table.sort([3, 1], [False, True])
+            ```
+        """
+        normalized_keys, normalized_ascending = _normalize_sort_keys(
+            keys, ascending, self.range.shape[1], "table"
+        )
+        self.impl.sort(normalized_keys, normalized_ascending)
+
     def resize(self, range: Range) -> None:
         """Resize a Table by providing an xlwings range object
 
@@ -6026,8 +6063,16 @@ class TableRows(Collection[TableRow]):
         if values is not None:
             if not isinstance(values, (list, tuple)):
                 raise TypeError("values must be a one-dimensional list or tuple")
+            if any(isinstance(value, (list, tuple)) for value in values):
+                raise ValueError(
+                    "values must be a flat list with one value per table column, "
+                    "such as ['North', 10], not a nested list"
+                )
             if len(values) != self.impl.column_count:
-                raise ValueError("values must match the table column count")
+                raise ValueError(
+                    "values must contain one value per table column: "
+                    f"expected {self.impl.column_count}, got {len(values)}"
+                )
             for value in values:
                 if value is not None and not isinstance(value, (str, int, float, bool)):
                     raise TypeError(
@@ -6183,6 +6228,16 @@ class Tables(Collection[Table]):
 
         if not isinstance(has_headers, bool):
             raise TypeError("has_headers must be True or False")
+        if isinstance(source, str):
+            raise TypeError(
+                f"'source' must be a Range: use sheet[{source!r}], "
+                f"not the address string {source!r}."
+            )
+        if not isinstance(source, Range):
+            raise TypeError(
+                f"'source' must be a Range such as sheet['A1:C4'], "
+                f"not {type(source).__name__}."
+            )
 
         impl = self.impl.add(
             source_type=source_type,
@@ -6244,6 +6299,24 @@ def _chart_axis_scale(value: Any, name: str, *, positive: bool = False) -> float
             return value
     requirement = "a positive finite number" if positive else "a finite number"
     raise ValueError(f"Invalid {name} {value!r}. Must be {requirement} or None.")
+
+
+def _chart_axis_crosses(value: Any) -> ChartAxisCrosses:
+    if isinstance(value, str) and value in CHART_AXIS_CROSSES:
+        return cast(ChartAxisCrosses, value)
+    raise ValueError(
+        f"Invalid crosses {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_AXIS_CROSSES)}."
+    )
+
+
+def _chart_axis_group(value: Any) -> ChartAxisGroup:
+    if isinstance(value, str) and value in CHART_AXIS_GROUPS:
+        return cast(ChartAxisGroup, value)
+    raise ValueError(
+        f"Invalid axis_group {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_AXIS_GROUPS)}."
+    )
 
 
 def _chart_marker_style(value: Any) -> ChartMarkerStyle:
@@ -6480,6 +6553,33 @@ class Chart:
         return ChartAxis(impl=self.impl.value_axis)
 
     @property
+    def secondary_category_axis(self) -> ChartAxis:
+        """Returns the chart's secondary category axis.
+
+        A chart only has secondary axes while at least one series is plotted on them, see {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`. Excel hides the secondary category axis by default; set `visible=True` to show it.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return ChartAxis(impl=self.impl.secondary_category_axis)
+
+    @property
+    def secondary_value_axis(self) -> ChartAxis:
+        """Returns the chart's secondary value axis.
+
+        A chart only has secondary axes while at least one series is plotted on them, see {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`.
+
+        ```pycon
+        >>> chart.series[1].set(chart_type="line_markers", axis_group="secondary")
+        >>> chart.secondary_value_axis.set(title="Margin", number_format="0%")
+        ```
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return ChartAxis(impl=self.impl.secondary_value_axis)
+
+    @property
     def series(self) -> ChartSeriesCollection:
         """Returns the chart's ordered series collection.
 
@@ -6683,7 +6783,7 @@ class Chart:
 
 
 class ChartAxis:
-    """A primary chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` or {attr}`Chart.value_axis <xlwings.Chart.value_axis>`.
+    """A chart axis, accessed through {attr}`Chart.category_axis <xlwings.Chart.category_axis>` and {attr}`Chart.value_axis <xlwings.Chart.value_axis>` for the primary axes, or {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>` and {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>` for the secondary axes.
 
     Use {meth}`set` to change several attributes in one operation. On xlwings Lite, use the asynchronous getters to fetch the current values from Excel.
 
@@ -6760,6 +6860,31 @@ class ChartAxis:
     def visible(self, value: bool) -> None:
         self.set(visible=value)
 
+    @property
+    def reverse_order(self) -> bool:
+        """Returns or sets whether the axis plots its categories or values in reverse order ("Categories in reverse order" / "Values in reverse order" in Excel).
+
+        Bar charts draw the first category at the bottom; reversing the category axis puts it at the top. This only flips the display order, it doesn't sort: sort the source data to order the bars by value. Excel then also moves the value axis to the other side; set {attr}`crosses <xlwings.main.ChartAxis.crosses>` to `"maximum"` to keep it where it was:
+
+        ```pycon
+        >>> chart.category_axis.set(reverse_order=True, crosses="maximum")
+        ```
+        """
+        return self.impl.reverse_order
+
+    @reverse_order.setter
+    def reverse_order(self, value: bool) -> None:
+        self.set(reverse_order=value)
+
+    @property
+    def crosses(self) -> str:
+        """Returns or sets where the other axis crosses this axis: `"automatic"`, `"minimum"`, or `"maximum"`. On a category axis, `"maximum"` means the value axis crosses at the last category. Reads return `"custom"` if the crossing point was set to a specific value in Excel."""
+        return self.impl.crosses
+
+    @crosses.setter
+    def crosses(self, value: ChartAxisCrosses) -> None:
+        self.set(crosses=value)
+
     def set(
         self,
         *,
@@ -6769,6 +6894,8 @@ class ChartAxis:
         major_unit: float | None = _UNSET,
         number_format: str = _UNSET,
         visible: bool = _UNSET,
+        reverse_order: bool = _UNSET,
+        crosses: ChartAxisCrosses = _UNSET,
     ) -> None:
         """Sets one or more axis attributes in one operation.
 
@@ -6781,6 +6908,8 @@ class ChartAxis:
             major_unit: Positive major-unit interval, or `None` for automatic.
             number_format: Format code for the tick labels.
             visible: Whether the axis is shown.
+            reverse_order: Whether the axis is plotted in reverse order.
+            crosses: Where the other axis crosses this axis: `"automatic"`, `"minimum"`, or `"maximum"`.
         """
         if title is not _UNSET and title is not None and not isinstance(title, str):
             raise ValueError(
@@ -6798,6 +6927,12 @@ class ChartAxis:
             )
         if visible is not _UNSET and not isinstance(visible, bool):
             raise ValueError(f"Invalid visible {visible!r}. Must be True or False.")
+        if reverse_order is not _UNSET and not isinstance(reverse_order, bool):
+            raise ValueError(
+                f"Invalid reverse_order {reverse_order!r}. Must be True or False."
+            )
+        if crosses is not _UNSET:
+            crosses = _chart_axis_crosses(crosses)
         if all(
             value is _UNSET
             for value in (
@@ -6807,6 +6942,8 @@ class ChartAxis:
                 major_unit,
                 number_format,
                 visible,
+                reverse_order,
+                crosses,
             )
         ):
             return
@@ -6817,6 +6954,8 @@ class ChartAxis:
             major_unit=major_unit,
             number_format=number_format,
             visible=visible,
+            reverse_order=reverse_order,
+            crosses=crosses,
         )
 
     async def get_title(self) -> str | None:
@@ -6860,6 +6999,20 @@ class ChartAxis:
         Requires xlwings Lite.
         """
         return await self.impl.get_visible()
+
+    async def get_reverse_order(self) -> bool:
+        """Fetches whether the axis is plotted in reverse order.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_reverse_order()
+
+    async def get_crosses(self) -> str:
+        """Fetches where the other axis crosses this axis: `"automatic"`, `"minimum"`, `"maximum"`, or `"custom"`.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_crosses()
 
     def __repr__(self) -> str:
         return "<ChartAxis>"
@@ -6953,6 +7106,32 @@ class ChartSeries:
     def fill_color(self, value: tuple[int, int, int] | str | int) -> None:
         self.set(fill_color=value)
 
+    @property
+    def chart_type(self) -> str:
+        """Returns or sets the series chart type, which turns the chart into a combination chart, e.g., columns and a line. See {attr}`Chart.chart_type <xlwings.Chart.chart_type>` for the possible values. Excel rejects combinations it doesn't support.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return self.impl.chart_type
+
+    @chart_type.setter
+    def chart_type(self, value: str) -> None:
+        self.set(chart_type=value)
+
+    @property
+    def axis_group(self) -> ChartAxisGroup:
+        """Returns or sets whether the series is plotted on the `"primary"` or `"secondary"` axes. Format the secondary axes via {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>` and {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return self.impl.axis_group
+
+    @axis_group.setter
+    def axis_group(self, value: ChartAxisGroup) -> None:
+        self.set(axis_group=value)
+
     def set(
         self,
         *,
@@ -6963,12 +7142,24 @@ class ChartSeries:
         marker_background_color: tuple[int, int, int] | str | int = _UNSET,
         line_color: tuple[int, int, int] | str | int = _UNSET,
         fill_color: tuple[int, int, int] | str | int = _UNSET,
+        chart_type: str = _UNSET,
+        axis_group: ChartAxisGroup = _UNSET,
     ) -> None:
         """Sets one or more series attributes in one operation.
 
         Only supplied attributes are changed, and all arguments are validated
-        before anything is written.
+        before anything is written. `chart_type` and `axis_group` are applied
+        before the formatting attributes, whatever the argument order, as
+        changing them can make Excel reformat the series.
+
+        ```pycon
+        >>> series.set(chart_type="line_markers", axis_group="secondary")
+        ```
         """
+        if chart_type is not _UNSET:
+            chart_type = _chart_type(chart_type)
+        if axis_group is not _UNSET:
+            axis_group = _chart_axis_group(axis_group)
         if name is not _UNSET:
             name = _chart_series_name(name)
         if marker_style is not _UNSET:
@@ -7002,6 +7193,8 @@ class ChartSeries:
                 marker_background_color,
                 line_color,
                 fill_color,
+                chart_type,
+                axis_group,
             )
         ):
             return
@@ -7013,6 +7206,8 @@ class ChartSeries:
             marker_background_color=marker_background_color,
             line_color=line_color,
             fill_color=fill_color,
+            chart_type=chart_type,
+            axis_group=axis_group,
         )
 
     async def get_name(self) -> str:
@@ -7063,6 +7258,26 @@ class ChartSeries:
         Requires xlwings Lite.
         """
         return await self.impl.get_fill_color()
+
+    async def get_chart_type(self) -> str:
+        """Fetches the series chart type.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return await self.impl.get_chart_type()
+
+    async def get_axis_group(self) -> ChartAxisGroup:
+        """Fetches whether the series is plotted on the primary or secondary axes.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        return await self.impl.get_axis_group()
 
     def __repr__(self) -> str:
         return "<ChartSeries>"
@@ -9136,6 +9351,63 @@ class Font:
     @name.setter
     def name(self, value: str) -> None:
         self.impl.name = value
+
+    def set(
+        self,
+        *,
+        bold: bool = _UNSET,
+        italic: bool = _UNSET,
+        size: float = _UNSET,
+        color: tuple[int, int, int] | str | int = _UNSET,
+        name: str = _UNSET,
+    ) -> None:
+        """Sets one or more font attributes in one go.
+
+        Only the attributes you pass are written. All arguments are validated before anything is written.
+
+        Args:
+            bold: See {attr}`Font.bold <xlwings.main.Font.bold>`.
+            italic: See {attr}`Font.italic <xlwings.main.Font.italic>`.
+            size: A positive font size, see {attr}`Font.size <xlwings.main.Font.size>`.
+            color: An RGB tuple, a hex string or an Excel color integer, see {attr}`Font.color <xlwings.main.Font.color>`.
+            name: See {attr}`Font.name <xlwings.main.Font.name>`.
+
+        Examples:
+            ```pycon
+            >>> sheet["A1:D1"].font.set(bold=True, size=14, color="#ff0000")
+            >>> sheet.shapes[0].font.set(italic=True, name="Arial")
+            ```
+
+        ```{versionadded} 0.37.6
+        ```
+        """
+        if bold is not _UNSET and not isinstance(bold, bool):
+            raise ValueError(f"Invalid bold {bold!r}. Must be True or False.")
+        if italic is not _UNSET and not isinstance(italic, bool):
+            raise ValueError(f"Invalid italic {italic!r}. Must be True or False.")
+        if size is not _UNSET and (
+            isinstance(size, bool)
+            or not isinstance(size, (int, float))
+            or not math.isfinite(size)
+            or size <= 0
+        ):
+            raise ValueError(
+                f"Invalid size {size!r}. Must be a positive finite number."
+            )
+        if color is not _UNSET:
+            color = _chart_series_color(color, "color")
+        if name is not _UNSET and (not isinstance(name, str) or not name):
+            raise ValueError(f"Invalid name {name!r}. Must be a non-empty string.")
+        if bold is not _UNSET:
+            self.impl.bold = bold
+        if italic is not _UNSET:
+            self.impl.italic = italic
+        if size is not _UNSET:
+            self.impl.size = size
+        if color is not _UNSET:
+            self.impl.color = color
+        if name is not _UNSET:
+            self.impl.name = name
 
     async def get_bold(self) -> bool | None:
         """Fetch the bold property on demand.

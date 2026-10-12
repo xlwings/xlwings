@@ -284,6 +284,10 @@ BORDER_GRID_SIDES = BORDER_SIDES[:6]
 # main.Chart validates them so engines only ever see the canonical names.
 ChartLegendPosition = Literal["top", "bottom", "left", "right", "corner"]
 ChartPlotBy = Literal["rows", "columns"]
+ChartAxisGroup = Literal["primary", "secondary"]
+# Where the other axis crosses this axis. Excel can also report "custom" when
+# the crossing point was set to a specific value in Excel.
+ChartAxisCrosses = Literal["automatic", "minimum", "maximum"]
 ChartMarkerStyle = Literal[
     "automatic",
     "none",
@@ -299,6 +303,8 @@ ChartMarkerStyle = Literal[
 ]
 CHART_LEGEND_POSITIONS: tuple[str, ...] = get_args(ChartLegendPosition)
 CHART_PLOT_BY: tuple[str, ...] = get_args(ChartPlotBy)
+CHART_AXIS_GROUPS: tuple[str, ...] = get_args(ChartAxisGroup)
+CHART_AXIS_CROSSES: tuple[str, ...] = get_args(ChartAxisCrosses)
 CHART_MARKER_STYLES: tuple[str, ...] = get_args(ChartMarkerStyle)
 
 # The pivot table vocabulary. PivotFunction lists Excel's "Summarize Values By"
@@ -1956,6 +1962,9 @@ class ConditionalFormats(Collection):
 
 
 class Table:
+    def sort(self, keys, ascending):
+        raise NotImplementedError()
+
     @property
     def columns(self):
         raise NotImplementedError()
@@ -2205,6 +2214,14 @@ class Chart:
         raise NotImplementedError()
 
     @property
+    def secondary_category_axis(self):
+        raise NotImplementedError()
+
+    @property
+    def secondary_value_axis(self):
+        raise NotImplementedError()
+
+    @property
     def series(self):
         raise NotImplementedError()
 
@@ -2325,6 +2342,22 @@ class ChartAxis:
     def visible(self, value):
         raise NotImplementedError()
 
+    @property
+    def reverse_order(self):
+        raise NotImplementedError()
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        raise NotImplementedError()
+
+    @property
+    def crosses(self):
+        raise NotImplementedError()
+
+    @crosses.setter
+    def crosses(self, value):
+        raise NotImplementedError()
+
     def set(
         self,
         *,
@@ -2334,6 +2367,8 @@ class ChartAxis:
         major_unit=_UNSET,
         number_format=_UNSET,
         visible=_UNSET,
+        reverse_order=_UNSET,
+        crosses=_UNSET,
     ):
         raise NotImplementedError()
 
@@ -2360,6 +2395,14 @@ class ChartAxis:
 
     async def get_visible(self):
         raise NotImplementedError("get_visible() is only supported in xlwings Lite")
+
+    async def get_reverse_order(self):
+        raise NotImplementedError(
+            "get_reverse_order() is only supported in xlwings Lite"
+        )
+
+    async def get_crosses(self):
+        raise NotImplementedError("get_crosses() is only supported in xlwings Lite")
 
 
 class ChartSeries:
@@ -2423,6 +2466,22 @@ class ChartSeries:
     def fill_color(self, value):
         raise NotImplementedError()
 
+    @property
+    def chart_type(self):
+        raise NotImplementedError()
+
+    @chart_type.setter
+    def chart_type(self, value):
+        raise NotImplementedError()
+
+    @property
+    def axis_group(self):
+        raise NotImplementedError()
+
+    @axis_group.setter
+    def axis_group(self, value):
+        raise NotImplementedError()
+
     def set(
         self,
         *,
@@ -2433,6 +2492,8 @@ class ChartSeries:
         marker_background_color=_UNSET,
         line_color=_UNSET,
         fill_color=_UNSET,
+        chart_type=_UNSET,
+        axis_group=_UNSET,
     ):
         raise NotImplementedError()
 
@@ -2462,6 +2523,12 @@ class ChartSeries:
 
     async def get_fill_color(self):
         raise NotImplementedError("get_fill_color() is only supported in xlwings Lite")
+
+    async def get_chart_type(self):
+        raise NotImplementedError("get_chart_type() is only supported in xlwings Lite")
+
+    async def get_axis_group(self):
+        raise NotImplementedError("get_axis_group() is only supported in xlwings Lite")
 
 
 class ChartSeriesCollection(Collection):

@@ -395,7 +395,6 @@ class TestChartFormatting(TestBase):
         axis.title = "Revenue"
         self.assertEqual(sht.charts["Renamed"].value_axis.title, "Revenue")
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
     def test_axis_bulk_set_formats_hidden_axis_before_hiding(self):
         _, chart = self._chart()
         axis = chart.value_axis
@@ -408,6 +407,17 @@ class TestChartFormatting(TestBase):
         self.assertEqual(axis.minimum_scale, 0)
         self.assertEqual(axis.number_format, "0.0")
 
+    def test_axis_reverse_order_and_crosses(self):
+        sht, chart = self._chart()
+        chart.category_axis.set(reverse_order=True, crosses="maximum")
+        self.assertTrue(sht.charts[0].category_axis.reverse_order)
+        self.assertEqual(sht.charts[0].category_axis.crosses, "maximum")
+
+        chart.category_axis.reverse_order = False
+        chart.category_axis.crosses = "automatic"
+        self.assertFalse(chart.category_axis.reverse_order)
+        self.assertEqual(chart.category_axis.crosses, "automatic")
+
     def test_axis_validation(self):
         _, chart = self._chart()
         for kwargs in [
@@ -417,6 +427,8 @@ class TestChartFormatting(TestBase):
             {"major_unit": 0},
             {"number_format": None},
             {"visible": 1},
+            {"reverse_order": 1},
+            {"crosses": "custom"},
         ]:
             with self.assertRaises(ValueError):
                 chart.value_axis.set(**kwargs)
@@ -462,11 +474,59 @@ class TestChartFormatting(TestBase):
             with self.assertRaises(ValueError):
                 chart.series[0].set(**kwargs)
 
-    @unittest.skipUnless(sys.platform.startswith("darwin"), "macOS only")
-    def test_axes_report_the_apple_script_limitation_on_mac(self):
-        _, chart = self._chart()
-        with self.assertRaisesRegex(NotImplementedError, "AppleScript"):
-            chart.value_axis.title
+    def test_series_chart_type_and_axis_group(self):
+        sht, chart = self._chart()
+        chart.chart_type = "column_clustered"
+        chart.series[1].set(
+            line_color=(1, 2, 3), axis_group="secondary", chart_type="line_markers"
+        )
+
+        actual = sht.charts[0].series[1]
+        self.assertEqual(actual.chart_type, "line_markers")
+        self.assertEqual(actual.axis_group, "secondary")
+        self.assertEqual(actual.line_color, (1, 2, 3))
+        self.assertEqual(sht.charts[0].series[0].chart_type, "column_clustered")
+        self.assertEqual(sht.charts[0].series[0].axis_group, "primary")
+
+        actual.axis_group = "primary"
+        self.assertEqual(sht.charts[0].series[1].axis_group, "primary")
+
+        for kwargs in [{"axis_group": "Secondary"}, {"chart_type": "LineMarkers"}]:
+            with self.assertRaises(ValueError):
+                chart.series[0].set(**kwargs)
+
+    def test_secondary_axes(self):
+        sht, chart = self._chart()
+        chart.chart_type = "column_clustered"
+        with self.assertRaisesRegex(xw.XlwingsError, "no secondary axis group"):
+            chart.secondary_value_axis.title = "Margin"
+
+        chart.series[1].set(chart_type="line_markers", axis_group="secondary")
+        chart.value_axis.set(title="Revenue", minimum_scale=0)
+        chart.secondary_value_axis.set(
+            title="Margin", minimum_scale=5, number_format="0.0"
+        )
+
+        actual = sht.charts[0]
+        self.assertEqual(actual.value_axis.title, "Revenue")
+        self.assertEqual(actual.value_axis.minimum_scale, 0)
+        self.assertEqual(actual.secondary_value_axis.title, "Margin")
+        self.assertEqual(actual.secondary_value_axis.minimum_scale, 5)
+        self.assertEqual(actual.secondary_value_axis.number_format, "0.0")
+        self.assertTrue(actual.secondary_value_axis.visible)
+
+        self.assertFalse(actual.secondary_category_axis.visible)
+        self.assertIsNone(actual.secondary_category_axis.title)
+        with self.assertRaisesRegex(xw.XlwingsError, "visible secondary category"):
+            actual.secondary_category_axis.number_format = "0"
+        actual.secondary_category_axis.set(visible=True, title="Period")
+        self.assertTrue(actual.secondary_category_axis.visible)
+        self.assertEqual(actual.secondary_category_axis.title, "Period")
+        self.assertNotEqual(actual.category_axis.title, "Period")
+
+        chart.series[1].axis_group = "primary"
+        with self.assertRaisesRegex(xw.XlwingsError, "no secondary axis group"):
+            actual.secondary_value_axis.visible
 
     def test_plot_by(self):
         sht, chart = self._chart()

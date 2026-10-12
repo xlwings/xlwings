@@ -208,6 +208,8 @@ _MARKER_STYLE_PY2JS = {
     "plus": "Plus",
 }
 _MARKER_STYLE_JS2PY = {v: k for k, v in _MARKER_STYLE_PY2JS.items()}
+_AXIS_GROUP_PY2JS = {"primary": "Primary", "secondary": "Secondary"}
+_AXIS_GROUP_JS2PY = {v: k for k, v in _AXIS_GROUP_PY2JS.items()}
 
 # xlwings' pivot vocabulary mapped to Office.js' Excel.AggregationFunction and
 # Excel.PivotLayoutType values. main.py validates, so plain lookups suffice.
@@ -3106,6 +3108,11 @@ class Table(base_classes.Table):
     def autofilter(self):
         return AutoFilter(self.range, table_index=self.index - 1)
 
+    def sort(self, keys, ascending):
+        self.append_json_action(
+            func="tableSort", args=[self.index - 1, keys, ascending]
+        )
+
     def __init__(self, parent, key):
         self._parent = parent
         self._api = self.parent.api["tables"][key - 1]
@@ -3702,6 +3709,14 @@ class Chart(base_classes.Chart):
         return ChartAxis(self, "value")
 
     @property
+    def secondary_category_axis(self):
+        return ChartAxis(self, "secondary_category")
+
+    @property
+    def secondary_value_axis(self):
+        return ChartAxis(self, "secondary_value")
+
+    @property
     def series(self):
         if self._pending is not None:
             raise XlwingsError(
@@ -3984,6 +3999,22 @@ class ChartSeries(base_classes.ChartSeries):
     def fill_color(self, value):
         self.set(fill_color=value)
 
+    @property
+    def chart_type(self):
+        return self._local_or_raise("chart_type")
+
+    @chart_type.setter
+    def chart_type(self, value):
+        self.set(chart_type=value)
+
+    @property
+    def axis_group(self):
+        return self._local_or_raise("axis_group")
+
+    @axis_group.setter
+    def axis_group(self, value):
+        self.set(axis_group=value)
+
     def set(
         self,
         *,
@@ -3994,10 +4025,16 @@ class ChartSeries(base_classes.ChartSeries):
         marker_background_color=base_classes._UNSET,
         line_color=base_classes._UNSET,
         fill_color=base_classes._UNSET,
+        chart_type=base_classes._UNSET,
+        axis_group=base_classes._UNSET,
     ):
         values = {}
         local_values = {}
         for attribute, value in (
+            # The JS callback applies chart_type and axis_group first anyway;
+            # the payload order just mirrors that.
+            ("chart_type", chart_type),
+            ("axis_group", axis_group),
             ("name", name),
             ("marker_style", marker_style),
             ("marker_size", marker_size),
@@ -4011,12 +4048,22 @@ class ChartSeries(base_classes.ChartSeries):
             local_values[attribute] = value
             if attribute == "marker_style":
                 values[attribute] = _MARKER_STYLE_PY2JS[value]
+            elif attribute == "chart_type":
+                values[attribute] = _CHART_TYPE_PY2JS[value]
+            elif attribute == "axis_group":
+                values[attribute] = _AXIS_GROUP_PY2JS[value]
             elif attribute.endswith("_color"):
                 values[attribute] = _color_to_hex(value)
             else:
                 values[attribute] = value
         if not values:
             return
+        if "chart_type" in values or "axis_group" in values:
+            # Excel creates or removes secondary axes as series move between
+            # axis groups or change type, so earlier secondary axis writes
+            # may no longer describe the chart.
+            for key in [k for k in self.parent.api if k.startswith("secondary_")]:
+                del self.parent.api[key]
         for attribute, value in local_values.items():
             self.parent.api[self._state_key(attribute)] = value
         self.parent.append_json_action(
@@ -4039,6 +4086,10 @@ class ChartSeries(base_classes.ChartSeries):
         value = _normalize_jsnull(data_js.to_py())[key]
         if key == "marker_style":
             return _MARKER_STYLE_JS2PY.get(value, value)
+        if key == "chart_type":
+            return _CHART_TYPE_JS2PY.get(value, value)
+        if key == "axis_group":
+            return _AXIS_GROUP_JS2PY.get(value, value)
         if key == "marker_size" and value is not None:
             return int(value)
         if key.endswith("_color"):
@@ -4065,6 +4116,12 @@ class ChartSeries(base_classes.ChartSeries):
 
     async def get_fill_color(self):
         return await self._get_series_data("fill_color")
+
+    async def get_chart_type(self):
+        return await self._get_series_data("chart_type")
+
+    async def get_axis_group(self):
+        return await self._get_series_data("axis_group")
 
 
 class ChartSeriesCollection(base_classes.ChartSeriesCollection):
@@ -4117,9 +4174,32 @@ class ChartSeriesCollection(base_classes.ChartSeriesCollection):
 
 
 class ChartAxis(base_classes.ChartAxis):
+    # axis_type is "category", "value", "secondary_category" or
+    # "secondary_value". It travels as one string so JS that predates secondary
+    # axes rejects them rather than formatting a primary axis.
     def __init__(self, parent, axis_type):
         self.parent = parent
         self.axis_type = axis_type
+
+    @property
+    def _secondary(self):
+        return self.axis_type.startswith("secondary_")
+
+    @property
+    def _label(self):
+        if self._secondary:
+            return self.axis_type.replace("_", " ")
+        return f"primary {self.axis_type}"
+
+    def _require_created(self):
+        # A chart waiting for source data has no series, so none can be on
+        # the secondary axis group yet.
+        if self._secondary and self.parent._pending is not None:
+            raise XlwingsError(
+                "The chart has no secondary axis group. Call "
+                "Chart.set_source_data() and move a series to it first with "
+                "series.axis_group = 'secondary'."
+            )
 
     @property
     def api(self):
@@ -4134,7 +4214,7 @@ class ChartAxis(base_classes.ChartAxis):
     def _local_or_raise(self, attribute):
         return self.parent._local_or_raise(
             self._state_key(attribute),
-            f"primary {self.axis_type} axis {attribute}",
+            f"{self._label} axis {attribute}",
         )
 
     def _queue(self, values):
@@ -4221,6 +4301,28 @@ class ChartAxis(base_classes.ChartAxis):
     def visible(self, value):
         self.set(visible=value)
 
+    @property
+    def reverse_order(self):
+        try:
+            return self._local_or_raise("reverse_order")
+        except NotImplementedError:
+            raise self._sync_read_error("get_reverse_order") from None
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self.set(reverse_order=value)
+
+    @property
+    def crosses(self):
+        try:
+            return self._local_or_raise("crosses")
+        except NotImplementedError:
+            raise self._sync_read_error("get_crosses") from None
+
+    @crosses.setter
+    def crosses(self, value):
+        self.set(crosses=value)
+
     def set(
         self,
         *,
@@ -4230,7 +4332,10 @@ class ChartAxis(base_classes.ChartAxis):
         major_unit=base_classes._UNSET,
         number_format=base_classes._UNSET,
         visible=base_classes._UNSET,
+        reverse_order=base_classes._UNSET,
+        crosses=base_classes._UNSET,
     ):
+        self._require_created()
         values = {}
         for attribute, value in (
             ("title", title),
@@ -4239,6 +4344,8 @@ class ChartAxis(base_classes.ChartAxis):
             ("major_unit", major_unit),
             ("number_format", number_format),
             ("visible", visible),
+            ("reverse_order", reverse_order),
+            ("crosses", crosses),
         ):
             if value is base_classes._UNSET:
                 continue
@@ -4296,6 +4403,12 @@ class ChartAxis(base_classes.ChartAxis):
 
     async def get_visible(self):
         return await self._get_axis_data("visible")
+
+    async def get_reverse_order(self):
+        return await self._get_axis_data("reverse_order")
+
+    async def get_crosses(self):
+        return await self._get_axis_data("crosses")
 
 
 class ChartLegend(base_classes.ChartLegend):
