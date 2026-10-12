@@ -6022,8 +6022,16 @@ class TableRows(Collection[TableRow]):
         if values is not None:
             if not isinstance(values, (list, tuple)):
                 raise TypeError("values must be a one-dimensional list or tuple")
+            if any(isinstance(value, (list, tuple)) for value in values):
+                raise ValueError(
+                    "values must be a flat list with one value per table column, "
+                    "such as ['North', 10], not a nested list"
+                )
             if len(values) != self.impl.column_count:
-                raise ValueError("values must match the table column count")
+                raise ValueError(
+                    "values must contain one value per table column: "
+                    f"expected {self.impl.column_count}, got {len(values)}"
+                )
             for value in values:
                 if value is not None and not isinstance(value, (str, int, float, bool)):
                     raise TypeError(
@@ -6179,6 +6187,16 @@ class Tables(Collection[Table]):
 
         if not isinstance(has_headers, bool):
             raise TypeError("has_headers must be True or False")
+        if isinstance(source, str):
+            raise TypeError(
+                f"'source' must be a Range: use sheet[{source!r}], "
+                f"not the address string {source!r}."
+            )
+        if not isinstance(source, Range):
+            raise TypeError(
+                f"'source' must be a Range such as sheet['A1:C4'], "
+                f"not {type(source).__name__}."
+            )
 
         impl = self.impl.add(
             source_type=source_type,
