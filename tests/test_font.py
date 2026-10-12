@@ -106,3 +106,29 @@ def test_shape_font_name(app):
     assert shape.font.name == "Calibri"
     shape.font.name = "Arial"
     assert shape.font.name == "Arial"
+
+
+# set()
+def test_range_font_set(app):
+    sheet = app.books[0].sheets[0]
+    sheet["A1"].value = "text"
+    sheet["A1"].font.set(bold=True, italic=True, size=21, color="#00FF00", name="Arial")
+    font = sheet["A1"].font
+    assert font.bold is True
+    assert font.italic is True
+    assert font.size == 21
+    assert font.color == (0, 255, 0)
+    assert font.name == "Arial"
+    # Only the supplied attributes change
+    sheet["A1"].font.set(bold=False)
+    assert font.bold is False
+    assert font.italic is True
+
+
+def test_shape_font_set(app):
+    shape = xw.Book("test book.xlsx").sheets["shape"].shapes[0]
+    shape.text = "text"
+    shape.font.set(bold=True, size=22, color=(255, 0, 0))
+    assert shape.font.bold is True
+    assert shape.font.size == 22
+    assert shape.font.color == (255, 0, 0)
