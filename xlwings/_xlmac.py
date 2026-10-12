@@ -3674,6 +3674,22 @@ class ChartAxis(base_classes.ChartAxis):
     def visible(self, value):
         self._unsupported()
 
+    @property
+    def reverse_order(self):
+        self._unsupported()
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self._unsupported()
+
+    @property
+    def crosses(self):
+        self._unsupported()
+
+    @crosses.setter
+    def crosses(self, value):
+        self._unsupported()
+
     def set(
         self,
         *,
@@ -3683,6 +3699,8 @@ class ChartAxis(base_classes.ChartAxis):
         major_unit=base_classes._UNSET,
         number_format=base_classes._UNSET,
         visible=base_classes._UNSET,
+        reverse_order=base_classes._UNSET,
+        crosses=base_classes._UNSET,
     ):
         self._unsupported()
 

@@ -408,6 +408,18 @@ class TestChartFormatting(TestBase):
         self.assertEqual(axis.minimum_scale, 0)
         self.assertEqual(axis.number_format, "0.0")
 
+    @unittest.skipUnless(sys.platform.startswith("win"), "Windows only")
+    def test_axis_reverse_order_and_crosses(self):
+        sht, chart = self._chart()
+        chart.category_axis.set(reverse_order=True, crosses="maximum")
+        self.assertTrue(sht.charts[0].category_axis.reverse_order)
+        self.assertEqual(sht.charts[0].category_axis.crosses, "maximum")
+
+        chart.category_axis.reverse_order = False
+        chart.category_axis.crosses = "automatic"
+        self.assertFalse(chart.category_axis.reverse_order)
+        self.assertEqual(chart.category_axis.crosses, "automatic")
+
     def test_axis_validation(self):
         _, chart = self._chart()
         for kwargs in [
@@ -417,6 +429,8 @@ class TestChartFormatting(TestBase):
             {"major_unit": 0},
             {"number_format": None},
             {"visible": 1},
+            {"reverse_order": 1},
+            {"crosses": "custom"},
         ]:
             with self.assertRaises(ValueError):
                 chart.value_axis.set(**kwargs)

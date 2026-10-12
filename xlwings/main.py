@@ -49,6 +49,7 @@ from .base_classes import (
     AUTOFILTER_CRITERIA_TYPES,
     BORDER_GRID_SIDES,
     BORDER_SIDES,
+    CHART_AXIS_CROSSES,
     CHART_AXIS_GROUPS,
     CHART_LEGEND_POSITIONS,
     CHART_MARKER_STYLES,
@@ -70,6 +71,7 @@ from .base_classes import (
     BorderLineStyle,
     BorderSide,
     BorderWeight,
+    ChartAxisCrosses,
     ChartAxisGroup,
     ChartLegendPosition,
     ChartMarkerStyle,
@@ -6295,6 +6297,15 @@ def _chart_axis_scale(value: Any, name: str, *, positive: bool = False) -> float
     raise ValueError(f"Invalid {name} {value!r}. Must be {requirement} or None.")
 
 
+def _chart_axis_crosses(value: Any) -> ChartAxisCrosses:
+    if isinstance(value, str) and value in CHART_AXIS_CROSSES:
+        return cast(ChartAxisCrosses, value)
+    raise ValueError(
+        f"Invalid crosses {value!r}. Valid values are: "
+        f"{', '.join(repr(v) for v in CHART_AXIS_CROSSES)}."
+    )
+
+
 def _chart_axis_group(value: Any) -> ChartAxisGroup:
     if isinstance(value, str) and value in CHART_AXIS_GROUPS:
         return cast(ChartAxisGroup, value)
@@ -6845,6 +6856,31 @@ class ChartAxis:
     def visible(self, value: bool) -> None:
         self.set(visible=value)
 
+    @property
+    def reverse_order(self) -> bool:
+        """Returns or sets whether the axis plots its categories or values in reverse order ("Categories in reverse order" / "Values in reverse order" in Excel).
+
+        Bar charts draw the first category at the bottom; reversing the category axis puts it at the top. This only flips the display order, it doesn't sort: sort the source data to order the bars by value. Excel then also moves the value axis to the other side; set {attr}`crosses <xlwings.main.ChartAxis.crosses>` to `"maximum"` to keep it where it was:
+
+        ```pycon
+        >>> chart.category_axis.set(reverse_order=True, crosses="maximum")
+        ```
+        """
+        return self.impl.reverse_order
+
+    @reverse_order.setter
+    def reverse_order(self, value: bool) -> None:
+        self.set(reverse_order=value)
+
+    @property
+    def crosses(self) -> str:
+        """Returns or sets where the other axis crosses this axis: `"automatic"`, `"minimum"`, or `"maximum"`. On a category axis, `"maximum"` means the value axis crosses at the last category. Reads return `"custom"` if the crossing point was set to a specific value in Excel."""
+        return self.impl.crosses
+
+    @crosses.setter
+    def crosses(self, value: ChartAxisCrosses) -> None:
+        self.set(crosses=value)
+
     def set(
         self,
         *,
@@ -6854,6 +6890,8 @@ class ChartAxis:
         major_unit: float | None = _UNSET,
         number_format: str = _UNSET,
         visible: bool = _UNSET,
+        reverse_order: bool = _UNSET,
+        crosses: ChartAxisCrosses = _UNSET,
     ) -> None:
         """Sets one or more axis attributes in one operation.
 
@@ -6866,6 +6904,8 @@ class ChartAxis:
             major_unit: Positive major-unit interval, or `None` for automatic.
             number_format: Format code for the tick labels.
             visible: Whether the axis is shown.
+            reverse_order: Whether the axis is plotted in reverse order.
+            crosses: Where the other axis crosses this axis: `"automatic"`, `"minimum"`, or `"maximum"`.
         """
         if title is not _UNSET and title is not None and not isinstance(title, str):
             raise ValueError(
@@ -6883,6 +6923,12 @@ class ChartAxis:
             )
         if visible is not _UNSET and not isinstance(visible, bool):
             raise ValueError(f"Invalid visible {visible!r}. Must be True or False.")
+        if reverse_order is not _UNSET and not isinstance(reverse_order, bool):
+            raise ValueError(
+                f"Invalid reverse_order {reverse_order!r}. Must be True or False."
+            )
+        if crosses is not _UNSET:
+            crosses = _chart_axis_crosses(crosses)
         if all(
             value is _UNSET
             for value in (
@@ -6892,6 +6938,8 @@ class ChartAxis:
                 major_unit,
                 number_format,
                 visible,
+                reverse_order,
+                crosses,
             )
         ):
             return
@@ -6902,6 +6950,8 @@ class ChartAxis:
             major_unit=major_unit,
             number_format=number_format,
             visible=visible,
+            reverse_order=reverse_order,
+            crosses=crosses,
         )
 
     async def get_title(self) -> str | None:
@@ -6945,6 +6995,20 @@ class ChartAxis:
         Requires xlwings Lite.
         """
         return await self.impl.get_visible()
+
+    async def get_reverse_order(self) -> bool:
+        """Fetches whether the axis is plotted in reverse order.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_reverse_order()
+
+    async def get_crosses(self) -> str:
+        """Fetches where the other axis crosses this axis: `"automatic"`, `"minimum"`, `"maximum"`, or `"custom"`.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_crosses()
 
     def __repr__(self) -> str:
         return "<ChartAxis>"
