@@ -388,6 +388,8 @@ else:
         ...
 
     def func(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
+        """Marks a Python function as an Excel custom function in a supported runtime."""
+
         def inner(f: _F) -> _F:
             return f
 
@@ -424,6 +426,8 @@ else:
     def script(
         f: _F | None = None, *args: Any, **kwargs: Any
     ) -> _F | Callable[[_F], _F]:
+        """Marks a Python function as a script in a supported runtime."""
+
         def inner(f: _F) -> _F:
             return f
 
@@ -433,12 +437,16 @@ else:
             return inner(f)
 
     def ret(*args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        """Configures conversion for a custom-function result in a supported runtime."""
+
         def inner(f: _F) -> _F:
             return f
 
         return inner
 
     def arg(*args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        """Configures conversion for a custom-function argument in a supported runtime."""
+
         def inner(f: _F) -> _F:
             return f
 

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* xlwings (Open Source) requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
+* Classic xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Its VBA UDF integration is only supported on Windows; xlwings Lite custom functions also work on macOS.
 * xlwings PRO offers additional features:
     * [File Reader](pro/reader.md#xlwings-reader) (new in v0.28.0): Runs additionally on Linux and doesn't require an installation of Excel.
 * xlwings requires at least Python 3.11.

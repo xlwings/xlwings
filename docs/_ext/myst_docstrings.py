@@ -74,7 +74,7 @@ def _md_inline_to_rst(text: str) -> str:
 
 def _is_rst_field(line: str) -> bool:
     """Check if a line is an RST field list entry."""
-    return bool(re.match(r"^:(param|type|returns?|rtype|raises)\b", line))
+    return bool(re.match(r"^:(param|keyword|type|returns?|rtype|raises)\b", line))
 
 
 def _is_rst_directive(line: str) -> bool:
@@ -151,6 +151,14 @@ def process_docstring(
                     i += 1
                 else:
                     break
+            continue
+
+        # Keep blank separators inside a field list. An empty MyST wrapper
+        # would split adjacent parameter sections, causing autodoc to add the
+        # same return annotation to each separate list.
+        if not line.strip() and current_type == "rst":
+            current_lines.append(line)
+            i += 1
             continue
 
         # Regular prose line — MyST mode
