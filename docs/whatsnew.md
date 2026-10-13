@@ -2,15 +2,16 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.6 (unreleased)
+## v0.37.6 (Oct 13, 2026)
 
 - Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.
 - Added {meth}`Table.sort <xlwings.main.Table.sort>` to sort a table's data rows with Excel's native table sort.
 - Added secondary chart axes and combination charts: {attr}`Chart.secondary_value_axis <xlwings.Chart.secondary_value_axis>`, {attr}`Chart.secondary_category_axis <xlwings.Chart.secondary_category_axis>`, {attr}`ChartSeries.axis_group <xlwings.main.ChartSeries.axis_group>`, and {attr}`ChartSeries.chart_type <xlwings.main.ChartSeries.chart_type>`.
 - Added {attr}`ChartAxis.reverse_order <xlwings.main.ChartAxis.reverse_order>` and {attr}`ChartAxis.crosses <xlwings.main.ChartAxis.crosses>`, e.g., to flip the bar order of a bar chart while keeping the value axis at the bottom.
 - Bug fix: {class}`ChartAxis <xlwings.main.ChartAxis>` now works on macOS, too.
-- Bug fix: Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` with classic xlwings restarted its relative references in every automatic chunk. Scalar fills with classic xlwings are no longer chunked.
+- Bug fix: Fixed a regression where filling more than 100,000 cells with a single formula such as `myrange.value = "=A1*2"` with classic xlwings restarted its relative references in every automatic chunk.
 - {bdg-danger}`Breaking Change` Writing to {attr}`Range.formula <xlwings.Range.formula>` and {attr}`Range.formula2 <xlwings.Range.formula2>` now works like writing to {attr}`Range.value <xlwings.Range.value>` on all engines, see [](converters.md#writing-formulas).
+- Added support for Python 3.15.
 
 ## v0.37.5 (Sep 27, 2026)
 
