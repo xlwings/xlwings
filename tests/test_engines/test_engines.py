@@ -3491,6 +3491,7 @@ def test_table_add_seeds_show_table_style_flags():
         "get_width",
         "get_height",
         "get_current_region",
+        "get_expanded_range",
         "get_merge_area",
         "get_merge_cells",
         "get_table",

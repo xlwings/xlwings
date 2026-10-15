@@ -2030,6 +2030,34 @@ class Range(base_classes.Range):
     async def get_hyperlink(self):
         return await self._get_range_data("hyperlink")
 
+    def expand(self, mode="table"):
+        if self.sheet.book._lazy and not _sheet_values_loaded(self.sheet.api):
+            raise NotImplementedError(
+                "Expanding a range synchronously requires loaded cell values. "
+                "Use 'await myrange.get_expanded_range(mode)' to expand the range."
+            )
+        return super().expand(mode)
+
+    async def get_expanded_range(self, mode="table"):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "get_expanded_range() is only supported in xlwings Lite"
+            )
+        from .. import expansion
+
+        if mode not in expansion.expanders:
+            raise ValueError("Expansion mode must be 'table', 'down', or 'right'.")
+        import js
+
+        address = str(
+            await js.xlwings.getExpandedAddress(
+                self.sheet.name, self.address, mode, True
+            )
+        )
+        # The host may return a sheet-qualified address; names can contain '!'.
+        address = address.rsplit("!", 1)[-1]
+        return Range(sheet=self.sheet, arg1=address)
+
     async def get_current_region(self):
         address = await self._get_range_data("current_region")
         return Range(sheet=self.sheet, arg1=address)
