@@ -1862,8 +1862,9 @@ class Range(base_classes.Range):
         elif axis == "columns" or axis == "c":
             self.append_json_action(func="setAutofit", args="columns")
         elif axis is None:
-            self.append_json_action(func="setAutofit", args="rows")
+            # Columns first: row heights of wrapped text depend on final widths
             self.append_json_action(func="setAutofit", args="columns")
+            self.append_json_action(func="setAutofit", args="rows")
 
     @property
     def color(self):
