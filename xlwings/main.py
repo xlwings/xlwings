@@ -3849,10 +3849,21 @@ class Range:
     def to_png(self, path: str | PathLike[str] | None = None) -> None:
         """Exports the range as PNG picture.
 
+        In xlwings Lite, `path` is required and the export is queued like other workbook actions: the file exists only after the script returns or you call `await book.flush()`. Flush before reading the file within the same script.
+
         Args:
             path: Path where you want to store the picture. Defaults to the name of the range
                 in the same directory as the Excel file if the Excel file is stored and to
                 the current working directory otherwise.
+
+        Examples:
+            Inside an asynchronous xlwings Lite script with a supplied `book` parameter:
+
+            ```python
+            book.sheets[0]["A1:D10"].to_png("/tmp/range.png")
+            await book.flush()
+            png_bytes = Path("/tmp/range.png").read_bytes()
+            ```
 
         ```{versionadded} 0.24.8
         ```
@@ -6788,6 +6799,8 @@ class Chart:
 
     def to_png(self, path: str | PathLike[str] | None = None) -> None:
         """Exports the chart as PNG picture.
+
+        In xlwings Lite, the export is queued like other workbook actions: the file exists only after the script returns or you call `await book.flush()`. Flush before reading the file within the same script.
 
         Args:
             path: Path where you want to store the picture. Defaults to the name of the
