@@ -2343,6 +2343,12 @@ class Range(base_classes.Range):
             ],
         )
 
+    def move(self, destination):
+        self.append_json_action(
+            func="moveRange",
+            args=[destination.sheet.index - 1, destination.address],
+        )
+
     def delete(self, shift=None):
         if shift not in ("up", "left"):
             # Non-remote version allows shift=None

@@ -1137,6 +1137,9 @@ class Range:
     ):
         raise NotImplementedError()
 
+    def move(self, destination):
+        raise NotImplementedError()
+
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         raise NotImplementedError()
 

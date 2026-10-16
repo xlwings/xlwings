@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.7 (unreleased)
+
+- Added {meth}`Range.move <xlwings.Range.move>` to move a range like cut and paste, including to an overlapping destination.
+
 ## v0.37.6 (Oct 13, 2026)
 
 - Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.

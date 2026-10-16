@@ -1699,6 +1699,9 @@ class Range(base_classes.Range):
     def copy(self, destination=None):
         self.xl.Copy(Destination=destination.api if destination else None)
 
+    def move(self, destination):
+        self.xl.Cut(Destination=destination.api)
+
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         pastes = {
             "all": -4104,

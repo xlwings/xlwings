@@ -1428,6 +1428,9 @@ class Range(base_classes.Range):
     def copy(self, destination=None):
         self.xl.copy_range(destination=destination.api if destination else None)
 
+    def move(self, destination):
+        self.xl.cut_range(destination_of_cut=destination.api)
+
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         pastes = {
             # all_merging_conditional_formats unsupported on mac

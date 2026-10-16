@@ -3489,6 +3489,27 @@ class Range:
         """
         self.impl.copy_from(source_range, copy_type, skip_blanks, transpose)
 
+    def move(self, destination: Range) -> None:
+        """Move this range to a new location, like cut and paste in Excel.
+
+        Values, formulas, and formatting move together, and formulas that reference the moved cells are updated to point to the new location. The source and destination may overlap, e.g., to shift a block a few columns to the left. Source cells that the moved block doesn't cover afterwards are left empty.
+
+        Args:
+            destination: The range whose top-left cell becomes the top-left cell of the moved block. The moved block keeps this range's size. The destination may be on another sheet of the same book.
+
+        Examples:
+            ```python
+            # Shift the block O1:S145 three columns to the left, to L1:P145
+            sheet["O1:S145"].move(sheet["L1"])
+            ```
+
+        ```{versionadded} 0.37.7
+        ```
+        """
+        if destination.sheet.book != self.sheet.book:
+            raise ValueError("Range.move() requires a destination in the same book.")
+        self.impl.move(destination[0, 0])
+
     def paste(
         self,
         paste: str | None = None,
