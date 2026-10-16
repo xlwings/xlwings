@@ -2,6 +2,11 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.7 (unreleased)
+
+- Added {meth}`Range.move <xlwings.Range.move>` to move a range like cut and paste, including to an overlapping destination.
+- xlwings Lite: Bug fix: a {class}`Sheet <xlwings.Sheet>` object now keeps targeting its own sheet after another sheet is added, deleted, or moved. Previously, deleting several sheets via variables that were assigned upfront could delete the wrong sheet or raise an `IndexError`.
+
 ## v0.37.6 (Oct 13, 2026)
 
 - Added {meth}`Font.set <xlwings.main.Font.set>` to set several font attributes in one go.

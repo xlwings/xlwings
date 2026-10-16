@@ -1176,6 +1176,13 @@ class Sheet(base_classes.Sheet):
 
     @property
     def index(self):
+        # Adding, deleting, or moving another sheet shifts this one's position,
+        # so look it up in the book's sheet list rather than trusting the index
+        # this object was created with. A deleted sheet keeps its last index.
+        for ix, sheet in enumerate(self.book.api["sheets"]):
+            if sheet is self._api:
+                self._index = ix + 1
+                break
         return self._index
 
     @property
@@ -1313,10 +1320,12 @@ class Sheet(base_classes.Sheet):
         # nested collections. A shallow copy would make changes to charts,
         # shapes, notes, tables, pictures or cached values leak back to the
         # source sheet's local representation.
+        # Queue the action first: its sheet_position must be the source's
+        # position before the copy shifts it.
+        self.append_json_action(func="copySheet", args=[position, target_ix, name])
         api = copy.deepcopy(self.api)
         api["name"] = name
         sheets_api.insert(new_ix, api)
-        self.append_json_action(func="copySheet", args=[position, target_ix, name])
 
     def move(self, before=None, after=None):
         target = before if before is not None else after
@@ -2341,6 +2350,13 @@ class Range(base_classes.Range):
                 skip_blanks,
                 transpose,
             ],
+        )
+
+    def move(self, destination):
+        self._require_officejs("move()")
+        self.append_json_action(
+            func="moveRange",
+            args=[destination.sheet.index - 1, destination.address],
         )
 
     def delete(self, shift=None):

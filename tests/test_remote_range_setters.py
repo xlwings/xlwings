@@ -778,6 +778,40 @@ def test_autofill_rejects_same_sheet_index_in_another_book(book):
         book.sheets[0]["A1"].autofill(other_book.sheets[0]["A1:A5"], "fill_series")
 
 
+def test_move_to_overlapping_destination(book):
+    book.sheets[0]["C1:E3"].move(book.sheets[0]["A1"])
+    action = last_action(book)
+    assert action["func"] == "moveRange"
+    assert action["args"] == [0, "$A$1"]
+    assert (action["start_row"], action["start_column"]) == (0, 2)
+    assert (action["row_count"], action["column_count"]) == (3, 3)
+
+
+def test_move_sends_top_left_cell_of_destination(book):
+    book.sheets[0]["A1:B2"].move(book.sheets[1]["C3:Z99"])
+    assert last_action(book)["args"] == [1, "$C$3"]
+
+
+@pytest.mark.parametrize(
+    "client", ["Microsoft Office Scripts", "Google Apps Script", "VBA"]
+)
+def test_move_requires_officejs(client):
+    payload = _book_json()
+    payload["client"] = client
+    impl = R.App(R.Apps(), add_book=False).books.open(payload)
+    book = xw.Book(impl=impl)
+    with pytest.raises(NotImplementedError, match="Office.js"):
+        book.sheets[0]["A1:B2"].move(book.sheets[0]["C1"])
+    assert actions(book) == []
+
+
+def test_move_rejects_destination_in_another_book(book):
+    other_impl = R.App(R.Apps(), add_book=False).books.open(_book_json(n_sheets=2))
+    other_book = xw.Book(impl=other_impl)
+    with pytest.raises(ValueError, match="same book"):
+        book.sheets[0]["A1:B2"].move(other_book.sheets[0]["C1"])
+
+
 # --- getters remain unimplemented ---
 
 

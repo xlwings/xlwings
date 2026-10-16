@@ -563,6 +563,39 @@ def test_sheet_delete_keeps_active_index_valid():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_objects_follow_position_changes_of_other_sheets():
+    # Sheet objects held across a delete, add, or move of another sheet must
+    # target their own sheet, not the position they were created with.
+    def fresh():
+        return xw.Book(json=json.loads(json.dumps(data)))
+
+    book = fresh()
+    first, second = book.sheets[0], book.sheets[1]
+    first.delete()
+    second.delete()
+    assert [sheet.name for sheet in book.sheets] == ["Sheet3"]
+    assert [action["sheet_position"] for action in book.json()["actions"]] == [0, 0]
+
+    book = fresh()
+    first, last = book.sheets[0], book.sheets[2]
+    first.delete()
+    last.delete()
+    assert [sheet.name for sheet in book.sheets] == ["Sheet2"]
+
+    book = fresh()
+    last = book.sheets[2]
+    book.sheets.add(name="new", before=book.sheets[0])
+    assert last.index == 4
+    last["A1"].value = 1
+    assert book.json()["actions"][-1]["sheet_position"] == 3
+
+    book = fresh()
+    first = book.sheets[0]
+    book.sheets[2].move(before=book.sheets[0])
+    assert first.index == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_delete_after_add_keeps_active_index_valid():
     # Sheets.add() makes the new sheet active; deleting it must restore a
     # valid index (the original IndexError repro).
@@ -3172,6 +3205,20 @@ def test_sheet_copy_before_and_name():
     funcs = [a["func"] for a in book.json()["actions"]]
     # copied, then renamed to the requested name by the public method
     assert funcs[-2:] == ["copySheet", "setSheetName"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_before_an_earlier_sheet_targets_the_source():
+    # The copy is inserted locally, shifting the source; the queued action
+    # must still point at the source's original position.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[1].copy(before=book.sheets[0], name="mycopy")
+    copy_action, rename_action = book.json()["actions"][-2:]
+    assert copy_action["func"] == "copySheet"
+    assert copy_action["sheet_position"] == 1
+    assert copy_action["args"][:2] == ["Before", 0]
+    assert rename_action["func"] == "setSheetName"
+    assert rename_action["sheet_position"] == 0
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
