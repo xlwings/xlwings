@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.7 (unreleased)
 
 - Added {meth}`Range.move <xlwings.Range.move>` to move a range like cut and paste, including to an overlapping destination.
+- xlwings Lite: Bug fix: a {class}`Sheet <xlwings.Sheet>` object now keeps targeting its own sheet after another sheet is added, deleted, or moved. Previously, deleting several sheets via variables that were assigned upfront could delete the wrong sheet or raise an `IndexError`.
 
 ## v0.37.6 (Oct 13, 2026)
 

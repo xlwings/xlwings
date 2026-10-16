@@ -1176,6 +1176,13 @@ class Sheet(base_classes.Sheet):
 
     @property
     def index(self):
+        # Adding, deleting, or moving another sheet shifts this one's position,
+        # so look it up in the book's sheet list rather than trusting the index
+        # this object was created with. A deleted sheet keeps its last index.
+        for ix, sheet in enumerate(self.book.api["sheets"]):
+            if sheet is self._api:
+                self._index = ix + 1
+                break
         return self._index
 
     @property

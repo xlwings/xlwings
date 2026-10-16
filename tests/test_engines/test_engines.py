@@ -563,6 +563,39 @@ def test_sheet_delete_keeps_active_index_valid():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_objects_follow_position_changes_of_other_sheets():
+    # Sheet objects held across a delete, add, or move of another sheet must
+    # target their own sheet, not the position they were created with.
+    def fresh():
+        return xw.Book(json=json.loads(json.dumps(data)))
+
+    book = fresh()
+    first, second = book.sheets[0], book.sheets[1]
+    first.delete()
+    second.delete()
+    assert [sheet.name for sheet in book.sheets] == ["Sheet3"]
+    assert [action["sheet_position"] for action in book.json()["actions"]] == [0, 0]
+
+    book = fresh()
+    first, last = book.sheets[0], book.sheets[2]
+    first.delete()
+    last.delete()
+    assert [sheet.name for sheet in book.sheets] == ["Sheet2"]
+
+    book = fresh()
+    last = book.sheets[2]
+    book.sheets.add(name="new", before=book.sheets[0])
+    assert last.index == 4
+    last["A1"].value = 1
+    assert book.json()["actions"][-1]["sheet_position"] == 3
+
+    book = fresh()
+    first = book.sheets[0]
+    book.sheets[2].move(before=book.sheets[0])
+    assert first.index == 2
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_delete_after_add_keeps_active_index_valid():
     # Sheets.add() makes the new sheet active; deleting it must restore a
     # valid index (the original IndexError repro).
