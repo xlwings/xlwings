@@ -116,17 +116,7 @@ class AsyncExpandRangeStage:
 
     async def __call__(self, c):
         if c.range is not None and self.expand:
-            import js
-
-            expanded_address = await js.xlwings.getExpandedAddress(
-                c.range.sheet.name, c.range.address, self.expand
-            )
-            expanded_address = str(expanded_address)
-            # Strip sheet name prefix if present (e.g., "Sheet1!A1:B2" -> "A1:B2")
-            if "!" in expanded_address:
-                expanded_address = expanded_address.split("!", 1)[1]
-            if expanded_address != c.range.address:
-                c.range = c.range.sheet.range(expanded_address)
+            c.range = await c.range.get_expanded_range(self.expand)
 
 
 class WriteValueToRangeStage:

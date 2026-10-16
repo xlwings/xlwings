@@ -3335,9 +3335,26 @@ class Range:
         """
         return DataValidation(impl=await self._impl.get_data_validation(), parent=self)
 
+    async def get_expanded_range(self, mode: str = "table") -> Range:
+        """Return the range expanded down, right, or in both directions.
+
+        Like {meth}`expand <xlwings.Range.expand>`, ignores an empty top-left cell. `mode` is `"table"` (down and right), `"down"`, or `"right"`; the aliases accepted by `expand()` are also supported.
+
+        Requires xlwings Lite. Reads the workbook's current cells without applying queued writes. If expansion depends on earlier writes in the same script, call `await book.flush()` first. Captured writes in a dry run remain unapplied. When the intended dimensions are already known, construct the range directly instead.
+
+        Example:
+            ```python
+            header = await sheet["A6"].get_expanded_range("right")
+            header.font.bold = True
+            ```
+        """
+        return Range(impl=await self._impl.get_expanded_range(mode))
+
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells
         (unlike `Range.end()`).
+
+        For async workbook reads in xlwings Lite, use {meth}`get_expanded_range <xlwings.Range.get_expanded_range>`.
 
         Args:
             mode: One of `'table'` (=down and right), `'down'`, `'right'`.
@@ -3356,7 +3373,7 @@ class Range:
         ```{versionadded} 0.9.0
         ```
         """
-        return expansion.expanders.get(mode, mode).expand(self)
+        return Range(impl=self.impl.expand(mode))
 
     def __getitem__(self, key: tuple[int | slice, int | slice] | int | slice) -> Range:
         if type(key) is tuple:
@@ -4196,7 +4213,7 @@ class AutoFilter:
 
 
 # These have to be after definition of Range to resolve circular reference
-from . import conversion, expansion
+from . import conversion
 
 
 class Ranges:

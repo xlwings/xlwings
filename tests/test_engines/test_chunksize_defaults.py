@@ -184,7 +184,7 @@ def live_js(monkeypatch, book):
         raw = book.sheets[sheet_name].range(address).impl.raw_value
         return _FakeJsProxy([list(row) for row in raw])
 
-    async def get_expanded_address(sheet_name, address, mode):
+    async def get_expanded_address(sheet_name, address, mode, require_support=False):
         return "A1:C6"
 
     js = ModuleType("js")
@@ -703,3 +703,81 @@ def test_chunked_write_equals_direct_write(sheet, book, write_budget):
     for action in _set_values_actions(book):
         reassembled.extend(action["values"])
     assert reassembled == direct
+
+
+@pytest.mark.parametrize(
+    "mode, expected",
+    [
+        ("table", "$A$1:$C$6"),
+        ("down", "$A$1:$A$6"),
+        ("right", "$A$1:$C$1"),
+        ("vertical", "$A$1:$A$6"),
+        ("d", "$A$1:$A$6"),
+        ("horizontal", "$A$1:$C$1"),
+        ("r", "$A$1:$C$1"),
+    ],
+)
+def test_async_expanded_range_returns_range(sheet, live_js, mode, expected):
+    calls = []
+
+    async def expand(sheet_name, address, direction, require_support):
+        calls.append((sheet_name, address, direction, require_support))
+        return "'S!prices'!" + expected
+
+    sys.modules["js"].xlwings.getExpandedAddress = expand
+    expanded = _run(sheet["A1"].get_expanded_range(mode))
+    assert isinstance(expanded, xw.Range)
+    assert expanded.sheet.name == sheet.name
+    assert expanded.address == expected
+    assert calls == [("S", "$A$1", mode, True)]
+    assert live_js.addresses == []  # Resolving a range doesn't fetch its values.
+
+
+def test_async_expansion_default_and_value_read_share_host_failure(sheet, live_js):
+    calls = []
+
+    async def unsupported(sheet_name, address, mode, require_support):
+        calls.append((mode, require_support))
+        raise RuntimeError("Range expansion requires ExcelApi 1.13")
+
+    sys.modules["js"].xlwings.getExpandedAddress = unsupported
+    with pytest.raises(RuntimeError, match="ExcelApi 1.13"):
+        _run(sheet["A1"].get_expanded_range())
+    with pytest.raises(RuntimeError, match="ExcelApi 1.13"):
+        _run(sheet["A1"].options(expand="table").get_value())
+    assert calls == [("table", True), ("table", True)]
+    assert live_js.addresses == []
+
+
+def test_async_expanded_range_rejects_invalid_mode(sheet, live_js):
+    with pytest.raises(ValueError, match="Expansion mode"):
+        _run(sheet["A1"].get_expanded_range("left"))
+
+
+def test_async_expanded_range_requires_xlwings_lite(sheet):
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        _run(sheet["A1"].get_expanded_range())
+
+
+@pytest.mark.parametrize("mode", ["table", "down", "right"])
+def test_sync_expand_on_unloaded_async_book_points_at_async_method(book, mode):
+    book.impl._lazy = True
+    with pytest.raises(NotImplementedError, match="get_expanded_range") as error:
+        book.sheets[0]["A1"].expand(mode)
+    assert "get_value" not in str(error.value)
+
+
+def test_sync_expand_on_loaded_async_book_still_works(book):
+    book.impl._lazy = True
+    _xlremote._mark_sheet_values_loaded(book.sheets[0].impl.api)
+    assert book.sheets[0]["A1"].expand().address == "$A$1:$C$6"
+
+
+def test_async_expanded_range_validates_against_registered_modes(
+    sheet, live_js, monkeypatch
+):
+    from xlwings import expansion
+
+    monkeypatch.delitem(expansion.expanders, "r")
+    with pytest.raises(ValueError, match="Expansion mode"):
+        _run(sheet["A1"].get_expanded_range("r"))

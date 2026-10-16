@@ -928,6 +928,17 @@ class Range:
     async def get_hyperlink(self):
         raise NotImplementedError("get_hyperlink() is only supported in xlwings Lite")
 
+    def expand(self, mode="table"):
+        from . import expansion
+        from .main import Range
+
+        return expansion.expanders.get(mode, mode).expand(Range(impl=self)).impl
+
+    async def get_expanded_range(self, mode="table"):
+        raise NotImplementedError(
+            "get_expanded_range() is only supported in xlwings Lite"
+        )
+
     async def get_current_region(self):
         raise NotImplementedError(
             "get_current_region() is only supported in xlwings Lite"
