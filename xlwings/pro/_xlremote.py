@@ -1320,10 +1320,12 @@ class Sheet(base_classes.Sheet):
         # nested collections. A shallow copy would make changes to charts,
         # shapes, notes, tables, pictures or cached values leak back to the
         # source sheet's local representation.
+        # Queue the action first: its sheet_position must be the source's
+        # position before the copy shifts it.
+        self.append_json_action(func="copySheet", args=[position, target_ix, name])
         api = copy.deepcopy(self.api)
         api["name"] = name
         sheets_api.insert(new_ix, api)
-        self.append_json_action(func="copySheet", args=[position, target_ix, name])
 
     def move(self, before=None, after=None):
         target = before if before is not None else after
@@ -2351,6 +2353,7 @@ class Range(base_classes.Range):
         )
 
     def move(self, destination):
+        self._require_officejs("move()")
         self.append_json_action(
             func="moveRange",
             args=[destination.sheet.index - 1, destination.address],

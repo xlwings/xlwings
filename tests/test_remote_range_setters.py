@@ -792,6 +792,19 @@ def test_move_sends_top_left_cell_of_destination(book):
     assert last_action(book)["args"] == [1, "$C$3"]
 
 
+@pytest.mark.parametrize(
+    "client", ["Microsoft Office Scripts", "Google Apps Script", "VBA"]
+)
+def test_move_requires_officejs(client):
+    payload = _book_json()
+    payload["client"] = client
+    impl = R.App(R.Apps(), add_book=False).books.open(payload)
+    book = xw.Book(impl=impl)
+    with pytest.raises(NotImplementedError, match="Office.js"):
+        book.sheets[0]["A1:B2"].move(book.sheets[0]["C1"])
+    assert actions(book) == []
+
+
 def test_move_rejects_destination_in_another_book(book):
     other_impl = R.App(R.Apps(), add_book=False).books.open(_book_json(n_sheets=2))
     other_book = xw.Book(impl=other_impl)

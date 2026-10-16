@@ -3208,6 +3208,20 @@ def test_sheet_copy_before_and_name():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_before_an_earlier_sheet_targets_the_source():
+    # The copy is inserted locally, shifting the source; the queued action
+    # must still point at the source's original position.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[1].copy(before=book.sheets[0], name="mycopy")
+    copy_action, rename_action = book.json()["actions"][-2:]
+    assert copy_action["func"] == "copySheet"
+    assert copy_action["sheet_position"] == 1
+    assert copy_action["args"][:2] == ["Before", 0]
+    assert rename_action["func"] == "setSheetName"
+    assert rename_action["sheet_position"] == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_copy_increments_suffix():
     payload = json.loads(json.dumps(data))
     first = payload["sheets"][0]["name"]
