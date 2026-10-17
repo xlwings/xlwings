@@ -319,6 +319,25 @@ def _sheet_values_loaded(sheet_api):
     return sheet_api.get(_SHEET_VALUES_LOADED_KEY, False)
 
 
+async def client_read(book, func, *args):
+    """Call the xlwings Lite client read `js.xlwings.<func>(*args)` for `book`.
+
+    Writes are queued until the script returns, but reads go straight to Excel.
+    Flushing the queued actions first means a read always sees the script's
+    earlier writes, including objects such as a sheet that so far only exists in
+    the queue. A read also waits for a batch that another task is still
+    dispatching, e.g., with `asyncio.gather()`. Consecutive reads, and reads with
+    nothing queued or in flight, don't flush.
+
+    `book` is the remote Book impl whose queue applies, or None to read directly.
+    """
+    import js
+
+    if book is not None and (book._json["actions"] or book._dispatch is not None):
+        await book.flush()
+    return await getattr(js.xlwings, func)(*args)
+
+
 def _normalize_jsnull(obj, *, normalize_values=False):
     """Recursively replace Pyodide's `JsNull` sentinel with Python `None`.
 
@@ -713,9 +732,10 @@ class App(base_classes.App):
             raise NotImplementedError(
                 "App.get_selection() is only supported in xlwings Lite"
             )
-        import js
 
-        result = _normalize_jsnull((await js.xlwings.getSelection()).to_py())
+        result = _normalize_jsnull(
+            (await client_read(self.books.active, "getSelection")).to_py()
+        )
         sheet_index = int(result["sheetIndex"])
         address = result["address"]
         book = self.books.active
@@ -776,8 +796,10 @@ class Books(base_classes.Books):
         import js
         from pyodide.ffi import to_js
 
-        book_data_js = await js.xlwings.getBookData(
-            to_js({"lazy": True}, dict_converter=js.Object.fromEntries)
+        book_data_js = await client_read(
+            self._active,
+            "getBookData",
+            to_js({"lazy": True}, dict_converter=js.Object.fromEntries),
         )
         # open() normalizes JsNull -> None
         book_data = book_data_js.to_py()
@@ -841,6 +863,8 @@ class Book(base_classes.Book):
         self.books = books
         self._api = api
         self._json = {"actions": []}
+        # Set while a flushed batch is being dispatched, see flush()
+        self._dispatch = None
         # Async/lazy book: fetched with structure only (no cell values). While
         # lazy, sync `.value` reads on a sheet whose values haven't been loaded
         # raise (use `await get_value()` or `await load(values=True)`), and
@@ -884,6 +908,10 @@ class Book(base_classes.Book):
         import js
         from pyodide.ffi import to_js
 
+        # Wait for a batch that another task is dispatching, so batches apply in
+        # order and nothing queued before this call is still in flight on return.
+        while self._dispatch is not None:
+            await self._dispatch.wait()
         actions = self._json.get("actions", [])
         if actions:
             actions_js = to_js(
@@ -893,20 +921,27 @@ class Book(base_classes.Book):
             # that indeterminate batch: replaying it can duplicate non-idempotent
             # actions such as adding a defined name.
             self._json["actions"] = []
+            dispatch = self._dispatch = asyncio.Event()
             try:
-                await js.xlwings.runActions(actions_js)
+                try:
+                    await js.xlwings.runActions(actions_js)
+                finally:
+                    self._dispatch = None
+                    dispatch.set()
             except Exception:
                 # Some actions may have succeeded. Refresh optimistic metadata
                 # without masking the original action error if refresh also fails.
+                # The reload must not dispatch actions queued meanwhile: an error
+                # there would be swallowed and those actions lost.
                 try:
-                    await self.load(values=False)
+                    await self.load(values=False, flush=False)
                 except Exception:
                     pass
                 raise
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
-    async def load(self, values=None):
+    async def load(self, values=None, flush=True):
         """(Re)load the book's data from Excel on demand.
 
         On an async (lazy) book, this defaults to loading only *metadata* -
@@ -917,6 +952,9 @@ class Book(base_classes.Book):
 
         On a regular (eager) book, everything including values is loaded, as
         before.
+
+        Like other reads, this flushes pending actions first. `flush=False` reads
+        directly, for the metadata reload after a failed flush.
         """
         if sys.platform != "emscripten":
             raise NotImplementedError("Book.load() is only supported in xlwings Lite")
@@ -928,7 +966,9 @@ class Book(base_classes.Book):
         # getBookData(lazy=True) returns structure only (empty values); a plain
         # call returns everything.
         opts = to_js({"lazy": not load_values}, dict_converter=js.Object.fromEntries)
-        data = _normalize_jsnull((await js.xlwings.getBookData(opts)).to_py())
+        data = _normalize_jsnull(
+            (await client_read(self if flush else None, "getBookData", opts)).to_py()
+        )
         if not load_values:
             # Metadata-only: don't let the empty `values` payload clobber any
             # values already loaded on this book.
@@ -961,9 +1001,8 @@ class Book(base_classes.Book):
             raise NotImplementedError(
                 "get_comments() is only supported in xlwings Lite"
             )
-        import js
 
-        entries = _normalize_jsnull((await js.xlwings.getComments()).to_py())
+        entries = _normalize_jsnull((await client_read(self, "getComments")).to_py())
         return [
             Comment(
                 Range(sheet=self.sheets(entry["sheet"]), arg1=entry["address"]),
@@ -1019,9 +1058,8 @@ class Sheets(base_classes.Sheets):
             raise NotImplementedError(
                 "Sheets.get_active() is only supported in xlwings Lite"
             )
-        import js
 
-        ix = int(await js.xlwings.getActiveSheetIndex())
+        ix = int(await client_read(self.book, "getActiveSheetIndex"))
         return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
 
     @property
@@ -1210,9 +1248,10 @@ class Sheet(base_classes.Sheet):
             raise NotImplementedError(
                 "get_comments() is only supported in xlwings Lite"
             )
-        import js
 
-        entries = _normalize_jsnull((await js.xlwings.getComments(self.name)).to_py())
+        entries = _normalize_jsnull(
+            (await client_read(self.book, "getComments", self.name)).to_py()
+        )
         return [
             Comment(Range(sheet=self, arg1=entry["address"]), entry["id"])
             for entry in entries
@@ -1430,10 +1469,9 @@ class Sheet(base_classes.Sheet):
             raise NotImplementedError(
                 "Sheet.get_used_range() is only supported in xlwings Lite"
             )
-        import js
 
         address = _normalize_jsnull(
-            await js.xlwings.getUsedRangeAddress(self.name, values_only)
+            await client_read(self.book, "getUsedRangeAddress", self.name, values_only)
         )
         return Range(sheet=self, arg1=address) if address else None
 
@@ -1460,7 +1498,7 @@ class Sheet(base_classes.Sheet):
             {"include": self.name, "lazy": not load_values},
             dict_converter=js.Object.fromEntries,
         )
-        book_data_js = await js.xlwings.getBookData(opts)
+        book_data_js = await client_read(self.book, "getBookData", opts)
         book_data = _normalize_jsnull(book_data_js.to_py())
         for sheet_data in book_data["sheets"]:
             if sheet_data["name"] == self.name:
@@ -1730,10 +1768,14 @@ class Range(base_classes.Range):
             raise NotImplementedError(
                 "Range.get_special_cells() requires xlwings Lite on this engine"
             )
-        import js
 
-        addresses = await js.xlwings.getSpecialCells(
-            self.sheet.name, self.address, cell_type, value_type
+        addresses = await client_read(
+            self.sheet.book,
+            "getSpecialCells",
+            self.sheet.name,
+            self.address,
+            cell_type,
+            value_type,
         )
         return [Range(self.sheet, address) for address in addresses.to_py()]
 
@@ -1742,9 +1784,10 @@ class Range(base_classes.Range):
             raise NotImplementedError(
                 "Range.find() requires xlwings Lite on this engine"
             )
-        import js
 
-        address = await js.xlwings.findRange(
+        address = await client_read(
+            self.sheet.book,
+            "findRange",
             self.sheet.name,
             self.address,
             text,
@@ -2011,10 +2054,11 @@ class Range(base_classes.Range):
     async def get_comment(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("get_comment() is only supported in xlwings Lite")
-        import js
 
         result = _normalize_jsnull(
-            await js.xlwings.getCommentAt(self.sheet.name, self.address)
+            await client_read(
+                self.sheet.book, "getCommentAt", self.sheet.name, self.address
+            )
         )
         if result is None:
             return None
@@ -2056,11 +2100,15 @@ class Range(base_classes.Range):
 
         if mode not in expansion.expanders:
             raise ValueError("Expansion mode must be 'table', 'down', or 'right'.")
-        import js
 
         address = str(
-            await js.xlwings.getExpandedAddress(
-                self.sheet.name, self.address, mode, True
+            await client_read(
+                self.sheet.book,
+                "getExpandedAddress",
+                self.sheet.name,
+                self.address,
+                mode,
+                True,
             )
         )
         # The host may return a sheet-qualified address; names can contain '!'.
@@ -2111,11 +2159,10 @@ class Range(base_classes.Range):
             raise NotImplementedError(
                 f"{method or f'get_{key}'}() is only supported in xlwings Lite"
             )
-        import js
         from pyodide.ffi import to_js
 
-        data_js = await js.xlwings.getRangeData(
-            self.sheet.name, self.address, to_js([key])
+        data_js = await client_read(
+            self.sheet.book, "getRangeData", self.sheet.name, self.address, to_js([key])
         )
         return _normalize_jsnull(data_js.to_py())[key]
 
@@ -3085,9 +3132,10 @@ class AutoFilter(base_classes.AutoFilter):
             raise NotImplementedError(
                 "get_criteria() is only supported in xlwings Lite"
             )
-        import js
 
-        data_js = await js.xlwings.getAutoFilterCriteria(
+        data_js = await client_read(
+            self.parent.sheet.book,
+            "getAutoFilterCriteria",
             self.parent.sheet.name,
             self.parent.address,
             self.table_index,
@@ -3361,10 +3409,13 @@ class TableRow(base_classes.TableRow):
     async def get_range(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("TableRow.get_range() requires xlwings Lite")
-        import js
 
-        address = await js.xlwings.getTableRowRangeAddress(
-            self.parent.parent.parent.name, self.parent.parent.index - 1, self.index - 1
+        address = await client_read(
+            self.parent.parent.parent.book,
+            "getTableRowRangeAddress",
+            self.parent.parent.parent.name,
+            self.parent.parent.index - 1,
+            self.index - 1,
         )
         return self.parent.parent.parent.range(str(address))
 
@@ -3413,19 +3464,20 @@ class TableRows(base_classes.TableRows):
     async def get_count(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("TableRows.get_count() requires xlwings Lite")
-        import js
 
         count = int(
-            await js.xlwings.getTableRowCount(
-                self.parent.parent.name, self.parent.index - 1
+            await client_read(
+                self.parent.parent.book,
+                "getTableRowCount",
+                self.parent.parent.name,
+                self.parent.index - 1,
             )
         )
-        if not self.parent.parent.book.json()["actions"]:
-            self.parent.api["row_count"] = (
-                count
-                + bool(self.parent.api.get("show_headers", True))
-                + bool(self.parent.api.get("show_totals", False))
-            )
+        self.parent.api["row_count"] = (
+            count
+            + bool(self.parent.api.get("show_headers", True))
+            + bool(self.parent.api.get("show_totals", False))
+        )
         return count
 
     def add(self, values, index):
@@ -3467,9 +3519,10 @@ class TableColumn(base_classes.TableColumn):
     async def _get_range(self, data_body):
         if sys.platform != "emscripten":
             raise NotImplementedError("TableColumn range reads require xlwings Lite")
-        import js
 
-        address = await js.xlwings.getTableColumnRangeAddress(
+        address = await client_read(
+            self.parent.parent.parent.book,
+            "getTableColumnRangeAddress",
             self.parent.parent.parent.name,
             self.parent.parent.index - 1,
             self.name,
@@ -3505,8 +3558,7 @@ class TableColumns(base_classes.TableColumns):
                 raise XlwingsError(
                     "The new table's column names are unavailable until Excel creates "
                     "the table and its metadata is reloaded. In xlwings Lite, call "
-                    "'await book.flush()' and 'await sheet.load()', then obtain the "
-                    "table again."
+                    "'await sheet.load()', then obtain the table again."
                 )
             raise NotImplementedError(
                 "Table columns require a matching xlwings Server or xlwings Lite client"
@@ -3536,16 +3588,16 @@ class TableColumns(base_classes.TableColumns):
     async def get_count(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("TableColumns.get_count() requires xlwings Lite")
-        import js
 
         count = int(
-            await js.xlwings.getTableColumnCount(
-                self.parent.parent.name, self.parent.index - 1
+            await client_read(
+                self.parent.parent.book,
+                "getTableColumnCount",
+                self.parent.parent.name,
+                self.parent.index - 1,
             )
         )
-        if not self.parent.parent.book.json()["actions"] and (
-            "columns" not in self.parent.api or count != len(self.parent.api["columns"])
-        ):
+        if "columns" not in self.parent.api or count != len(self.parent.api["columns"]):
             await self.parent.parent.book.load(values=False)
         return count
 
@@ -3766,7 +3818,7 @@ class Chart(base_classes.Chart):
         if self._pending is not None:
             raise XlwingsError(
                 "Chart series require source data. Call Chart.set_source_data() "
-                "and await book.flush() first."
+                "first."
             )
         return ChartSeriesCollection(self)
 
@@ -3774,13 +3826,14 @@ class Chart(base_classes.Chart):
         if self._pending is not None:
             raise XlwingsError(
                 "Chart series reads require source data. Call Chart.set_source_data() "
-                "and await book.flush() first."
+                "first."
             )
         if sys.platform != "emscripten":
             raise NotImplementedError("get_series() is only supported in xlwings Lite")
-        import js
 
-        count = await js.xlwings.getChartSeriesCount(self.parent.name, self.index - 1)
+        count = await client_read(
+            self.parent.book, "getChartSeriesCount", self.parent.name, self.index - 1
+        )
         return ChartSeriesCollection(self, count=int(count))
 
     @property
@@ -3937,9 +3990,10 @@ class Chart(base_classes.Chart):
         """Fetch the chart as a base64-encoded PNG."""
         if sys.platform != "emscripten":
             raise NotImplementedError("get_png() is only supported in xlwings Lite")
-        import js
 
-        return await js.xlwings.getChartImage(self.parent.name, self.index - 1)
+        return await client_read(
+            self.parent.book, "getChartImage", self.parent.name, self.index - 1
+        )
 
     def to_png(self, path):
         if self._pending is not None:
@@ -4119,10 +4173,11 @@ class ChartSeries(base_classes.ChartSeries):
     async def _get_series_data(self, key):
         if sys.platform != "emscripten":
             raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
-        import js
         from pyodide.ffi import to_js
 
-        data_js = await js.xlwings.getChartSeriesData(
+        data_js = await client_read(
+            self.parent.parent.book,
+            "getChartSeriesData",
             self.parent.parent.name,
             self.parent.index - 1,
             self.index - 1,
@@ -4416,14 +4471,15 @@ class ChartAxis(base_classes.ChartAxis):
         if self.parent._pending is not None:
             raise XlwingsError(
                 "Chart axis reads require source data. Call Chart.set_source_data() "
-                "and await book.flush() first."
+                "first."
             )
         if sys.platform != "emscripten":
             raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
-        import js
         from pyodide.ffi import to_js
 
-        data_js = await js.xlwings.getChartAxisData(
+        data_js = await client_read(
+            self.parent.parent.book,
+            "getChartAxisData",
             self.parent.parent.name,
             self.parent.index - 1,
             self.axis_type,
@@ -4672,11 +4728,16 @@ class PivotTable(base_classes.PivotTable):
     async def _get_range(self, kind):
         if sys.platform != "emscripten":
             raise NotImplementedError("PivotTable range reads require xlwings Lite")
-        import js
 
         address = _normalize_jsnull(
-            await js.xlwings.getPivotTableRangeAddress(
-                self.parent.name, self.index - 1, self.api.get("id"), self.name, kind
+            await client_read(
+                self.parent.book,
+                "getPivotTableRangeAddress",
+                self.parent.name,
+                self.index - 1,
+                self.api.get("id"),
+                self.name,
+                kind,
             )
         )
         if not address:
@@ -5320,10 +5381,14 @@ class Comment(base_classes.Comment):
     async def _read(self, key):
         if sys.platform != "emscripten":
             raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
-        import js
 
-        value = await js.xlwings.getCommentData(
-            self.range.sheet.name, self.comment_id, self.range.address, key
+        value = await client_read(
+            self.range.sheet.book,
+            "getCommentData",
+            self.range.sheet.name,
+            self.comment_id,
+            self.range.address,
+            key,
         )
         return _normalize_jsnull(value.to_py() if hasattr(value, "to_py") else value)
 
@@ -5389,12 +5454,15 @@ class Comment(base_classes.Comment):
     async def get_replies(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("get_replies() is only supported in xlwings Lite")
-        import js
 
         entries = _normalize_jsnull(
             (
-                await js.xlwings.getCommentReplies(
-                    self.range.sheet.name, self.comment_id, self.range.address
+                await client_read(
+                    self.range.sheet.book,
+                    "getCommentReplies",
+                    self.range.sheet.name,
+                    self.comment_id,
+                    self.range.address,
                 )
             ).to_py()
         )
@@ -5423,10 +5491,11 @@ class CommentReply(base_classes.CommentReply):
     async def get_text(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("get_text() is only supported in xlwings Lite")
-        import js
 
         return _normalize_jsnull(
-            await js.xlwings.getCommentReplyText(
+            await client_read(
+                self.comment.range.sheet.book,
+                "getCommentReplyText",
                 self.comment.range.sheet.name,
                 self.comment.comment_id,
                 self.comment.range.address,
@@ -5464,10 +5533,14 @@ class Note(base_classes.Note):
     async def get_text(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("get_text() is only supported in xlwings Lite")
-        import js
 
         return _normalize_jsnull(
-            await js.xlwings.getNoteText(self.range.sheet.name, self.range.address)
+            await client_read(
+                self.range.sheet.book,
+                "getNoteText",
+                self.range.sheet.name,
+                self.range.address,
+            )
         )
 
     @property
@@ -5480,10 +5553,14 @@ class Note(base_classes.Note):
     async def get_author(self):
         if sys.platform != "emscripten":
             raise NotImplementedError("get_author() is only supported in xlwings Lite")
-        import js
 
         return _normalize_jsnull(
-            await js.xlwings.getNoteAuthor(self.range.sheet.name, self.range.address)
+            await client_read(
+                self.range.sheet.book,
+                "getNoteAuthor",
+                self.range.sheet.name,
+                self.range.address,
+            )
         )
 
     @property
@@ -5498,10 +5575,14 @@ class Note(base_classes.Note):
             raise NotImplementedError(
                 "get_location() is only supported in xlwings Lite"
             )
-        import js
 
         address = _normalize_jsnull(
-            await js.xlwings.getNoteLocation(self.range.sheet.name, self.range.address)
+            await client_read(
+                self.range.sheet.book,
+                "getNoteLocation",
+                self.range.sheet.name,
+                self.range.address,
+            )
         )
         return Range(sheet=self.range.sheet, arg1=address) if address else None
 
@@ -5623,8 +5704,13 @@ class Shape(base_classes.Shape):
             {"start": start, "length": length},
             dict_converter=js.Object.fromEntries,
         )
-        data_js = await js.xlwings.getShapeData(
-            self.parent.name, self.index - 1, to_js([key]), options
+        data_js = await client_read(
+            self.parent.book,
+            "getShapeData",
+            self.parent.name,
+            self.index - 1,
+            to_js([key]),
+            options,
         )
         return _normalize_jsnull(data_js.to_py())[key]
 

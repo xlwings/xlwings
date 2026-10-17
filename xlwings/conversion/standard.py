@@ -213,22 +213,23 @@ class AsyncReadValueFromRangeStage:
     async def __call__(self, c):
         if c.range is None:
             return
-        import js
+        from ..pro._xlremote import client_read
 
+        book = c.range.sheet.book.impl
         chunksize = _resolve_read_chunksize(self.options, c.range)
         if chunksize:
             parts = []
             for i in range(math.ceil(c.range.shape[0] / chunksize)):
                 chunk_range = c.range[i * chunksize : (i * chunksize) + chunksize, :]
-                values_js = await js.xlwings.getRangeValues(
-                    c.range.sheet.name, chunk_range.address
+                values_js = await client_read(
+                    book, "getRangeValues", c.range.sheet.name, chunk_range.address
                 )
                 _check_live_values(values_js, chunk_range)
                 parts.extend(_rows_2d(values_js.to_py()))
             c.value = parts
         else:
-            values_js = await js.xlwings.getRangeValues(
-                c.range.sheet.name, c.range.address
+            values_js = await client_read(
+                book, "getRangeValues", c.range.sheet.name, c.range.address
             )
             _check_live_values(values_js, c.range)
             c.value = values_js.to_py()

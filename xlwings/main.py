@@ -1054,7 +1054,11 @@ class Book:
     async def flush(self) -> None:
         """Flushes all pending actions to Excel and lets the Output pane update.
 
-        In xlwings Lite, writes and other workbook changes are queued until the script returns or you call `await book.flush()`. Call this method before reading back a change within the same script. Asynchronous getters do not flush pending actions automatically.
+        In xlwings Lite, writes and other workbook changes are queued until the script returns or you call `await book.flush()`. Asynchronous getters such as `await rng.get_value()` flush pending actions automatically before they read from Excel, so they always see the script's earlier changes, including a sheet that was just added. The same applies to `await book.load()` and `await sheet.load()`, e.g., to access the columns of a table that was just added. You only need to call `await book.flush()` explicitly in the following cases:
+
+        - **Showing progress during a long-running script:** a change that no read depends on, such as a status message written to a cell, only appears in Excel after the script returns unless you flush it. Flushing also lets the Output pane show what you printed so far.
+        - **Reading a file that an action creates:** actions such as {meth}`Range.to_png <xlwings.Range.to_png>` write their file only when they are dispatched, and reading a file doesn't flush pending actions. Flush before reading the file within the same script.
+        - **Choosing what's applied if the script fails:** if a script raises an exception, its pending actions are discarded. Everything flushed before the exception, explicitly or by an asynchronous getter, stays applied. Flush to apply the changes up to a certain point, for example, before a step that may fail.
 
         Flushing does not refresh cell values previously loaded for synchronous {attr}`Range.value <xlwings.Range.value>` reads. Use `await rng.get_value()` to read the changed cells, or `await book.load(values=True)` to reload values before using `.value`.
 
@@ -1062,10 +1066,11 @@ class Book:
             Inside an asynchronous script with a supplied `book` parameter:
 
             ```python
-            rng = book.sheets["Sheet1"]["A1"]
-            rng.value = "Hello"
-            await book.flush()
-            print(await rng.get_value())  # Hello
+            status = book.sheets["Sheet1"]["A1"]
+            status.value = "Calculating..."
+            await book.flush()  # Shows the status before the slow step
+            run_slow_calculation()
+            status.value = "Done"
             ```
 
         Requires xlwings Lite.
@@ -2471,7 +2476,6 @@ class Range:
             # Assumes an existing workbook object named book.
             sheet = book.sheets["Sheet1"]
             sheet["A1:A3"].value = [["North"], ["South"], ["North"]]
-            await book.flush()
             found = await sheet["A1:A3"].find("South", whole=True)
             print(found.address if found else None)  # $A$2
             ```
@@ -2526,7 +2530,6 @@ class Range:
             sheet = book.sheets["Sheet1"]
             sheet["A1:A2"].value = [["Draft"], ["Draft report"]]
             sheet["A1:A2"].replace_all("Draft", "Final")
-            await book.flush()
             print(await sheet["A2"].get_value())  # Final report
             ```
         """
@@ -3340,7 +3343,7 @@ class Range:
 
         Like {meth}`expand <xlwings.Range.expand>`, ignores an empty top-left cell. `mode` is `"table"` (down and right), `"down"`, or `"right"`; the aliases accepted by `expand()` are also supported.
 
-        Requires xlwings Lite. Reads the workbook's current cells without applying queued writes. If expansion depends on earlier writes in the same script, call `await book.flush()` first. Captured writes in a dry run remain unapplied. When the intended dimensions are already known, construct the range directly instead.
+        Requires xlwings Lite. Like other asynchronous getters, it flushes pending actions first, so expansion sees earlier writes in the same script. Captured writes in a dry run remain unapplied. When the intended dimensions are already known, construct the range directly instead.
 
         Example:
             ```python
@@ -6209,7 +6212,7 @@ class TableColumn:
 
 
 class TableColumns(Collection[TableColumn]):
-    """Table columns. Collection lookup is zero-based; column indexes are one-based. For a newly created table in xlwings Lite, call `await book.flush()` and `await sheet.load()` before accessing its columns, then obtain the table again.
+    """Table columns. Collection lookup is zero-based; column indexes are one-based. For a newly created table in xlwings Lite, call `await sheet.load()` before accessing its columns, then obtain the table again.
 
     Examples:
         ```python
@@ -6664,7 +6667,7 @@ class Chart:
     async def get_series(self) -> ChartSeriesCollection:
         """Fetches the chart's current ordered series collection.
 
-        A newly created chart must first be dispatched with `await book.flush()` so Excel can create its series from the source data.
+        A newly created chart needs its source data first, see {meth}`set_source_data`. Like other asynchronous getters, this method flushes pending actions first, so Excel creates the chart's series before they are read.
 
         Requires xlwings Lite.
 
@@ -8097,8 +8100,8 @@ class PivotTables(Collection[PivotTable]):
             source: The source data, either a range including the header row
                 or a {class}`Table <xlwings.main.Table>`. Can be on another sheet.
                 On xlwings Lite, `expand()` doesn't see values written in the
-                same script until you run `await book.flush()` followed by
-                `await sheet.load()`; on xlwings Server, spell out the range.
+                same script until you run `await sheet.load()`; on xlwings
+                Server, spell out the range.
             destination: The cell where the top-left corner of the pivot
                 table goes. Must be on the sheet of this collection.
             name: Name of the pivot table. Defaults to Excel's standard

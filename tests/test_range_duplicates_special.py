@@ -121,7 +121,9 @@ def test_remote_get_special_cells_reads_host(monkeypatch):
     sheet = SimpleNamespace(
         name="Data",
         index=1,
-        book=SimpleNamespace(append_json_action=Mock()),
+        book=SimpleNamespace(
+            append_json_action=Mock(), _json={"actions": []}, _dispatch=None
+        ),
     )
     selected = _xlremote.Range(sheet, (3, 4), (6, 7))
     result = asyncio.run(selected.get_special_cells("visible", None))

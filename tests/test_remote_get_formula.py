@@ -67,14 +67,18 @@ def fake_js(monkeypatch):
         ]
         return SimpleNamespace(to_py=lambda: {"formulas": grid})
 
+    async def run_actions(payload):
+        pass
+
     js = ModuleType("js")
-    js.xlwings = SimpleNamespace(getRangeData=get_range_data)
+    js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
+    js.xlwings = SimpleNamespace(getRangeData=get_range_data, runActions=run_actions)
     monkeypatch.setitem(sys.modules, "js", js)
 
     pyodide = ModuleType("pyodide")
     ffi = ModuleType("pyodide.ffi")
 
-    def to_js(value):
+    def to_js(value, **kwargs):
         return value
 
     ffi.to_js = to_js
