@@ -100,7 +100,7 @@ def test_remote_ranges_require_async_getters(book):
 def test_new_remote_table_requires_column_metadata_refresh(book, monkeypatch, scope):
     sheet = book.sheets[0]
     table = sheet.tables.add(sheet["A1:B2"], name="Fresh")
-    with pytest.raises(xw.XlwingsError, match="flush.*load"):
+    with pytest.raises(xw.XlwingsError, match="sheet.load"):
         len(table.columns)
 
     payload = copy.deepcopy(book.impl.api)
@@ -110,9 +110,10 @@ def test_new_remote_table_requires_column_metadata_refresh(book, monkeypatch, sc
     js = ModuleType("js")
     js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
     js.xlwings = SimpleNamespace(
+        runActions=lambda payload: _async_result(None),
         getBookData=lambda options: _async_result(
             SimpleNamespace(to_py=lambda: payload)
-        )
+        ),
     )
     monkeypatch.setitem(sys.modules, "js", js)
     pyodide = ModuleType("pyodide")
@@ -135,15 +136,32 @@ def test_column_get_count_refreshes_drifted_metadata(book, monkeypatch):
     table = book.sheets[0].tables["Sales"]
     columns = table.columns
     monkeypatch.setattr(sys, "platform", "emscripten")
+    host_columns = ["Item", "Amount", "Tax"]
+
+    async def run_actions(payload):
+        for action in payload["actions"]:
+            assert action["func"] == "addTableColumn"
+            host_columns.insert(action["args"][1], action["args"][2])
+
     js = ModuleType("js")
-    js.xlwings = SimpleNamespace(getTableColumnCount=lambda *args: _async_result(3))
+    js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
+    js.xlwings = SimpleNamespace(
+        runActions=run_actions,
+        getTableColumnCount=lambda *args: _async_result(len(host_columns)),
+    )
     monkeypatch.setitem(sys.modules, "js", js)
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+    ffi.to_js = lambda value, **kwargs: value
+    pyodide.ffi = ffi
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
     refreshes = []
 
     async def refresh(values=None):
         refreshes.append(values)
-        table.impl.api["columns"] = ["Item", "Amount", "Tax"]
-        table.impl.api["column_count"] = 3
+        table.impl.api["columns"] = list(host_columns)
+        table.impl.api["column_count"] = len(host_columns)
 
     monkeypatch.setattr(book.impl, "load", refresh)
     assert asyncio.run(columns.get_count()) == 3
@@ -151,10 +169,12 @@ def test_column_get_count_refreshes_drifted_metadata(book, monkeypatch):
     assert len(columns) == 3
     assert [column.name for column in columns] == ["Item", "Amount", "Tax"]
 
+    # The read dispatches the queued column first, so the local metadata
+    # already matches and needs no refresh.
     columns.add("Discount")
-    assert asyncio.run(columns.get_count()) == 3
+    assert asyncio.run(columns.get_count()) == 4
     assert refreshes == [False]
-    assert len(columns) == 4
+    assert [column.name for column in columns] == ["Item", "Amount", "Tax", "Discount"]
 
 
 def test_remote_table_rejects_header_guess_before_queue(book):
@@ -192,14 +212,14 @@ def test_failed_flush_refreshes_optimistic_column_metadata(book, monkeypatch):
     monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
     refreshes = []
 
-    async def refresh(values=None):
-        refreshes.append(values)
+    async def refresh(values=None, flush=True):
+        refreshes.append((values, flush))
         table.impl.api["columns"] = ["Item", "Amount"]
         table.impl.api["column_count"] = 2
 
     monkeypatch.setattr(book.impl, "load", refresh)
     with pytest.raises(RuntimeError, match="partial dispatch"):
         asyncio.run(book.flush())
-    assert refreshes == [False]
+    assert refreshes == [(False, False)]
     assert len(table.columns) == 2
     assert book.impl.json()["actions"] == []

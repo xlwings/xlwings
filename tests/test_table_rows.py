@@ -82,19 +82,32 @@ def test_remote_row_sync_range_points_to_async_getter():
         row.range
 
 
-def test_remote_row_get_count_preserves_queued_changes(monkeypatch):
+def test_remote_row_get_count_flushes_queued_changes(monkeypatch):
     table = remote_table()
     rows = table.rows
     rows.add(["queued", 3])
     monkeypatch.setattr(sys, "platform", "emscripten")
-    js = ModuleType("js")
+    dispatched = []
+
+    async def run_actions(payload):
+        dispatched.extend(action["func"] for action in payload["actions"])
 
     async def current_count(*args):
-        return 2
+        # Excel's count includes the queued row only once it was dispatched.
+        return 3 if dispatched else 2
 
-    js.xlwings = SimpleNamespace(getTableRowCount=current_count)
+    js = ModuleType("js")
+    js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
+    js.xlwings = SimpleNamespace(runActions=run_actions, getTableRowCount=current_count)
     monkeypatch.setitem(sys.modules, "js", js)
-    assert asyncio.run(rows.get_count()) == 2
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+    ffi.to_js = lambda value, **kwargs: value
+    pyodide.ffi = ffi
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
+    assert asyncio.run(rows.get_count()) == 3
+    assert dispatched == ["addTableRow"]
     assert len(rows) == 3
 
 
