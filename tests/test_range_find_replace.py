@@ -114,7 +114,9 @@ def test_remote_find_reads_host_and_returns_range(monkeypatch):
         name="Data",
         index=1,
         api={"names": [], "tables": []},
-        book=SimpleNamespace(append_json_action=Mock()),
+        book=SimpleNamespace(
+            append_json_action=Mock(), _json={"actions": []}, _dispatch=None
+        ),
     )
     selected = _xlremote.Range(sheet, (3, 4), (6, 7))
 

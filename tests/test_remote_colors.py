@@ -26,8 +26,12 @@ def make_book():
     return xw.Book(impl=impl)
 
 
-def install_bridge(monkeypatch, colors=None, error=None):
+def install_bridge(monkeypatch, colors=None, error=None, dispatched=None):
     calls = []
+
+    async def run_actions(payload):
+        if dispatched is not None:
+            dispatched.extend(action["func"] for action in payload["actions"])
 
     async def get_range_data(sheet, address, keys):
         calls.append((sheet, address, keys))
@@ -36,9 +40,10 @@ def install_bridge(monkeypatch, colors=None, error=None):
         return SimpleNamespace(to_py=lambda: {"colors": colors})
 
     js = ModuleType("js")
-    js.xlwings = SimpleNamespace(getRangeData=get_range_data)
+    js.Object = SimpleNamespace(fromEntries=lambda entries: dict(entries))
+    js.xlwings = SimpleNamespace(getRangeData=get_range_data, runActions=run_actions)
     ffi = ModuleType("pyodide.ffi")
-    ffi.to_js = lambda value: value
+    ffi.to_js = lambda value, **kwargs: value
     monkeypatch.setitem(sys.modules, "js", js)
     monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
     monkeypatch.setattr(sys, "platform", "emscripten")
@@ -74,15 +79,16 @@ def test_colors_keep_shape_and_do_not_load_values(
     assert book.impl.json() == before
 
 
-def test_colors_do_not_flush_pending_writes(monkeypatch):
+def test_colors_flush_pending_writes_first(monkeypatch):
     book = make_book()
     rng = book.sheets[0]["A1"]
     rng.color = "#ff0000"
-    before = copy.deepcopy(book.impl.json())
-    install_bridge(monkeypatch, [[None]])
+    dispatched = []
+    install_bridge(monkeypatch, [["#ff0000"]], dispatched=dispatched)
 
-    assert asyncio.run(rng.get_colors()) == [[None]]
-    assert book.impl.json() == before
+    assert asyncio.run(rng.get_colors()) == [[(255, 0, 0)]]
+    assert dispatched == ["setRangeColor"]
+    assert book.impl.json()["actions"] == []
 
 
 def test_colors_propagate_host_error(monkeypatch):

@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.37.7 (unreleased)
 
 - Added {meth}`Range.move <xlwings.Range.move>` to move a range like cut and paste, including to an overlapping destination.
+- xlwings Lite: asynchronous getters such as `await rng.get_value()` now flush pending actions before they read from Excel, so they always see the script's earlier changes, e.g., the cells of a sheet that was added in the same script. Previously, such a read returned stale data or failed with `ItemNotFound` unless you called `await book.flush()` first. Explicit flushing is now only needed in a few cases, see {meth}`Book.flush <xlwings.Book.flush>`. As before, a script that raises an exception discards its pending actions, but changes that a read flushed before the exception stay applied.
 - xlwings Lite: Bug fix: a {class}`Sheet <xlwings.Sheet>` object now keeps targeting its own sheet after another sheet is added, deleted, or moved. Previously, deleting several sheets via variables that were assigned upfront could delete the wrong sheet or raise an `IndexError`.
 
 ## v0.37.6 (Oct 13, 2026)

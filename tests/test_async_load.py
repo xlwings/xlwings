@@ -110,8 +110,11 @@ def fake_emscripten(monkeypatch):
         values = [[]] if lazy else [[10, 20], [30, 40]]
         return SimpleNamespace(to_py=lambda: _book_json(values))
 
+    async def run_actions(payload):
+        pass
+
     js = ModuleType("js")
-    js.xlwings = SimpleNamespace(getBookData=get_book_data)
+    js.xlwings = SimpleNamespace(getBookData=get_book_data, runActions=run_actions)
     # to_js(..., dict_converter=js.Object.fromEntries) references this; our fake
     # to_js ignores it, but the attribute must exist to be passed as an arg.
     js.Object = SimpleNamespace(fromEntries=lambda x: x)
