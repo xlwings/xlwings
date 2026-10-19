@@ -754,7 +754,8 @@ def test_async_expanded_range_rejects_invalid_mode(sheet, live_js):
         _run(sheet["A1"].get_expanded_range("left"))
 
 
-def test_async_expanded_range_requires_xlwings_lite(sheet):
+def test_async_expanded_range_requires_xlwings_lite(sheet, monkeypatch):
+    monkeypatch.setattr(sys, "platform", "linux")
     with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
         _run(sheet["A1"].get_expanded_range())
 
