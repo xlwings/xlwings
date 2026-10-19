@@ -1321,8 +1321,9 @@ class Sheet(base_classes.Sheet):
         elif axis in ("columns", "c"):
             self.append_json_action(func="setSheetAutofit", args="columns")
         elif axis is None:
-            self.append_json_action(func="setSheetAutofit", args="rows")
+            # Columns first: row heights of wrapped text depend on final widths
             self.append_json_action(func="setSheetAutofit", args="columns")
+            self.append_json_action(func="setSheetAutofit", args="rows")
         else:
             raise ValueError(
                 f"Invalid axis: {axis!r}. Use 'rows'/'r', 'columns'/'c' or None."
