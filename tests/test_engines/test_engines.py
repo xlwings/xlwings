@@ -3148,7 +3148,7 @@ def test_app_quit_not_supported(book):
         ("r", ["rows"]),
         ("columns", ["columns"]),
         ("c", ["columns"]),
-        (None, ["rows", "columns"]),
+        (None, ["columns", "rows"]),
     ],
 )
 def test_sheet_autofit(axis, expected):
