@@ -2242,6 +2242,9 @@ class Chart:
     async def get_series(self):
         raise NotImplementedError("get_series() is only supported in xlwings Lite")
 
+    async def get_title(self):
+        raise NotImplementedError("get_title() is only supported in xlwings Lite")
+
     @property
     def plot_by(self):
         raise NotImplementedError()

@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.8 (unreleased)
+
+- xlwings Lite: added `await` {meth}`Chart.get_title <xlwings.Chart.get_title>` to read the title of an existing chart.
+
 ## v0.37.7 (Oct 19, 2026)
 
 - Added {meth}`Range.move <xlwings.Range.move>` to move a range.
