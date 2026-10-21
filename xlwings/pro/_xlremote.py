@@ -3788,11 +3788,31 @@ class Chart(base_classes.Chart):
 
     @property
     def title(self):
-        return self._local_or_raise("title", "title")
+        try:
+            return self._local_or_raise("title", "title")
+        except NotImplementedError:
+            raise NotImplementedError(
+                "Reading a chart's title synchronously isn't supported on this "
+                "engine. Use 'await chart.get_title()' to fetch the value."
+            ) from None
 
     @title.setter
     def title(self, value):
         self._set_format("title", value, "setChartTitle", [value])
+
+    async def get_title(self):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart title reads require source data. Call Chart.set_source_data() "
+                "first."
+            )
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_title() is only supported in xlwings Lite")
+
+        title = await client_read(
+            self.parent.book, "getChartTitle", self.parent.name, self.index - 1
+        )
+        return _normalize_jsnull(title)
 
     @property
     def legend(self):

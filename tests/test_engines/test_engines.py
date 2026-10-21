@@ -1521,6 +1521,38 @@ def test_pending_chart_series_requires_source_data():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_get_title_reads_from_client():
+    import sys
+    import types
+
+    book = _fresh_book()
+    sheet = book.sheets[0]
+    chart = sheet.charts[0]
+    with pytest.raises(NotImplementedError, match=r"await chart\.get_title\(\)"):
+        chart.title
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(chart.get_title())
+
+    calls = []
+    titles = iter(["Revenue by month", None])
+
+    async def get_chart_title(sheet_name, chart_index):
+        calls.append((sheet_name, chart_index))
+        return next(titles)
+
+    js = types.SimpleNamespace(
+        xlwings=types.SimpleNamespace(getChartTitle=get_chart_title)
+    )
+    with mock.patch.object(sys, "platform", "emscripten"):
+        with mock.patch.dict(sys.modules, {"js": js}):
+            assert asyncio.run(chart.get_title()) == "Revenue by month"
+            assert asyncio.run(chart.get_title()) is None
+            with pytest.raises(xw.XlwingsError, match="set_source_data"):
+                asyncio.run(sheet.charts.add().get_title())
+    assert calls == [(sheet.name, 0), (sheet.name, 0)]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_series_sync_getters_and_api_raise_before_write():
     from xlwings.pro._xlremote import ChartSeries as RemoteChartSeries
 

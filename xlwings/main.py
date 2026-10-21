@@ -6577,7 +6577,8 @@ class Chart:
         ```
 
         On xlwings Lite and xlwings Server, reading the title only works after it
-        has been set in the same script.
+        has been set in the same script. In xlwings Lite, use {meth}`get_title` to
+        fetch the title of any chart.
 
         ```{versionadded} 0.37.3
         ```
@@ -6591,6 +6592,16 @@ class Chart:
                 f"Invalid title {value!r}. Must be a string or None to hide it."
             )
         self.impl.title = value
+
+    async def get_title(self) -> str | None:
+        """Fetches the chart title. Returns `None` if the title is hidden.
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.8
+        ```
+        """
+        return await self.impl.get_title()
 
     @property
     def legend(self) -> ChartLegend:
