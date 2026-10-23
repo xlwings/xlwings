@@ -2,14 +2,14 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.8 (unreleased)
+## v0.37.8 (Oct 23, 2026)
 
-- xlwings Lite: added `await` {meth}`Chart.get_title <xlwings.Chart.get_title>` to read the title of an existing chart.
+- xlwings Lite: added {meth}`await Chart.get_title <xlwings.Chart.get_title>` to read the title of an existing chart.
 
 ## v0.37.7 (Oct 19, 2026)
 
 - Added {meth}`Range.move <xlwings.Range.move>` to move a range.
-- xlwings Lite: added `await` {meth}`Range.get_expanded_range <xlwings.Range.get_expanded_range>`, the async counterpart of {meth}`Range.expand <xlwings.Range.expand>` that reads the current cells from Excel.
+- xlwings Lite: added {meth}`await Range.get_expanded_range <xlwings.Range.get_expanded_range>`, the async counterpart of {meth}`Range.expand <xlwings.Range.expand>` that reads the current cells from Excel.
 - xlwings Lite: async getters such as `await myrange.get_value()` now flush pending actions automatically before they read from Excel, making an explicit `await book.flush()` obsolete.
 - xlwings Lite: Bug fix: a {class}`Sheet <xlwings.Sheet>` object now keeps targeting its own sheet after another sheet is added, deleted, or moved.
 - xlwings Lite and xlwings Server: Bug fix: {meth}`Range.autofit <xlwings.Range.autofit>` and {meth}`Sheet.autofit <xlwings.Sheet.autofit>` now autofit columns before rows, so rows with wrapped text get the correct height.
@@ -27,7 +27,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.37.5 (Sep 27, 2026)
 
-- xlwings Lite: added `await` {meth}`PivotTable.get_range <xlwings.PivotTable.get_range>` and `await` {meth}`PivotTable.get_data_body_range <xlwings.PivotTable.get_data_body_range>`.
+- xlwings Lite: added {meth}`await PivotTable.get_range <xlwings.PivotTable.get_range>` and {meth}`await PivotTable.get_data_body_range <xlwings.PivotTable.get_data_body_range>`.
 - Added {attr}`Table.rows <xlwings.main.Table.rows>` and {attr}`Table.columns <xlwings.main.Table.columns>` to insert, inspect, and delete table rows and columns.
 - Added {attr}`RangeRows.hidden <xlwings.RangeRows.hidden>` and {attr}`RangeColumns.hidden <xlwings.RangeColumns.hidden>` to read and change row and column visibility.
 - Added {meth}`Range.remove_duplicates <xlwings.Range.remove_duplicates>` for native duplicate removal and {meth}`Range.get_special_cells <xlwings.Range.get_special_cells>` to select blanks, constants, formulas, or visible cells.
@@ -38,7 +38,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 - macOS: fixed macOS 27 compatibility.
 - Added {meth}`Range.get_colors <xlwings.Range.get_colors>` and {meth}`Range.set_colors <xlwings.Range.set_colors>` for bulk read and writes of cell colors.
 - Added {meth}`Sheet.move() <xlwings.Sheet.move>` to move a worksheet.
-- xlwings Lite: added `await` {meth}`Sheet.get_used_range(values_only=False) <xlwings.Sheet.get_used_range>` to fetch the current formatting-aware used range.
+- xlwings Lite: added {meth}`await Sheet.get_used_range(values_only=False) <xlwings.Sheet.get_used_range>` to fetch the current formatting-aware used range.
 - Added {attr}`Range.autofilter <xlwings.Range.autofilter>` and {attr}`Table.autofilter <xlwings.main.Table.autofilter>` to apply value, comparison, and top/bottom filters.
 - Added {attr}`Range.data_validation <xlwings.Range.data_validation>` with list, whole-number, decimal, date, time, text-length, and custom-formula validation.
 - Added {attr}`Range.conditional_formats <xlwings.Range.conditional_formats>` for cell-value, formula, color-scale, data-bar, and icon-set rules.
