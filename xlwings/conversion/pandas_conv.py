@@ -47,13 +47,17 @@ if pd:
                 value.index = value.index.rename(None)
             value = value.reset_index()
 
-        # Convert pandas-specific types without corresponding Excel type to strings
-        for ix, col in enumerate(value.columns):
-            if (
-                isinstance(value.iloc[:, ix].dtype, pd.PeriodDtype)
-                or value.iloc[:, ix].dtype == "timedelta64[ns]"
-            ):
-                value.iloc[:, ix] = value.iloc[:, ix].astype(str)
+        # Convert pandas-specific types without a corresponding Excel type to strings.
+        text_columns = [
+            ix
+            for ix, dtype in enumerate(value.dtypes)
+            if isinstance(dtype, pd.PeriodDtype) or dtype == "timedelta64[ns]"
+        ]
+        if text_columns:
+            value = value.copy(deep=False)
+            for ix in text_columns:
+                # Replace the column so pandas cannot cast the strings back.
+                value.isetitem(ix, value.iloc[:, ix].astype(str))
 
         if header:
             if isinstance(value.columns, pd.MultiIndex):

@@ -628,13 +628,46 @@ class TestPandas(TestBase):
         )
 
     def test_period_index(self):
-        idx = pd.PeriodIndex(year=[2000, 2002], quarter=[1, 3])
+        idx = pd.PeriodIndex(["2000Q1", "2002Q3"], freq="Q")
         df = pd.DataFrame(index=idx, data=[1, 2])
         self.wb1.sheets[0].range("A1").value = df
         self.assertEqual(
             [[None, 0.0], ["2000Q1", 1.0], ["2002Q3", 2.0]],
             self.wb1.sheets[0]["A1"].options(expand="table").value,
         )
+
+    def test_dataframe_period_column(self):
+        dates = pd.to_datetime(["2024-01-15", "2024-02-20"])
+        df = pd.DataFrame({"date": dates, "month": dates.to_period("M")})
+        expected = df.copy()
+        sheet = self.wb1.sheets[0]
+        sheet["B2:B3"].number_format = "@"
+
+        sheet["A1"].options(index=False).value = df
+
+        self.assertEqual(
+            [
+                ["date", "month"],
+                [dt.datetime(2024, 1, 15), "2024-01"],
+                [dt.datetime(2024, 2, 20), "2024-02"],
+            ],
+            sheet["A1:B3"].value,
+        )
+        assert_frame_equal(df, expected)
+
+    def test_dataframe_period_column_with_duplicate_headers(self):
+        df = pd.DataFrame(
+            {
+                "period": pd.period_range("2024Q1", periods=2, freq="Q"),
+                "amount": [2, 3],
+            }
+        )
+        df.columns = ["repeated", "repeated"]
+        sheet = self.wb1.sheets[0]
+
+        sheet["A1"].options(index=False, header=False).value = df
+
+        self.assertEqual([["2024Q1", 2.0], ["2024Q2", 3.0]], sheet["A1:B2"].value)
 
     def test_NA(self):
         df = pd.DataFrame([pd.NA, np.nan], index=[0.0, 1.0], columns=["one"])
