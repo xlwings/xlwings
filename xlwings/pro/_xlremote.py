@@ -44,6 +44,8 @@ from ..constants import MAX_COLUMNS, MAX_ROWS
 # survives renames; the sheet's api dict is preserved across metadata reloads by
 # _update_api_in_place. Only read locally (never serialized back to JS).
 _SHEET_VALUES_LOADED_KEY = "_xlwings_values_loaded"
+# Largest integer a JavaScript number holds exactly (Number.MAX_SAFE_INTEGER).
+_MAX_SAFE_INTEGER = 2**53 - 1
 
 # xlwings' public calculation modes mapped to Office.js' Excel.CalculationMode.
 # xlwings' "semiautomatic" is Office.js' "AutomaticExceptTables".
@@ -549,6 +551,15 @@ class Engine:
         elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
             return ""
         elif np and isinstance(x, np.number):
+            return float(x)
+        elif (
+            isinstance(x, int)
+            and not isinstance(x, bool)
+            and abs(x) > _MAX_SAFE_INTEGER
+        ):
+            # Excel stores numbers as doubles, as when numpy integers are
+            # written. Unconverted, xlwings Lite would pass a JavaScript BigInt
+            # to Office.js, which can't serialize it.
             return float(x)
         elif pd and isinstance(x, type(pd.NaT)):
             return None
