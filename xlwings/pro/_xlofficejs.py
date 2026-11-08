@@ -125,6 +125,10 @@ class Engine:
             return errorstr_to_errortype("#NUM!", options["runtime"])
         elif np and isinstance(x, np.number):
             return float(x)
+        elif isinstance(x, int) and not isinstance(x, bool) and abs(x) > 2**53 - 1:
+            # Excel stores numbers as doubles; unconverted, Pyodide would return
+            # a JavaScript BigInt, which Office.js can't serialize.
+            return float(x)
         elif np and isinstance(x, np.datetime64):
             return datetime_to_formatted_number(
                 utils.np_datetime_to_datetime(x),
