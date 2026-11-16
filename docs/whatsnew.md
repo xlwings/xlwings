@@ -2,6 +2,12 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.9 (Nov 16, 2026)
+
+- xlwings Lite: Bug fix: writing very large integers (beyond `2**53`) no longer fails.
+- Bug fix: pandas period columns, such as `2026-01`, and timedelta columns are now reliably written to Excel as text.
+- Bug fix: the in-Excel SQL function now preserves the values of your tables: text that looks like a number, e.g., `007`, stays text, and backslashes are no longer altered. Column names that contain spaces or special characters also work now.
+
 ## v0.37.8 (Oct 23, 2026)
 
 - xlwings Lite: added {meth}`await Chart.get_title <xlwings.Chart.get_title>` to read the title of an existing chart.
