@@ -2,11 +2,16 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.10 (Nov 17, 2026)
+
+- Bug fix: in the in-Excel SQL function, comparing dates with SQLite's `datetime()`, e.g., `WHERE order_date > datetime('2024-01-12')` (regression introduced in v0.37.9).
+- Bug fix: in the in-Excel SQL function, columns that mix text and numbers, e.g., `n/a` and numbers, keep their numbers again, so conditions such as `WHERE amount > 3` work. Date columns that contain text no longer cause an error (regression introduced in v0.37.9).
+
 ## v0.37.9 (Nov 16, 2026)
 
 - xlwings Lite: Bug fix: writing very large integers (beyond `2**53`) no longer fails.
 - Bug fix: pandas period columns, such as `2026-01`, and timedelta columns are now reliably written to Excel as text.
-- Bug fix: the in-Excel SQL function now preserves the values of your tables: text that looks like a number, e.g., `007`, stays text, and backslashes are no longer altered. Column names that contain spaces or special characters also work now.
+- Bug fix: the in-Excel SQL function now preserves the values of your tables: text that looks like a number, e.g., `007`, stays text, and backslashes are no longer altered. Column names that contain spaces or special characters also work now. Booleans are now stored as `1`/`0`, so conditions such as `WHERE is_shipped` and `WHERE is_shipped = TRUE` work, while `WHERE is_shipped = 'True'` no longer matches.
 
 ## v0.37.8 (Oct 23, 2026)
 
