@@ -669,6 +669,24 @@ class TestPandas(TestBase):
 
         self.assertEqual([["2024Q1", 2.0], ["2024Q2", 3.0]], sheet["A1:B2"].value)
 
+    def test_dataframe_timedelta_columns(self):
+        td = pd.to_timedelta(["1s", "2s"])
+        df = pd.DataFrame(
+            {
+                "ns": td.astype("timedelta64[ns]"),
+                "us": td.astype("timedelta64[us]"),
+                "s": td.astype("timedelta64[s]"),
+            }
+        )
+        sheet = self.wb1.sheets[0]
+
+        sheet["A1"].options(index=False, header=False).value = df
+
+        self.assertEqual(
+            [["0 days 00:00:01"] * 3, ["0 days 00:00:02"] * 3],
+            sheet["A1:C2"].value,
+        )
+
     def test_NA(self):
         df = pd.DataFrame([pd.NA, np.nan], index=[0.0, 1.0], columns=["one"])
         self.wb1.sheets[0].range("A1").value = df

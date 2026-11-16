@@ -51,7 +51,7 @@ if pd:
         text_columns = [
             ix
             for ix, dtype in enumerate(value.dtypes)
-            if isinstance(dtype, pd.PeriodDtype) or dtype == "timedelta64[ns]"
+            if isinstance(dtype, pd.PeriodDtype) or dtype.kind == "m"
         ]
         if text_columns:
             value = value.copy(deep=False)
