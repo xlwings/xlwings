@@ -201,7 +201,39 @@ def test_datetime_comparison_with_iso_literal():
     assert res == [["when"], [dt.datetime(2024, 1, 2)]]
 
 
-def test_column_type_from_first_non_empty_value():
+ORDER_DATES = [
+    ["id", "order_date"],
+    [101.0, dt.datetime(2024, 1, 10)],
+    [102.0, dt.datetime(2024, 1, 12)],
+    [103.0, dt.datetime(2024, 1, 15, 8, 30)],
+]
+
+
+@pytest.mark.parametrize(
+    "condition, expected",
+    [
+        ("order_date > datetime('2024-01-12')", [103.0]),
+        ("order_date >= datetime('2024-01-12')", [102.0, 103.0]),
+        ("order_date = datetime('2024-01-12')", [102.0]),
+        ("order_date < datetime('2024-01-12')", [101.0]),
+        ("order_date = '2024-01-12 00:00:00'", [102.0]),
+        ("date(order_date) = '2024-01-15'", [103.0]),
+        ("order_date > datetime('2024-01-15 08:00')", [103.0]),
+    ],
+)
+def test_datetime_comparison_with_sqlite_functions(condition, expected):
+    res = _sql("SELECT id FROM a WHERE %s ORDER BY id" % condition, ORDER_DATES)
+    assert res == [["id"]] + [[i] for i in expected]
+
+
+def test_datetimes_are_stored_in_sqlite_format():
+    res = _sql(
+        "SELECT CAST(order_date AS TEXT) AS t FROM a WHERE id = 103", ORDER_DATES
+    )
+    assert res == [["t"], ["2024-01-15 08:30:00"]]
+
+
+def test_empty_cells_dont_affect_column_type():
     table = [["x"], [None], [""], [2.0], [1.0]]
     # SQLite sorts NULL first, then numbers, then text
     assert _sql("SELECT x FROM a ORDER BY x", table) == [
@@ -211,6 +243,19 @@ def test_column_type_from_first_non_empty_value():
         [2.0],
         [""],
     ]
+
+
+def test_mixed_column_keeps_numbers_and_text():
+    table = [["x"], ["n/a"], [5.0], [10.0], [2.0]]
+    assert _sql("SELECT x FROM a", table) == [["x"], ["n/a"], [5.0], [10.0], [2.0]]
+    # Text sorts after numbers in SQLite, so "n/a" is included
+    assert _sql("SELECT x FROM a WHERE x > 3", table) == [["x"], ["n/a"], [5.0], [10.0]]
+    assert _sql("SELECT SUM(x) AS s FROM a", table) == [["s"], [17.0]]
+
+
+def test_mixed_column_with_dates_and_text():
+    table = [["d"], [dt.datetime(2024, 1, 1)], ["n/a"]]
+    assert _sql("SELECT d FROM a", table) == [["d"], ["2024-01-01 00:00:00"], ["n/a"]]
 
 
 # Table shapes
@@ -274,6 +319,10 @@ def test_udf_entry_points(func):
         ([None, "", 1.0], "REAL"),
         ([], "TEXT"),
         ([None, ""], "TEXT"),
+        (["n/a", 1.0], "BLOB"),
+        ([1.0, "n/a"], "BLOB"),
+        ([dt.datetime(2024, 1, 1), "n/a"], "BLOB"),
+        ([True, 1.0], "BLOB"),
     ],
 )
 def test_get_column_type(values, expected):

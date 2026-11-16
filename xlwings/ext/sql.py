@@ -21,7 +21,8 @@ def sql_dynamic(query, *arg):
 
 def conv_value(value):
     if isinstance(value, dt.datetime):
-        return value.isoformat()
+        # Same format as SQLite's datetime(), so that comparisons with it work
+        return value.isoformat(" ")
     return value
 
 
@@ -30,17 +31,24 @@ def quote_identifier(name):
 
 
 def get_column_type(column_values):
+    types = set()
     for val in column_values:
         if val in (None, ""):
             continue
         elif isinstance(val, dt.datetime):
-            return "DATETIME"
+            types.add("DATETIME")
         elif isinstance(val, bool):
-            return "BOOLEAN"
+            types.add("BOOLEAN")
         elif isinstance(val, str):
-            return "TEXT"
-        return "REAL"
-    return "TEXT"
+            types.add("TEXT")
+        else:
+            types.add("REAL")
+    if not types:
+        return "TEXT"
+    if len(types) == 1:
+        return types.pop()
+    # Mixed columns, e.g., "n/a" and numbers: BLOB affinity stores values as they are
+    return "BLOB"
 
 
 def _sql(query, *tables_or_aliases):
