@@ -4,9 +4,13 @@ name: Build pyemscripten wheel
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   build:
     name: Build pyemscripten wheel
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -15,7 +19,9 @@ jobs:
         # pyemscripten wheel (PEP 783). Older Pyodide versions use the "any" wheel.
         python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Stamp version with commit hash
         # maturin takes the wheel version from Cargo.toml
         run: |
@@ -40,11 +46,11 @@ jobs:
               )
           )
       - name: Build pyemscripten wheel
-        uses: ./.github/actions/build-pyemscripten-wheel
+        uses: $/.github/actions/build-pyemscripten-wheel
         with:
           python-version: ${{ matrix.python-version }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: pyemscripten-wheel
           path: ./dist

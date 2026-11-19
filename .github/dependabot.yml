@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Updates the actions and their commits in .github/workflows/actions.lock
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
