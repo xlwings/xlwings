@@ -4,14 +4,20 @@ name: Build any wheel
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   build:
     name: Build any wheel
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
       - name: Install Python dependencies
@@ -25,7 +31,7 @@ jobs:
           BUILD_RUST: 0
         run: python setup.py bdist_wheel
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: any-wheel
           path: ./dist

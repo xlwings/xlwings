@@ -1,7 +1,7 @@
 name: Build Pipeline
 
 on:
-  # Run on all pushed commits, PRs and when a new release is created
+  # Run on all pushed commits, PRs and when a release is published (not when a draft is created)
   # Prevents duplicate pipeline runs as a release also pushes a tag
   workflow_dispatch:
   pull_request:
@@ -12,21 +12,27 @@ on:
       - "**"
   release:
     types:
-      - created
+      - published
+
+permissions: {}
 
 jobs:
   lint:
     # Prevent duplicate runs for own PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
       # Inlined from pre-commit/action@v3.0.1, which pins actions/cache@v4 (Node 20)
       - run: python -m pip install pre-commit
-      - uses: actions/cache@v6
+      - uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -35,10 +41,14 @@ jobs:
   test-macos-backend:
     # Prevent duplicate runs for own PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    permissions:
+      contents: read
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
       - run: python -m pip install pytest psutil appscript
@@ -46,20 +56,24 @@ jobs:
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
+    permissions:
+      contents: read
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
           architecture: "x64"
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 3.1.100
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v3
+        uses: microsoft/setup-msbuild@v3.0.0
       - name: Install Python dependencies
         run: |
           python -m pip install pythonnet wheel setuptools-rust
@@ -70,7 +84,9 @@ jobs:
           curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
           unzip ./aspose/aspose.cells.nupkg -d ./aspose/
       - name: Caching dlls
-        uses: actions/cache@v6
+        # No cache in releases to rule out cache poisoning
+        if: github.event_name != 'release'
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: |
@@ -90,7 +106,7 @@ jobs:
         run: |
           python ./scripts/build_excel_files.py
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: pre-build
           retention-days: 1
@@ -137,14 +153,16 @@ jobs:
             },
           ]
 
+    permissions:
+      contents: read
     runs-on: ${{ matrix.platform.os }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: pre-build
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
           architecture: "x64"
@@ -161,7 +179,7 @@ jobs:
       - name: Set up QEMU
         # Required for Linux cross-compilation
         if: matrix.platform.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@v4.4.0
         with:
           platforms: all
 
@@ -173,7 +191,7 @@ jobs:
 
       - name: Build macOS and Linux wheels
         if: matrix.platform.os != 'windows-latest' && matrix.platform.target != 'any'
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@v1.51.0
         with:
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux || 'auto' }}
@@ -199,7 +217,7 @@ jobs:
           python setup.py bdist_wheel
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Package-${{matrix.python-version}}-${{ matrix.platform.os }}-${{ matrix.platform.target }}-${{matrix.platform.manylinux}}
           path: ./dist
@@ -226,6 +244,8 @@ jobs:
     needs: pre-build
     name: Build wheel (pyemscripten)
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]')
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -234,18 +254,20 @@ jobs:
         # pyemscripten wheel (PEP 783). Older Pyodide versions use the "any" wheel.
         python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: pre-build
       - name: Build pyemscripten wheel
-        uses: ./.github/actions/build-pyemscripten-wheel
+        uses: $/.github/actions/build-pyemscripten-wheel
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Package-${{ matrix.python-version }}-pyemscripten
           path: ./dist
@@ -272,17 +294,18 @@ jobs:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build-cli]')
     needs: pre-build
     name: Build CLI
+    permissions:
+      contents: read
     runs-on: windows-2025
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: pre-build
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
-          cache: "pip"
       - name: Install Python dependencies
         run: pip install pyinstaller pywin32 msal watchgod
       - name: Build executable
@@ -290,7 +313,7 @@ jobs:
           pyinstaller ./xlwings/cli.py --onefile --name xlwings --icon ./resources/xlwings.ico
           cp ./dist/xlwings.exe ./xlwings.exe
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: cli
           retention-days: 1
@@ -299,30 +322,39 @@ jobs:
 
   publish:
     if: github.event_name == 'release'
-    name: Publish
+    name: Publish to PyPI
     needs: [build, build-pyemscripten]
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/xlwings/
+    permissions:
+      id-token: write # Trusted Publishing and attestations
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-          architecture: "x64"
-      - name: Install Python dependencies
-        run: |
-          python -m pip install wheel twine
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: Package-*
           merge-multiple: true
-          path: Package
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@v1.14.3
+        with:
+          attestations: true
+
+  github-release:
+    if: github.event_name == 'release'
+    name: Update GitHub release
+    needs: [publish, build-cli]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Uploads xlwings.exe and the release notes
+    steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: cli
       - name: GH Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           files: xlwings.exe
           generate_release_notes: true
@@ -330,14 +362,34 @@ jobs:
             * Release Notes: https://docs.xlwings.org/en/latest/whatsnew.html
             * Installation: To install this release, you must use a package manager like `uv`, `pip`, or `conda`, you can't install from source directly, see https://docs.xlwings.org/en/stable/installation.html
             * CLI: `xlwings.exe` is a standalone xlwings command-line client with very limited functionality. It currently works for the `xlwings vba` and `xlwings addin -f` commands and saves you from having to install a full Python installation if these are your only use cases.
-      - name: Publish package and update homepage with release version
-        shell: bash
-        run: |
-          twine upload Package/*.tar.gz
-          twine upload Package/*.whl
-          curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
+
+  update-homepage:
+    if: github.event_name == 'release'
+    name: Update homepage with release version
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Trigger Netlify build
         env:
           NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-  #          repository_url: https://test.pypi.org/legacy/
+        run: curl --fail -X POST -d {} "https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK"
+
+  lockfile:
+    name: Verify actions.lock
+    # Prevent duplicate runs for own PRs
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.1
+      # Fails if a workflow uses an action that isn't locked in .github/workflows/actions.lock
+      - name: Verify
+        run: gh actions-lock --verify

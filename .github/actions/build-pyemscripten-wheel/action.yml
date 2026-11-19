@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v7
+      uses: actions/setup-python@v7.1.0
       with:
         python-version: ${{ inputs.python-version }}
     - name: Install pyodide-build
@@ -37,7 +37,7 @@ runs:
         version: ${{ steps.pyodide-config.outputs.emscripten-version }}
         no-cache: true
     - name: Build pyemscripten wheel
-      uses: PyO3/maturin-action@v1
+      uses: PyO3/maturin-action@v1.51.0
       env:
         CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_RUSTFLAGS: ${{ steps.pyodide-config.outputs.rustflags }}
         # Produces the PEP 783 platform tag pyemscripten_<year>_<patch>_wasm32
