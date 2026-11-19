@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.11 (Nov 19, 2026)
+
+- xlwings Lite and xlwings Server: a function decorated with {func}`@script <xlwings.script>` can now return a value.
+
 ## v0.37.10 (Nov 17, 2026)
 
 - Bug fix: in the in-Excel SQL function, comparing dates with SQLite's `datetime()`, e.g., `WHERE order_date > datetime('2024-01-12')` (regression introduced in v0.37.9).

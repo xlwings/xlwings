@@ -1,6 +1,6 @@
 """
 Tests for custom_scripts_call argument binding: positional args, defaults,
-*args, missing/extra argument errors, and typehint injection.
+*args, missing/extra argument errors, typehint injection, and return values.
 """
 
 import datetime as dt
@@ -121,6 +121,78 @@ async def test_var_positional_consumes_remaining():
     actions = _get_actions(result)
     assert len(actions) == 1
     assert actions[0]["values"] == [["a,b,c"]]
+    book.close()
+
+
+# --- Return value ---
+
+
+@pytest.mark.anyio
+async def test_default_call_returns_book_only():
+    @script
+    def my_script(book: xw.Book):
+        return 42
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}
+    )
+    assert result is book
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_return_result_sync_script():
+    @script
+    def my_script(book: xw.Book, name: str):
+        book.sheets.active["A1"].value = name
+        return {"greeting": f"hello {name}"}
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result_book, result = await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book},
+        args=["world"],
+        return_result=True,
+    )
+    assert result_book is book
+    assert result == {"greeting": "hello world"}
+    assert _get_actions(result_book)[0]["values"] == [["world"]]
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_return_result_async_script():
+    @script
+    async def my_script(book: xw.Book):
+        return [1, 2, 3]
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result_book, result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}, return_result=True
+    )
+    assert result_book is book
+    assert result == [1, 2, 3]
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_return_result_without_return_is_none():
+    @script
+    def my_script(book: xw.Book):
+        book.sheets.active["A1"].value = "done"
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result_book, result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}, return_result=True
+    )
+    assert result_book is book
+    assert result is None
     book.close()
 
 

@@ -1053,6 +1053,8 @@ def script(
 
     With classic xlwings, **Import Python UDFs** registers the script as a VBA `Sub` procedure. The injected workbook parameter described above applies to xlwings Lite and xlwings Server.
 
+    In xlwings Lite and xlwings Server, the script's return value is kept, so the runtime can pass it on to the code that called the script. A script without `return` gives `None`.
+
     Args:
         f (callable | None): **All integrations.** Function to decorate when calling `script(my_function)` directly. Leave it out when using `@script` or `@script(...)`.
         name: **xlwings Lite and xlwings Server only.** Display name of the script. Defaults to the Python function name.
@@ -1125,21 +1127,22 @@ def script(
             if current_user:
                 await check_user_roles(current_user, required_roles)
             if inspect.iscoroutinefunction(func):
-                await func(*args, **kwargs)
+                result = await func(*args, **kwargs)
             else:
-                func(*args, **kwargs)
+                result = func(*args, **kwargs)
 
             type_hints = get_type_hints(func)
             sig = inspect.signature(func)
 
             # Keyword-only params (e.g. an injected value after *args) arrive via
-            # kwargs, so check both when looking for the book to return.
+            # kwargs, so check both when looking for the book to return. The
+            # script's own return value travels alongside the book.
             for param_name, arg_value in zip(sig.parameters.keys(), args):
                 if param_name in type_hints and _is_book_hint(type_hints[param_name]):
-                    return arg_value
+                    return arg_value, result
             for param_name, arg_value in kwargs.items():
                 if param_name in type_hints and _is_book_hint(type_hints[param_name]):
-                    return arg_value
+                    return arg_value, result
 
             raise XlwingsError("No xlwings.Book found in your function arguments!")
 
@@ -1197,8 +1200,18 @@ def _coerce_script_arg(value, hint, script_name, param_name):
 
 
 async def custom_scripts_call(
-    module, script_name, current_user=None, typehint_to_value: dict = None, args=None
+    module,
+    script_name,
+    current_user=None,
+    typehint_to_value: dict = None,
+    args=None,
+    return_result: bool = False,
 ):
+    """Run a `@script` function and return its book.
+
+    With `return_result=True`, returns `(book, result)` instead, where `result` is
+    the script's return value (`None` if it doesn't return anything).
+    """
     if typehint_to_value is None:
         typehint_to_value = {}
     if args is None:
@@ -1259,10 +1272,12 @@ async def custom_scripts_call(
         )
 
     if inspect.iscoroutinefunction(func):
-        book = await func(*call_args, **call_kwargs)
+        book, result = await func(*call_args, **call_kwargs)
     else:
-        book = func(*call_args, **call_kwargs)
+        book, result = func(*call_args, **call_kwargs)
 
+    if return_result:
+        return book, result
     return book
 
 
