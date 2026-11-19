@@ -2,9 +2,9 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
-## v0.37.11 (unreleased)
+## v0.37.11 (Nov 19, 2026)
 
-- xlwings Lite and xlwings Server: {func}`@script <xlwings.script>` now keeps the script's return value, and `custom_scripts_call` accepts `return_result=True` to get it back as `(book, result)`. The default call still returns only the book.
+- xlwings Lite and xlwings Server: a function decorated with {func}`@script <xlwings.script>` can now return a value.
 
 ## v0.37.10 (Nov 17, 2026)
 
