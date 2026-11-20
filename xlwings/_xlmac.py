@@ -3149,7 +3149,11 @@ class TableRows(Collection, base_classes.TableRows):
         created = self.parent.xl.make(new=kw.list_row, at=at)
         row = TableRow(self, created.index.get())
         if values is not None:
-            row.range.raw_value = [values]
+            # As for Range.value: timezone-aware datetimes and large integers
+            # need converting for appscript.
+            row.range.raw_value = [
+                [engine.prepare_xl_data_element(value, None) for value in values]
+            ]
         return row
 
     async def get_count(self):

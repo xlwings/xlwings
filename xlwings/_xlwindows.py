@@ -3417,7 +3417,10 @@ class TableRows(Collection, base_classes.TableRows):
     def add(self, values, index):
         row = self.xl.Add() if index is None else self.xl.Add(Position=index)
         if values is not None:
-            row.Range.Value = [values]
+            # As for Range.value: dates need the COM time conversion.
+            row.Range.Value = [
+                [engine.prepare_xl_data_element(value, None) for value in values]
+            ]
         return TableRow(self, row)
 
     async def get_count(self):

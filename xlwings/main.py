@@ -6121,14 +6121,14 @@ class TableRows(Collection[TableRow]):
 
     def add(
         self,
-        values: list[str | int | float | bool | None]
-        | tuple[str | int | float | bool | None, ...]
+        values: list[str | int | float | bool | dt.date | None]
+        | tuple[str | int | float | bool | dt.date | None, ...]
         | None = None,
         index: int | None = None,
     ) -> TableRow:
         """Add one row before one-based `index`, or append when it is `None`.
 
-        `values` must contain exactly one value per table column. Omit it to let Excel create a blank row and fill calculated columns. Excel may shift cells below the table downward.
+        `values` must contain exactly one value per table column. Dates and datetimes are written as Excel dates. Omit `values` to let Excel create a blank row and fill calculated columns. Excel may shift cells below the table downward.
         """
         if index is not None:
             if not isinstance(index, int) or isinstance(index, bool):
@@ -6149,13 +6149,23 @@ class TableRows(Collection[TableRow]):
                     f"expected {self.impl.column_count}, got {len(values)}"
                 )
             for value in values:
-                if value is not None and not isinstance(value, (str, int, float, bool)):
+                if value is not None and not isinstance(
+                    value, (str, int, float, bool, dt.date)
+                ):
                     raise TypeError(
-                        "table row values must be strings, numbers, booleans, or None"
+                        "table row values must be strings, numbers, booleans, "
+                        "dates, or None"
                     )
                 if isinstance(value, float) and not math.isfinite(value):
                     raise ValueError("table row numbers must be finite")
-            values = list(values)
+            # A plain date becomes a datetime at midnight, which every engine
+            # writes as an Excel date.
+            values = [
+                dt.datetime.combine(value, dt.time())
+                if isinstance(value, dt.date) and not isinstance(value, dt.datetime)
+                else value
+                for value in values
+            ]
         return TableRow(impl=self.impl.add(values, index))
 
 

@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import sys
 from types import ModuleType, SimpleNamespace
 
@@ -8,7 +9,7 @@ import xlwings as xw
 from xlwings.pro import _xlremote as remote
 
 
-def remote_table():
+def remote_table(**table_metadata):
     app = remote.App(remote.Apps(), add_book=False)
     book = app.books.open(
         {
@@ -27,6 +28,7 @@ def remote_table():
                             "column_count": 2,
                             "show_headers": True,
                             "show_totals": False,
+                            **table_metadata,
                         }
                     ],
                 }
@@ -51,8 +53,8 @@ def test_remote_table_rows_queue_and_local_count():
     assert len(rows) == 3
     actions = table.parent.book.json()["actions"]
     assert [(action["func"], action["args"]) for action in actions] == [
-        ("addTableRow", [0, 2, ["new", 3]]),
-        ("addTableRow", [0, 0, None]),
+        ("addTableRow", [0, 2, ["new", 3], True]),
+        ("addTableRow", [0, 0, None, False]),
         ("deleteTableRow", [0, 1]),
     ]
 
@@ -132,3 +134,51 @@ def test_remote_table_row_add_explains_nested_and_wrong_length_values():
     with pytest.raises(ValueError, match="expected 2, got 1"):
         table.rows.add(["new"])
     assert table.parent.book.json()["actions"] == []
+
+
+def test_remote_table_row_add_writes_dates_as_iso_strings():
+    table = remote_table()
+    table.rows.add([dt.date(2026, 11, 20), dt.datetime(2026, 11, 20, 9, 30)])
+    actions = table.parent.book.json()["actions"]
+    assert actions[0]["args"] == [
+        0,
+        2,
+        ["2026-11-20", "2026-11-20 09:30:00"],
+        True,
+    ]
+
+
+def test_remote_empty_table_uses_excels_data_row_count():
+    # A table without data rows spans a header and an empty placeholder row.
+    table = remote_table(range_address="B2:C3", row_count=2, data_row_count=0)
+    rows = table.rows
+    assert len(rows) == 0
+    appended = rows.add(["first", 1])
+    assert appended.index == 1
+    assert len(rows) == 1
+    appended.delete()
+    assert len(rows) == 0
+    actions = table.parent.book.json()["actions"]
+    assert [(action["func"], action["args"]) for action in actions] == [
+        ("addTableRow", [0, 0, ["first", 1], True]),
+        ("deleteTableRow", [0, 0]),
+    ]
+
+
+def test_remote_blank_data_row_counts_as_a_row():
+    # Same range as an empty table, but Excel counts a real (blank) data row.
+    table = remote_table(range_address="B2:C3", row_count=2, data_row_count=1)
+    assert len(table.rows) == 1
+    assert table.rows.add(["second", 2]).index == 2
+
+
+def test_remote_get_count_refreshes_data_row_count(monkeypatch):
+    table = remote_table(range_address="B2:C3", row_count=2, data_row_count=1)
+    monkeypatch.setattr(sys, "platform", "emscripten")
+
+    async def client_read(*args):
+        return 0
+
+    monkeypatch.setattr(remote, "client_read", client_read)
+    assert asyncio.run(table.rows.get_count()) == 0
+    assert len(table.rows) == 0
