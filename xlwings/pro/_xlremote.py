@@ -3437,6 +3437,7 @@ class TableRow(base_classes.TableRow):
             args=[self.parent.parent.index - 1, self.index - 1],
         )
         self.parent.parent.api["row_count"] -= 1
+        self.parent._change_data_row_count(-1)
 
 
 class TableRows(base_classes.TableRows):
@@ -3453,6 +3454,10 @@ class TableRows(base_classes.TableRows):
 
     def __len__(self):
         metadata = self.parent.api
+        # Excel's count, from newer clients. The table range also covers the
+        # empty placeholder row of a table without data rows.
+        if metadata.get("data_row_count") is not None:
+            return metadata["data_row_count"]
         return max(
             0,
             metadata.get("row_count", 0)
@@ -3490,15 +3495,32 @@ class TableRows(base_classes.TableRows):
             + bool(self.parent.api.get("show_headers", True))
             + bool(self.parent.api.get("show_totals", False))
         )
+        self.parent.api["data_row_count"] = count
         return count
+
+    def _change_data_row_count(self, delta):
+        if self.parent.api.get("data_row_count") is not None:
+            self.parent.api["data_row_count"] += delta
 
     def add(self, values, index):
         position = len(self) + 1 if index is None else index
+        if values is not None:
+            values = [
+                Engine.prepare_xl_data_element(value, None)
+                if isinstance(value, dt.date)
+                else value
+                for value in values
+            ]
         self.parent.append_json_action(
             func="addTableRow",
-            args=[self.parent.index - 1, position - 1, values],
+            # The last argument asks the client to append, so a stale position
+            # can't fail, such as one from older clients' metadata, which
+            # counts a new table's empty placeholder row. Clients that ignore
+            # the flag use the position.
+            args=[self.parent.index - 1, position - 1, values, index is None],
         )
         self.parent.api["row_count"] = self.parent.api.get("row_count", 0) + 1
+        self._change_data_row_count(1)
         return TableRow(self, position)
 
 

@@ -2,6 +2,11 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## Unreleased
+
+- {meth}`Table.rows.add <xlwings.main.TableRows.add>` now accepts `date` and `datetime` values and writes them as Excel dates.
+- xlwings Lite and xlwings Server: Bug fix: appending a row with {meth}`Table.rows.add <xlwings.main.TableRows.add>` to a new, empty table no longer fails with `Table row index is out of range`, and `len(table.rows)` and the returned row are now correct for such a table. This also requires the next release of xlwings Server or an updated xlwings Lite add-in.
+
 ## v0.37.11 (Nov 19, 2026)
 
 - xlwings Lite and xlwings Server: a function decorated with {func}`@script <xlwings.script>` can now return a value.
