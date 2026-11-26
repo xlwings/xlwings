@@ -181,6 +181,27 @@ async def test_metadata_only_load_does_not_clobber_loaded_values(fake_emscripten
 
 
 @pytest.mark.anyio
+async def test_metadata_only_load_of_a_new_sheet_allows_writes(
+    fake_emscripten, monkeypatch
+):
+    # Regression: a sheet that the book first sees in a metadata-only load (e.g.,
+    # added outside the script) had no `values` entry, so writing to it raised
+    # KeyError: 'values'.
+    async def get_book_data(opts=None):
+        data = _book_json([[]])
+        data["sheets"].append({**copy.deepcopy(data["sheets"][0]), "name": "New"})
+        return SimpleNamespace(to_py=lambda: data)
+
+    monkeypatch.setattr(sys.modules["js"].xlwings, "getBookData", get_book_data)
+    book = xw.Book(impl=_make_book(lazy=True))
+    await book.load()
+    book.sheets["New"]["A1"].value = [[1, 2], [3, 4]]
+    assert book.impl.json()["actions"][-1]["func"] == "setValues"
+    with pytest.raises(XlwingsError, match="haven't been loaded"):
+        book.sheets["New"]["A1"].value
+
+
+@pytest.mark.anyio
 async def test_sheet_load_values_true_marks_only_that_sheet(fake_emscripten):
     book = _make_book(lazy=True)
     sheet = book.sheets.active
