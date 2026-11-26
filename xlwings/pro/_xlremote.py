@@ -876,6 +876,8 @@ class Book(base_classes.Book):
         self._json = {"actions": []}
         # Set while a flushed batch is being dispatched, see flush()
         self._dispatch = None
+        # The open `book.officejs()` session, if any
+        self._officejs_session = None
         # Async/lazy book: fetched with structure only (no cell values). While
         # lazy, sync `.value` reads on a sheet whose values haven't been loaded
         # raise (use `await get_value()` or `await load(values=True)`), and
@@ -912,6 +914,15 @@ class Book(base_classes.Book):
 
     def json(self):
         return self._json
+
+    def officejs(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Book.officejs() is only supported in xlwings Lite"
+            )
+        from ._officejs import OfficeJsSession
+
+        return OfficeJsSession(self)
 
     async def flush(self):
         if sys.platform != "emscripten":

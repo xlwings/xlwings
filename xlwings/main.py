@@ -1051,6 +1051,27 @@ class Book:
         """
         return self.impl.json()
 
+    def officejs(self) -> Any:
+        """Opens an Office.js session to use the Office.js Excel API directly (xlwings Lite only).
+
+        Use it as an asynchronous context manager. Office.js objects are recorded in Python and only run in Excel when you call `await ctx.sync()`, which also fetches the properties you requested with `load()`. Pending xlwings actions are flushed when the session starts, and unsynced Office.js work is synced when the block ends. If the block raises an exception, unsynced work is discarded.
+
+        ```{warning}
+        Experimental: the API may change.
+        ```
+
+        Examples:
+            ```python
+            async with book.officejs() as ctx:
+                rng = ctx.workbook.worksheets.getItem("Sheet1").getRange("A1:B2")
+                rng.format.fill.color = "yellow"
+                rng.load("values")
+                await ctx.sync()
+                print(rng.values)
+            ```
+        """
+        return self.impl.officejs()
+
     async def flush(self) -> None:
         """Flushes all pending actions to Excel and lets the Output pane update.
 
