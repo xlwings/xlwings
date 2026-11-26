@@ -30,6 +30,13 @@ class OfficeJsError(XlwingsError):
         self.debug_info = debug_info
 
 
+class OfficeJsWriteWithheld(OfficeJsError):
+    """A Wingman dry run withheld an Office.js write, which ends the preview.
+
+    The session is discarded on exit; nothing in it was written.
+    """
+
+
 def _encode(value):
     """Turn an argument or set value into JSON data, proxies into handles."""
     if isinstance(value, Proxy):
@@ -176,7 +183,8 @@ class OfficeJsSession:
         message = error.get("message") or "Office.js request failed"
         prefix = f"{code}: " if code else ""
         suffix = f" (at {op})" if op else ""
-        return OfficeJsError(
+        cls = OfficeJsWriteWithheld if code == "withheld" else OfficeJsError
+        return cls(
             f"{prefix}{message}{suffix}",
             code=code,
             name=error.get("name"),

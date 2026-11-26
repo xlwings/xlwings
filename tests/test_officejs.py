@@ -11,7 +11,11 @@ import pytest
 
 import xlwings as xw
 from xlwings.pro import _xlremote as R
-from xlwings.pro._officejs import OfficeJsError, OfficeJsSession
+from xlwings.pro._officejs import (
+    OfficeJsError,
+    OfficeJsSession,
+    OfficeJsWriteWithheld,
+)
 
 
 def _book_json():
@@ -200,6 +204,27 @@ async def test_failed_sync_discards_on_exit(book, client):
             await ctx.sync()
     assert client.requests[-1]["type"] == "officejs.close"
     assert client.requests[-1]["discard"] is True
+
+
+@pytest.mark.anyio
+async def test_withheld_write_ends_session_with_dedicated_exception(book, client):
+    def withhold(request):
+        return {"ok": False, "error": {"code": "withheld", "message": "Dry run"}}
+
+    client.responses["officejs.sync"] = withhold
+    with pytest.raises(OfficeJsWriteWithheld, match="withheld: Dry run"):
+        async with book.officejs() as ctx:
+            ctx.workbook.getSelectedRange().values = [[1]]
+            await ctx.sync()
+    assert client.requests[-1]["type"] == "officejs.close"
+    assert client.requests[-1]["discard"] is True
+
+    # A write left for close is withheld there; the add-in discards it.
+    client.responses["officejs.close"] = withhold
+    with pytest.raises(OfficeJsWriteWithheld):
+        async with book.officejs() as ctx:
+            ctx.workbook.getSelectedRange().values = [[1]]
+    assert book.impl._officejs_session is None
 
 
 @pytest.mark.anyio
