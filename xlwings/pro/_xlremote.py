@@ -986,9 +986,14 @@ class Book(base_classes.Book):
             for sheet in data.get("sheets", []):
                 sheet.pop("values", None)
         _update_api_in_place(self._api, data)
-        if load_values:
-            for sheet in self._api.get("sheets", []):
+        for sheet in self._api.get("sheets", []):
+            if load_values:
                 _mark_sheet_values_loaded(sheet)
+            else:
+                # A sheet this book didn't know yet (e.g., added outside the
+                # script) gets the same empty placeholder as Sheets.add(), so
+                # writes to it work; reads still need its values loaded.
+                sheet.setdefault("values", [[]])
         get_range_api.cache_clear()
 
     @property
