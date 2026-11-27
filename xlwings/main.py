@@ -8945,6 +8945,27 @@ class DataValidation:
         """
         return self.impl.alert_style
 
+    def __repr__(self) -> str:
+        # The rule's defining fields, so printing a validation shows what it
+        # checks. xlwings Lite's synchronous accessor has no data until it's fetched.
+        fields = []
+        for name in (
+            "type",
+            "operator",
+            "formula1",
+            "formula2",
+            "formula",
+            "source",
+            "in_cell_dropdown",
+        ):
+            try:
+                value = getattr(self, name)
+            except NotImplementedError:
+                return "<DataValidation (not loaded)>"
+            if value is not None:
+                fields.append(f"{name}={value!r}")
+        return f"<DataValidation {' '.join(fields)}>"
+
     @staticmethod
     def _literal_source(
         source: Sequence[str | int | float | bool],

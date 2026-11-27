@@ -1486,9 +1486,16 @@ class Sheet(base_classes.Sheet):
         self.append_json_action(func="copySheet", args=[position, target_ix, name])
         api = copy.deepcopy(self.api)
         api["name"] = name
-        # Excel gives the copy its own ID; until a reload reads it, the copy
-        # must not match the source by ID (see _update_api_in_place).
+        # Excel gives the copy, its PivotTables and their value fields their own
+        # IDs. Until a reload reads them, the copy must not match the source by
+        # ID (see _update_api_in_place), and pivot actions, which look IDs up on
+        # the copy, address its PivotTables by name (unique per sheet); its
+        # value fields match by name on reload.
         api.pop("id", None)
+        for pivot in api.get("pivot_tables") or []:
+            pivot.pop("id", None)
+            for value in pivot.get("values") or []:
+                value.pop("id", None)
         sheets_api.insert(new_ix, api)
 
     def move(self, before=None, after=None):
