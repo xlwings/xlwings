@@ -466,3 +466,16 @@ async def test_blocked_action_leaves_no_phantom_sheet(book, client, reloads):
     assert book.sheet_names == ["S1"]
     sheet["A1"].value = 1
     assert book.impl.json()["actions"][-1]["sheet_position"] == 0
+
+
+@pytest.mark.anyio
+async def test_is_null_object_after_sync(book, client):
+    async with book.officejs() as ctx:
+        ws = ctx.workbook.worksheets.getItemOrNullObject("Nope")
+        with pytest.raises(OfficeJsError, match="available after 'await ctx.sync"):
+            bool(ws.isNullObject)
+        client.responses["officejs.sync"] = lambda r: {
+            "results": {str(ws._handle): {"isNullObject": True}}
+        }
+        await ctx.sync()
+        assert ws.isNullObject is True

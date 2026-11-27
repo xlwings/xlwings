@@ -408,6 +408,9 @@ class Proxy:
     # Proxies have no value of their own
 
     def _no_value(self, *args, **kwargs):
+        if self._kind == "get" and self._name == "isNullObject":
+            # Office.js sets it on `*OrNullObject` results at sync, no load()
+            raise OfficeJsError(f"{self._label} is available after 'await ctx.sync()'.")
         if self._kind == "get":
             raise OfficeJsError(
                 f"{self._label} isn't loaded; call "
