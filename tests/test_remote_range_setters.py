@@ -577,6 +577,10 @@ async def test_data_validation_async_snapshot(book, monkeypatch):
     assert validation.input_title == "Quantity"
     assert validation.error_message == "Use a whole number"
     assert validation.alert_style == "stop"
+    assert repr(validation) == (
+        "<DataValidation type='whole_number' operator='between' "
+        "formula1='=1' formula2='=10'>"
+    )
 
     validation.set_decimal("greater_than", 0)
     assert validation.type == "whole_number"
@@ -586,6 +590,21 @@ async def test_data_validation_async_snapshot(book, monkeypatch):
 def test_data_validation_sync_snapshot_requires_lite(book):
     with pytest.raises(NotImplementedError, match="get_data_validation"):
         _ = book.sheets[0]["A1"].data_validation.type
+    assert repr(book.sheets[0]["A1"].data_validation) == (
+        "<DataValidation (not loaded)>"
+    )
+
+
+@pytest.mark.anyio
+async def test_data_validation_list_repr(book, monkeypatch):
+    async def get_range_data(self, key, method=None):
+        return {"type": "list", "source": "Yes,No", "in_cell_dropdown": True}
+
+    monkeypatch.setattr(R.Range, "_get_range_data", get_range_data)
+    validation = await book.sheets[0]["D2:D10"].get_data_validation()
+    assert repr(validation) == (
+        "<DataValidation type='list' source='Yes,No' in_cell_dropdown=True>"
+    )
 
 
 @pytest.mark.parametrize(
