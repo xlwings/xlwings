@@ -60,7 +60,7 @@ def _encode(value):
     """Turn an argument or set value into JSON data, proxies into handles."""
     if isinstance(value, Proxy):
         return {"$h": value._emit()}
-    if type(value).__module__ == "numpy":
+    if type(value).__module__ == "numpy" and getattr(value, "ndim", None) == 0:
         kind = getattr(getattr(value, "dtype", None), "kind", None)
         if kind == "b":
             # `numpy.bool_` isn't a `bool`
@@ -116,6 +116,8 @@ class OfficeJsSession:
         self._session_id = f"s{next(_session_ids)}"
         self._request_ids = itertools.count(1)
         self._op_ids = itertools.count(1)
+        # Numbers each sync, so the freshest loaded data wins (see `Proxy._find`)
+        self._sync_ids = itertools.count(1)
         self._ops = []
         self._returns = {}
         self._proxies = {0: None}
@@ -139,12 +141,17 @@ class OfficeJsSession:
         book = self._book
         if getattr(book, "_officejs_session", None) is not None:
             raise XlwingsError("An Office.js session is already open for this book.")
-        # Curated work before the session is applied first.
-        if book._json["actions"] or book._dispatch is not None:
-            await book.flush()
-        await self._request("officejs.open")
-        self._state = "open"
+        # Claimed before the awaits, so a concurrent task can't open a second one
         book._officejs_session = self
+        try:
+            # Curated work before the session is applied first.
+            if book._json["actions"] or book._dispatch is not None:
+                await book.flush()
+            await self._request("officejs.open")
+        except BaseException:
+            book._officejs_session = None
+            raise
+        self._state = "open"
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -202,11 +209,12 @@ class OfficeJsSession:
         except OfficeJsError:
             self._state = "failed"
             raise
+        sync_id = next(self._sync_ids)
         for key, data in response.get("results", {}).items():
             handle = int(key) if key.lstrip("-").isdigit() else key
             proxy = self._proxies.get(handle)
             if proxy is not None:
-                proxy._bind(data)
+                proxy._bind(data, sync_id)
 
     def _check_open(self):
         if self._state == "closed":
@@ -313,6 +321,7 @@ _PROXY_SLOTS = (
     "_data",
     "_items",
     "_plain",
+    "_sync_id",
 )
 
 
@@ -335,9 +344,12 @@ class Proxy:
         set_(self, "_label", label or name)
         set_(self, "_children", {})
         set_(self, "_data", None)
-        set_(self, "_items", None)
+        # Item proxies of the collections in `_data`, by path ("" for this object)
+        set_(self, "_items", {})
         # Paths in `_data` of plain object values (not navigation properties)
         set_(self, "_plain", frozenset())
+        # The sync that returned `_data`
+        set_(self, "_sync_id", 0)
 
     # Recording
 
@@ -355,9 +367,11 @@ class Proxy:
     def __getattr__(self, name):
         if name.startswith("_"):
             raise AttributeError(name)
-        if name == "items" and self._items is not None:
-            return list(self._items)
-        found, value, plain = self._loaded(name)
+        found, value, plain, owner, path = self._find(name)
+        if found and name == "items":
+            items = owner._items.get("/".join(path[:-1]))
+            if items is not None:
+                return list(items)
         if found and (plain or not isinstance(value, dict)):
             return value
         if not found:
@@ -397,9 +411,13 @@ class Proxy:
         label = f"{parent._label}.{self._name}({_short_args(encoded)})"
         handle = self._session._add_op("call", target, self._name, label, args=encoded)
         if self._name == "load":
-            # Office.js returns the object itself; its data comes back after sync
-            self._session._returns[parent._handle] = None
-            return parent
+            # Office.js returns the loaded object; its data comes back after sync.
+            # `context.load(obj, props)` loads `obj`.
+            loaded = parent
+            if parent._kind == "root" and args and isinstance(args[0], Proxy):
+                loaded = args[0]
+            self._session._returns[loaded._handle] = None
+            return loaded
         result = Proxy(
             self._session, parent, self._name, kind="call", handle=handle, label=label
         )
@@ -409,49 +427,77 @@ class Proxy:
     # Loaded data
 
     def _loaded(self, name):
-        """Find `name` in the data of this object or its nearest loaded ancestor.
+        """`(found, value, plain)` of `name` in loaded data, see `_find`."""
+        return self._find(name)[:3]
 
-        Returns `(found, value, plain)`; `plain` is True for an object value
-        that the executor marked as plain data rather than a navigation
-        property (e.g. `ConditionalCellValueRule`).
+    def _find(self, name):
+        """Find `name` in the data of this object or its ancestors.
+
+        Returns `(found, value, plain, owner, path)`. Of several loads that
+        contain `name`, the one from the latest sync wins, e.g. a later
+        `rng.load("format/fill/color")` over an earlier `fill.load("color")`.
+        `plain` is True for an object value that the executor marked as plain
+        data rather than a navigation property (e.g. `ConditionalCellValueRule`);
+        `owner` is the proxy whose data holds the value at `path`.
         """
+        best = (False, None, False, None, None)
         path = [name]
         proxy = self
         while proxy is not None:
-            if proxy._data is not None:
+            if proxy._data is not None and (
+                best[3] is None or proxy._sync_id > best[3]._sync_id
+            ):
                 data = proxy._data
                 for key in path:
-                    if isinstance(data, dict) and key in data:
-                        data = data[key]
-                    else:
-                        return False, None, False
-                return True, data, "/".join(path) in proxy._plain
+                    if not (isinstance(data, dict) and key in data):
+                        break
+                    data = data[key]
+                else:
+                    plain = "/".join(path) in proxy._plain
+                    best = (True, data, plain, proxy, list(path))
             if proxy._kind != "get":
                 break
             path.insert(0, proxy._name)
             proxy = proxy._parent
-        return False, None, False
+        return best
 
-    def _bind(self, data):
+    def _bind(self, data, sync_id):
+        items = {}
         if isinstance(data, dict):
             object.__setattr__(self, "_plain", frozenset(data.pop("$plain", ())))
-        if isinstance(data, dict) and "$items" in data:
-            handles = data.pop("$items")
-            items_data = data.get("items") or []
-            items = []
-            for index, handle in enumerate(handles):
-                item = Proxy(
-                    self._session,
-                    self,
-                    "items",
-                    kind="item",
-                    handle=handle,
-                    label=f"{self._label}.items[{index}]",
+            # Item handles of this collection ("$items") and of collections
+            # loaded through it ("$itemsAt", by path)
+            handles_at = data.pop("$itemsAt", None) or {}
+            if "$items" in data:
+                handles_at = {"": data.pop("$items"), **handles_at}
+            for path, handles in handles_at.items():
+                keys = path.split("/") if path else []
+                container = data
+                for key in keys:
+                    container = (
+                        container.get(key) if isinstance(container, dict) else None
+                    )
+                items_data = (
+                    container.get("items") if isinstance(container, dict) else None
                 )
-                item._bind(items_data[index] if index < len(items_data) else {})
-                self._session._proxies[handle] = item
-                items.append(item)
-            object.__setattr__(self, "_items", items)
+                items_data = items_data if isinstance(items_data, list) else []
+                label = "".join(f".{key}" for key in [self._label, *keys])[1:]
+                items[path] = []
+                for index, handle in enumerate(handles):
+                    item = Proxy(
+                        self._session,
+                        self,
+                        "items",
+                        kind="item",
+                        handle=handle,
+                        label=f"{label}.items[{index}]",
+                    )
+                    item_data = items_data[index] if index < len(items_data) else {}
+                    item._bind(item_data, sync_id)
+                    self._session._proxies[handle] = item
+                    items[path].append(item)
+        object.__setattr__(self, "_items", items)
+        object.__setattr__(self, "_sync_id", sync_id)
         object.__setattr__(self, "_data", data)
 
     # Proxies have no value of their own

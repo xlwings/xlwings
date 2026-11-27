@@ -9280,7 +9280,8 @@ class Macro:
     def run(self, *args: Any) -> Any:
         args = [
             (
-                i.api
+                # impl.api: in xlwings Lite, the public .api is Office.js only
+                i.impl.api
                 if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
                 else i
             )

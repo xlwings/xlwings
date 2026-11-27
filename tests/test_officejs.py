@@ -722,3 +722,155 @@ async def test_api_messages_name_the_xlwings_object(book, client):
         assert info.value.op == 'book.sheets["S1"]["$A$1"].api'
         # The request still addresses the sheet by ID
         assert ops(client.requests[-1])[2][3] == ["{S1-ID}"]
+
+
+@pytest.mark.anyio
+async def test_reloaded_collection_keeps_earlier_items_on_their_handles(book, client):
+    loads = iter(
+        [
+            {"items": [{"name": "S1"}], "$items": ["2:0~1"]},
+            {"items": [{"name": "New"}, {"name": "S1"}], "$items": ["2:0~2", "2:1~2"]},
+        ]
+    )
+    client.responses["officejs.sync"] = lambda r: (
+        {"results": {"2": next(loads)}} if r["return"] else {}
+    )
+    async with book.officejs() as ctx:
+        sheets = ctx.workbook.worksheets
+        sheets.load("items/name")
+        await ctx.sync()
+        first = sheets.items[0]
+        sheets.load("items/name")
+        await ctx.sync()
+        assert [s.name for s in sheets.items] == ["New", "S1"]
+        first.delete()
+        await ctx.sync()
+        assert first.name == "S1"
+        assert ops(client.requests[-1]) == [("call", "2:0~1", "delete", [])]
+
+
+@pytest.mark.anyio
+async def test_latest_load_wins_over_an_earlier_nested_load(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": {
+            str(h): (
+                {"color": "#000"} if h == 4 else {"format": {"fill": {"color": "#FF0"}}}
+            )
+            for h in r["return"]
+        }
+    }
+    async with book.officejs() as ctx:
+        rng = ctx.workbook.getSelectedRange()
+        fill = rng.format.fill
+        fill.load("color")
+        await ctx.sync()
+        assert fill.color == "#000"
+        fill.color = "#FF0"
+        rng.load("format/fill/color")
+        await ctx.sync()
+        assert rng.format.fill.color == "#FF0"
+        assert fill.color == "#FF0"
+
+
+@pytest.mark.anyio
+async def test_items_of_a_collection_loaded_through_its_parent(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": (
+            {
+                "1": {
+                    "worksheets": {"items": [{"name": "S1"}, {"name": "S2"}]},
+                    "$itemsAt": {
+                        "worksheets": ["1.worksheets:0~1", "1.worksheets:1~1"]
+                    },
+                }
+            }
+            if r["return"]
+            else {}
+        )
+    }
+    async with book.officejs() as ctx:
+        ctx.workbook.load("worksheets/items/name")
+        await ctx.sync()
+        items = ctx.workbook.worksheets.items
+        assert [s.name for s in items] == ["S1", "S2"]
+        assert repr(items[1]) == "<Proxy context.workbook.worksheets.items[1]>"
+        items[1].delete()
+        await ctx.sync()
+        assert ops(client.requests[-1]) == [("call", "1.worksheets:1~1", "delete", [])]
+
+
+@pytest.mark.anyio
+async def test_context_load_loads_its_argument(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": {str(h): {"values": [[1]]} for h in r["return"]}
+    }
+    async with book.officejs() as ctx:
+        rng = ctx.workbook.getSelectedRange()
+        assert ctx.context.load(rng, "values") is rng
+        await ctx.sync()
+        assert ops(client.requests[-1])[-1] == (
+            "call",
+            0,
+            "load",
+            [{"$h": 2}, "values"],
+        )
+        assert rng.values == [[1]]
+
+
+@pytest.mark.anyio
+async def test_numpy_bool_arrays_need_tolist(book, client):
+    np = pytest.importorskip("numpy")
+    async with book.officejs() as ctx:
+        rng = ctx.workbook.getSelectedRange()
+        for array in (np.array([True, False]), np.array([[True]])):
+            with pytest.raises(TypeError, match=r"\.tolist\(\)"):
+                rng.values = array
+
+
+@pytest.mark.anyio
+async def test_concurrent_sessions_on_one_book_are_refused(book, client):
+    import asyncio
+
+    async def open_session():
+        async with book.officejs():
+            await asyncio.sleep(0.01)
+
+    book.sheets[0]["A1"].value = 1  # entry awaits a flush
+    results = await asyncio.gather(
+        open_session(), open_session(), return_exceptions=True
+    )
+    assert results[0] is None
+    assert isinstance(results[1], xw.XlwingsError)
+    assert "already open" in str(results[1])
+    assert [r["type"] for r in client.requests] == ["officejs.open", "officejs.close"]
+
+
+@pytest.mark.anyio
+async def test_failed_entry_releases_the_book(book, client):
+    async def broken_run_actions(payload):
+        raise RuntimeError("flush failed")
+
+    sys.modules["js"].xlwings.runActions = broken_run_actions
+    sys.modules["js"].xlwings.getBookData = None
+    book.sheets[0]["A1"].value = 1
+    with pytest.raises(RuntimeError, match="flush failed"):
+        async with book.officejs():
+            pass
+    assert book.impl._officejs_session is None
+
+
+def test_xlwings_server_wasm_keeps_the_data_dict_api(book, client):
+    del sys.modules["js"].xlwings.officejs
+    sheet = book.sheets[0]
+    assert book.api is book.impl.api
+    assert sheet.api is book.impl.api["sheets"][0]
+    assert sheet["A1"].api == [(None,)]
+    with pytest.raises(NotImplementedError, match="xlwings Lite"):
+        book.officejs()
+
+
+def test_macro_arguments_use_the_data_dict(book, client):
+    book.macro("callback")(book.sheets[0]["A1"])
+    action = book.impl.json()["actions"][-1]
+    assert action["func"] == "runMacro"
+    assert action["args"][1:] == [[(None,)]]

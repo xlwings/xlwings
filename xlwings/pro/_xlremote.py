@@ -326,6 +326,17 @@ def _sheet_values_loaded(sheet_api):
 _SHEET_DELETED_KEY = "_xlwings_deleted"
 
 
+def officejs_supported():
+    """Whether `book.officejs()` and Office.js `.api` are available: in xlwings
+    Lite, which registers `js.xlwings.officejs`, but not in xlwings Server's
+    Wasm mode, which also runs on Pyodide."""
+    if sys.platform != "emscripten":
+        return False
+    import js
+
+    return hasattr(getattr(js, "xlwings", None), "officejs")
+
+
 def check_no_officejs_session(book, queuing=False):
     """Raise if `book` has an open `book.officejs()` session.
 
@@ -962,7 +973,7 @@ class Book(base_classes.Book):
         return self._json
 
     def officejs(self):
-        if sys.platform != "emscripten":
+        if not officejs_supported():
             raise NotImplementedError(
                 "Book.officejs() is only supported in xlwings Lite"
             )
@@ -980,7 +991,7 @@ class Book(base_classes.Book):
         return self._officejs_session
 
     def officejs_api(self):
-        if sys.platform != "emscripten":
+        if not officejs_supported():
             return self.api
         return self.officejs_session().book_api()
 
@@ -1329,7 +1340,7 @@ class Sheet(base_classes.Sheet):
         return self._index
 
     def officejs_api(self):
-        if sys.platform != "emscripten":
+        if not officejs_supported():
             return self.api
         return self.book.officejs_session().sheet_api(self)
 
@@ -1793,7 +1804,7 @@ class Range(base_classes.Range):
         )
 
     def officejs_api(self):
-        if sys.platform != "emscripten":
+        if not officejs_supported():
             return self.api
         return self.sheet.book.officejs_session().range_api(self)
 
