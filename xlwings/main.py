@@ -1059,7 +1059,7 @@ class Book:
     def officejs(self) -> Any:
         """Opens an Office.js session to use the Office.js Excel API directly, for features that xlwings doesn't cover.
 
-        Use it as an asynchronous context manager in an `async def` script. The session (`ctx` in the example) gives you `ctx.workbook` (the Office.js `Workbook`), `ctx.context` (the `RequestContext`) and `await ctx.sync()`. Inside the block, {attr}`Book.api <xlwings.Book.api>`, {attr}`Sheet.api <xlwings.Sheet.api>` and {attr}`Range.api <xlwings.Range.api>` return the Office.js object of an xlwings object.
+        Use it as an asynchronous context manager in an `async def` script. The session (`ctx` in the example) has `await ctx.sync()` and forwards Office.js members to the `RequestContext`, e.g. `ctx.workbook` (the Office.js `Workbook`) or `ctx.application`; `ctx.context` is the `RequestContext` itself. Inside the block, {attr}`Book.api <xlwings.Book.api>`, {attr}`Sheet.api <xlwings.Sheet.api>` and {attr}`Range.api <xlwings.Range.api>` return the Office.js object of an xlwings object.
 
         Property changes and method calls on Office.js objects are recorded in Python and only run in Excel when you call `await ctx.sync()`. To read a property, request it with `load()` and sync first. After a sync, a collection gives you its loaded items as `items`, and a method that returns a value, such as `getCount()`, gives it as `value`. Pass arguments by position, and option objects as dictionaries.
 

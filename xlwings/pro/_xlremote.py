@@ -351,7 +351,7 @@ def check_no_officejs_session(book, queuing=False):
     session = getattr(book, "_officejs_session", None) if book is not None else None
     if session is not None:
         if queuing:
-            session.snapshot_changed = True
+            session._snapshot_changed = True
         raise XlwingsError(
             "xlwings can't read from or write to Excel while an Office.js session "
             "is open. Do this after the 'async with book.officejs()' block, or "

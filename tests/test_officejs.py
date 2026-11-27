@@ -882,3 +882,30 @@ def test_office_js_errors_are_public():
     assert xw.OfficeJsError is _officejs.OfficeJsError is OfficeJsError
     assert issubclass(xw.OfficeJsWriteWithheld, xw.OfficeJsError)
     assert issubclass(xw.OfficeJsError, xw.XlwingsError)
+
+
+@pytest.mark.anyio
+async def test_session_forwards_office_js_members_to_the_context(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": {str(h): {"values": [[1]]} for h in r["return"]}
+    }
+    async with book.officejs() as ctx:
+        assert ctx.workbook is ctx.context.workbook
+        assert ctx.application is ctx.context.application
+        ctx.application.calculate("Full")
+        rng = ctx.workbook.getSelectedRange()
+        assert ctx.load(rng, "values") is rng
+        # sync() is the session's own, not RequestContext.sync recorded as an op
+        await ctx.sync()
+        assert ops(client.requests[-1]) == [
+            ("get", 0, "application", None),
+            ("call", 1, "calculate", ["Full"]),
+            ("get", 0, "workbook", None),
+            ("call", 3, "getSelectedRange", []),
+            ("call", 0, "load", [{"$h": 4}, "values"]),
+        ]
+        assert rng.values == [[1]]
+        with pytest.raises(AttributeError):
+            ctx._nope
+    with pytest.raises(xw.XlwingsError, match="closed session"):
+        ctx.runtime

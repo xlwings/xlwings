@@ -71,7 +71,7 @@ def _unsupported(value):
 class OfficeJsSession:
     """Asynchronous context manager returned by {meth}`Book.officejs <xlwings.Book.officejs>`.
 
-    The public members are `context` (the Office.js `RequestContext`), `workbook` (shortcut for `context.workbook`) and `sync()`.
+    `sync()` runs the recorded ops, `context` is the Office.js `RequestContext`, and any other Office.js member, e.g. `workbook`, `application` or `load()`, is forwarded to `context`.
     """
 
     def __init__(self, book, send=None):
@@ -91,16 +91,21 @@ class OfficeJsSession:
         self._api_proxies = {}
         self._state = "new"
         # Set once a batch with write ops may have reached Excel
-        self.wrote = False
+        self._wrote = False
         # Set when a blocked curated call may have changed the local snapshot
-        self.snapshot_changed = False
-        self.discard_error = None
+        self._snapshot_changed = False
+        self._discard_error = None
         self.context = Proxy(self, None, "context", kind="root", handle=0)
         self._proxies[0] = self.context
 
-    @property
-    def workbook(self):
-        return self.context.workbook
+    def __getattr__(self, name):
+        # Only called for names the session doesn't have: forward Office.js
+        # members (`ctx.workbook`, `ctx.application`, `ctx.load(...)`) to the
+        # RequestContext, so Office.js code translates with `context` -> `ctx`.
+        context = self.__dict__.get("context")
+        if name.startswith("_") or context is None:
+            raise AttributeError(name)
+        return getattr(context, name)
 
     async def __aenter__(self):
         book = self._book
@@ -131,7 +136,7 @@ class OfficeJsSession:
             else:
                 try:
                     response = await self._request("officejs.close", discard=True)
-                    self.discard_error = response.get("discardError")
+                    self._discard_error = response.get("discardError")
                 except Exception:
                     # Don't mask the exception that ended the session.
                     if exc_type is None:
@@ -149,7 +154,7 @@ class OfficeJsSession:
         Also after a failed or discarded session: earlier syncs may have
         committed, and the script may catch the exception and go on.
         """
-        if not (self.wrote or self.snapshot_changed):
+        if not (self._wrote or self._snapshot_changed):
             return
         try:
             await self._book.reload_after_officejs()
@@ -253,7 +258,7 @@ class OfficeJsSession:
         response = json.loads(await send(text))
         error = response.get("error") or {}
         if response.get("wrote") or error.get("wrote"):
-            self.wrote = True
+            self._wrote = True
         if not response.get("ok"):
             raise self._error(error)
         return response
