@@ -479,3 +479,246 @@ async def test_is_null_object_after_sync(book, client):
         }
         await ctx.sync()
         assert ws.isNullObject is True
+
+
+@pytest.mark.anyio
+async def test_set_after_load_records_and_keeps_loaded_value(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": {"2": {"values": [[1]]}} if r["return"] else {}
+    }
+    async with book.officejs() as ctx:
+        rng = ctx.workbook.getSelectedRange()
+        rng.load("values")
+        await ctx.sync()
+        rng.values = [[2]]
+        await ctx.sync()
+        assert ops(client.requests[-1]) == [("set", 2, "values", [[2]])]
+        assert client.requests[-1]["return"] == []
+        # Loaded values are as of the sync that followed their load()
+        assert rng.values == [[1]]
+        client.responses["officejs.sync"] = lambda r: {
+            "results": {"2": {"values": [[2]]}}
+        }
+        rng.load("values")
+        await ctx.sync()
+        assert rng.values == [[2]]
+
+
+@pytest.mark.anyio
+async def test_proxies_have_no_value(book, client):
+    async with book.officejs() as ctx:
+        rng = ctx.workbook.getSelectedRange()
+        for use in (
+            str,
+            bool,
+            len,
+            list,
+            int,
+            float,
+            lambda value: value == 1,
+            lambda value: value < 1,
+            lambda value: value + 1,
+            lambda value: 1 - value,
+            lambda value: value[0],
+            lambda value: 1 in value,
+        ):
+            with pytest.raises(
+                OfficeJsError,
+                match=r'values isn\'t loaded; call .*getSelectedRange\(\)\.load\("values"\)',
+            ):
+                use(rng.values)
+        with pytest.raises(OfficeJsError, match="is an Office.js object, not a value"):
+            str(rng)
+        assert repr(rng) == "<Proxy context.workbook.getSelectedRange()>"
+        assert (
+            repr(rng.values)
+            == "<Proxy context.workbook.getSelectedRange().values, not loaded>"
+        )
+        # Proxies can be dict keys and set members
+        assert len({rng, rng.format, rng.format}) == 2
+
+
+@pytest.mark.anyio
+async def test_messages_for_method_results_and_loaded_objects(book, client):
+    client.responses["officejs.sync"] = lambda r: {
+        "results": {"1": {"worksheets": {"items": [{"name": "S1"}]}}}
+    }
+    async with book.officejs() as ctx:
+        count = ctx.workbook.worksheets.getCount()
+        # A ClientResult has no load()
+        with pytest.raises(OfficeJsError, match=r"value isn't available yet.*sync"):
+            int(count.value)
+        with pytest.raises(OfficeJsError, match=r"not a value.*\.value for the result"):
+            int(count)
+        ctx.workbook.load("worksheets")
+        await ctx.sync()
+        # Loading a navigation property doesn't turn it into a value
+        with pytest.raises(OfficeJsError, match=r"not a value.*\.items for a collec"):
+            len(ctx.workbook.worksheets)
+        assert repr(ctx.workbook.worksheets) == "<Proxy context.workbook.worksheets>"
+
+
+@pytest.mark.anyio
+async def test_session_misuse_raises(book, client):
+    unopened = book.officejs()
+    with pytest.raises(xw.XlwingsError, match="async with book.officejs"):
+        unopened.workbook
+    with pytest.raises(xw.XlwingsError, match="async with book.officejs"):
+        await unopened.sync()
+    assert client.requests == []
+    async with book.officejs() as ctx:
+        with pytest.raises(xw.XlwingsError, match="already open"):
+            async with book.officejs():
+                pass
+        rng = ctx.workbook.getSelectedRange()
+        with pytest.raises(TypeError, match="positional arguments only"):
+            rng.getCell(row=0, column=0)
+        with pytest.raises(TypeError, match="isn't callable"):
+            rng()
+        with pytest.raises(TypeError, match="keys .* must be strings"):
+            rng.format.autofitColumns({1: "x"})
+        with pytest.raises(ValueError, match="inf"):
+            rng.getCell(float("inf"), 0)
+        # The outer session is unaffected and nothing invalid was recorded
+        await ctx.sync()
+        assert ops(client.requests[-1]) == [
+            ("get", 0, "workbook", None),
+            ("call", 1, "getSelectedRange", []),
+        ]
+
+
+@pytest.mark.anyio
+async def test_api_falls_back_to_sheet_name_without_id(book, client):
+    sheet = book.sheets[0]
+    assert "id" not in sheet.impl.api
+    async with book.officejs() as ctx:
+        assert sheet["A1"].api is sheet["A1"].api
+        sheet["A1"].api.clear()
+        await ctx.sync()
+        assert ops(client.requests[-1])[2:4] == [
+            ("call", 2, "getItem", ["S1"]),
+            ("call", 3, "getRange", ["$A$1"]),
+        ]
+
+
+def _fail(message):
+    return lambda r: {
+        "ok": False,
+        "error": {"code": "GeneralException", "message": message},
+    }
+
+
+@pytest.mark.anyio
+async def test_failing_cleanup_doesnt_mask_the_original_exception(
+    book, client, reloads
+):
+    client.responses["officejs.close"] = _fail("close failed")
+    with pytest.raises(RuntimeError, match="original"):
+        async with book.officejs():
+            raise RuntimeError("original")
+    assert book.impl._officejs_session is None
+    # Without an exception in the block, a failing close is what the script sees
+    with pytest.raises(OfficeJsError, match="close failed"):
+        async with book.officejs():
+            pass
+    assert book.impl._officejs_session is None
+
+    async def broken_reload(opts):
+        raise OSError("reload failed")
+
+    sys.modules["js"].xlwings.getBookData = broken_reload
+    client.responses.pop("officejs.close")
+    client.responses["officejs.sync"] = _wrote
+    with pytest.raises(RuntimeError, match="original"):
+        async with book.officejs() as ctx:
+            ctx.workbook.getSelectedRange().values = [[1]]
+            await ctx.sync()
+            raise RuntimeError("original")
+    with pytest.raises(OSError, match="reload failed"):
+        async with book.officejs() as ctx:
+            ctx.workbook.getSelectedRange().values = [[1]]
+            await ctx.sync()
+    assert book.impl._officejs_session is None
+
+
+@pytest.mark.anyio
+async def test_lazy_book_values_need_a_fresh_load_after_a_write(client, reloads):
+    data = _book_json()
+    data["sheets"][0]["values"] = [[1]]
+    impl = R.App(R.Apps(), add_book=False).books.open(data, lazy=True)
+    book = xw.Book(impl=impl)
+    sheet = book.sheets[0]
+    R._mark_sheet_values_loaded(sheet.impl.api)
+    assert sheet["A1"].value == 1
+    client.responses["officejs.close"] = _wrote
+    async with book.officejs() as ctx:
+        ctx.workbook.getSelectedRange().load("values")
+    assert sheet["A1"].value == 1
+    async with book.officejs() as ctx:
+        ctx.workbook.getSelectedRange().values = [[2]]
+    assert reloads.count == 1
+    with pytest.raises(xw.XlwingsError, match="haven't been loaded"):
+        sheet["A1"].value
+
+
+@pytest.mark.anyio
+async def test_refused_open_leaves_no_session(book, client):
+    client.responses["officejs.open"] = lambda r: {
+        "ok": False,
+        "error": {"code": "NoActiveRun", "message": "No run"},
+    }
+    with pytest.raises(OfficeJsError, match="NoActiveRun"):
+        async with book.officejs():
+            pass
+    assert book.impl._officejs_session is None
+    assert [r["type"] for r in client.requests] == ["officejs.open"]
+    book.sheets[0]["A1"].value = 1
+
+
+@pytest.mark.anyio
+async def test_options_dicts_and_numpy_scalars(book, client):
+    np = pytest.importorskip("numpy")
+    async with book.officejs() as ctx:
+        sheets = ctx.workbook.worksheets
+        sheets.getItem("S1").copy(
+            {"position": "After", "relativeTo": sheets.getItem("S1")}
+        )
+        rng = ctx.workbook.getSelectedRange()
+        rng.values = [[np.bool_(True), np.int64(1), np.float64(1.5)], (None, "", 2)]
+        with pytest.raises(TypeError, match=r"numpy\.ndarray .*\.tolist\(\)"):
+            rng.values = np.array([[1]])
+        for date in (np.datetime64("2026-11-27", "ns"), np.datetime64("2026-11-27")):
+            with pytest.raises(TypeError, match=r"numpy\.datetime64"):
+                rng.values = [[date]]
+        with pytest.raises(TypeError, match=r"numpy\.timedelta64"):
+            rng.values = [[np.timedelta64(1, "D")]]
+        with pytest.raises(ValueError, match='use "" instead'):
+            rng.values = [[np.float64("nan")]]
+        await ctx.sync()
+        assert ops(client.requests[-1])[4:] == [
+            ("call", 3, "copy", [{"position": "After", "relativeTo": {"$h": 4}}]),
+            ("call", 1, "getSelectedRange", []),
+            ("set", 6, "values", [[True, 1, 1.5], [None, "", 2]]),
+        ]
+
+
+@pytest.mark.anyio
+async def test_api_messages_name_the_xlwings_object(book, client):
+    book.impl.api["sheets"][0]["id"] = "{S1-ID}"
+    client.responses["officejs.sync"] = lambda r: {
+        "ok": False,
+        "error": {"code": "InvalidArgument", "message": "bad", "opId": 4},
+    }
+    async with book.officejs() as ctx:
+        rng = book.sheets[0]["A1"].api
+        with pytest.raises(
+            OfficeJsError,
+            match=r'book\.sheets\["S1"\]\["\$A\$1"\]\.api\.load\("values"\)',
+        ):
+            str(rng.values)
+        assert repr(book.sheets[0].api) == '<Proxy book.sheets["S1"].api>'
+        with pytest.raises(OfficeJsError) as info:
+            await ctx.sync()
+        assert info.value.op == 'book.sheets["S1"]["$A$1"].api'
+        # The request still addresses the sheet by ID
+        assert ops(client.requests[-1])[2][3] == ["{S1-ID}"]

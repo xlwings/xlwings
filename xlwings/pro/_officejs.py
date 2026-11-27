@@ -22,7 +22,20 @@ _session_ids = itertools.count(1)
 
 
 class OfficeJsError(XlwingsError):
-    """An Office.js request failed, either in Excel or while replaying an op."""
+    """Raised when Office.js work in a {meth}`Book.officejs <xlwings.Book.officejs>` session fails (xlwings Lite only).
+
+    This happens when Excel rejects what `await ctx.sync()` or the end of the session sent, when recorded code can't run (e.g. a method that doesn't exist), and when an Office.js object is used as a value before the property is loaded and synced. After a failed sync, the session can't sync again and discards its unsynced work when it ends. What was synced before stays applied, and the failed sync may have applied part of its changes.
+
+    Attributes:
+        code: Office.js error code such as `"ItemNotFound"`, if there is one.
+        name: Name of the JavaScript error, such as `"RichApi.Error"`.
+        op: The recorded expression that failed, such as `context.workbook.worksheets.getItem("Sheet1").getRange("A1").nope()`, or `book.sheets["Sheet1"]["$A$1"].api.nope()` for an object from `.api`. `None` for errors that Excel reports for a whole sync.
+        debug_info: The `debugInfo` of an Office.js error as a dictionary, e.g. with the `errorLocation`.
+
+    ```{warning}
+    Experimental: the API may change.
+    ```
+    """
 
     def __init__(self, message, *, code=None, name=None, op=None, debug_info=None):
         super().__init__(message)
@@ -33,9 +46,13 @@ class OfficeJsError(XlwingsError):
 
 
 class OfficeJsWriteWithheld(OfficeJsError):
-    """A Wingman dry run withheld an Office.js write, which ends the preview.
+    """Raised when a Wingman dry run in xlwings Lite reaches an Office.js write.
 
-    The session is discarded on exit; nothing in it was written.
+    A dry run withholds workbook writes. It can't continue past an Office.js write, because the code after it may depend on objects that the write would have created, so the preview ends here. Nothing from the withheld sync is written, and the session discards its unsynced work when it ends.
+
+    ```{warning}
+    Experimental: the API may change.
+    ```
     """
 
 
@@ -43,6 +60,14 @@ def _encode(value):
     """Turn an argument or set value into JSON data, proxies into handles."""
     if isinstance(value, Proxy):
         return {"$h": value._emit()}
+    if type(value).__module__ == "numpy":
+        kind = getattr(getattr(value, "dtype", None), "kind", None)
+        if kind == "b":
+            # `numpy.bool_` isn't a `bool`
+            value = bool(value)
+        elif kind in ("m", "M"):
+            # `timedelta64` is a `numbers.Integral`: don't send it as a number
+            raise _unsupported(value)
     if value is None or isinstance(value, (bool, str)):
         return value
     if isinstance(value, numbers.Integral):
@@ -50,7 +75,10 @@ def _encode(value):
     if isinstance(value, numbers.Real):
         value = float(value)
         if not math.isfinite(value):
-            raise ValueError(f"Can't send {value} to Office.js (JSON has no NaN/inf)")
+            raise ValueError(
+                f"Can't send {value} to Office.js (JSON has no NaN or infinity). "
+                'For an empty cell, use "" instead.'
+            )
         return value
     if isinstance(value, (list, tuple)):
         return [_encode(v) for v in value]
@@ -58,14 +86,28 @@ def _encode(value):
         if not all(isinstance(k, str) for k in value):
             raise TypeError("Dictionary keys sent to Office.js must be strings")
         return {k: _encode(v) for k, v in value.items()}
-    raise TypeError(
-        f"Can't send {type(value).__name__} to Office.js. Use str, int, float, "
-        "bool, None, lists and dicts of those, or Office.js objects."
+    raise _unsupported(value)
+
+
+def _unsupported(value):
+    cls = type(value)
+    name = (
+        cls.__name__
+        if cls.__module__ == "builtins"
+        else f"{cls.__module__}.{cls.__name__}"
+    )
+    return TypeError(
+        f"Can't send {name} to Office.js. Use str, int, float, bool, None, lists "
+        "and dicts of those, or Office.js objects. Convert NumPy arrays and "
+        "DataFrame values with .tolist(), and dates to strings or numbers."
     )
 
 
 class OfficeJsSession:
-    """Async context manager returned by `book.officejs()`."""
+    """Asynchronous context manager returned by {meth}`Book.officejs <xlwings.Book.officejs>`.
+
+    The public members are `context` (the Office.js `RequestContext`), `workbook` (shortcut for `context.workbook`) and `sync()`.
+    """
 
     def __init__(self, book, send=None):
         # `book` is the remote Book impl
@@ -180,10 +222,13 @@ class OfficeJsSession:
 
     # `.api` of xlwings objects
 
-    def _api_proxy(self, key, make):
+    def _api_proxy(self, key, make, label):
         proxy = self._api_proxies.get(key)
         if proxy is None:
             proxy = self._api_proxies[key] = make()
+            # Messages name the xlwings expression rather than the sheet ID
+            object.__setattr__(proxy, "_label", label)
+            self._labels[proxy._handle] = label
         return proxy
 
     def book_api(self):
@@ -193,7 +238,9 @@ class OfficeJsSession:
         """`worksheets.getItem()` by sheet ID, so a rename doesn't break it."""
         key = sheet.api.get("id") or sheet.name
         return self._api_proxy(
-            ("sheet", key), lambda: self.workbook.worksheets.getItem(key)
+            ("sheet", key),
+            lambda: self.workbook.worksheets.getItem(key),
+            f"book.sheets[{json.dumps(sheet.name)}].api",
         )
 
     def range_api(self, rng):
@@ -203,7 +250,9 @@ class OfficeJsSession:
         sheet = rng.sheet
         key = sheet.api.get("id") or sheet.name
         return self._api_proxy(
-            ("range", key, address), lambda: self.sheet_api(sheet).getRange(address)
+            ("range", key, address),
+            lambda: self.sheet_api(sheet).getRange(address),
+            f"book.sheets[{json.dumps(sheet.name)}][{json.dumps(address)}].api",
         )
 
     def _add_op(self, kind, target, name, label, **fields):
@@ -407,19 +456,36 @@ class Proxy:
 
     # Proxies have no value of their own
 
+    def _is_loaded_object(self):
+        """Whether loaded data shows this property to be an object, e.g. after
+        `workbook.load("worksheets")`."""
+        found, value, plain = self._parent._loaded(self._name)
+        return found and isinstance(value, dict) and not plain
+
     def _no_value(self, *args, **kwargs):
         if self._kind == "get" and self._name == "isNullObject":
             # Office.js sets it on `*OrNullObject` results at sync, no load()
             raise OfficeJsError(f"{self._label} is available after 'await ctx.sync()'.")
-        if self._kind == "get":
+        parent = self._parent
+        if self._kind == "get" and not self._is_loaded_object():
+            if self._name == "value" and parent._kind == "call":
+                # A ClientResult (e.g. `getCount()`) has no load()
+                raise OfficeJsError(
+                    f"{self._label} isn't available yet. The result of a method "
+                    "is available after 'await ctx.sync()'; a property also needs "
+                    f'{parent._label}.load("value") before that.'
+                )
             raise OfficeJsError(
                 f"{self._label} isn't loaded; call "
-                f'{self._parent._label}.load("{self._name}") and '
+                f'{parent._label}.load("{self._name}") and '
                 "'await ctx.sync()' first."
             )
+        # A method's result, a collection item or a loaded navigation property
         raise OfficeJsError(
-            f"{self._label} is an Office.js object, not a value; load the "
-            "properties you need and 'await ctx.sync()' first."
+            f"{self._label} is an Office.js object, not a value. Load the "
+            "properties you need and 'await ctx.sync()', then read them: .items "
+            "for a collection, .value for the result of a method such as "
+            "getCount() (which needs no load)."
         )
 
     __str__ = __bool__ = __len__ = __iter__ = __contains__ = __getitem__ = _no_value
@@ -430,7 +496,8 @@ class Proxy:
     __hash__ = object.__hash__
 
     def __repr__(self):
-        state = ", not loaded" if self._kind == "get" else ""
+        unloaded = self._kind == "get" and not self._is_loaded_object()
+        state = ", not loaded" if unloaded else ""
         return f"<Proxy {self._label}{state}>"
 
 
