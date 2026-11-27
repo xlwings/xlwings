@@ -1039,7 +1039,7 @@ class Book:
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
 
-        In xlwings Lite, this is the Office.js `Workbook` of the open {meth}`Book.officejs <xlwings.Book.officejs>` session (experimental). Outside of a session, it raises an `XlwingsError`.
+        In xlwings Lite, this is the Office.js `Workbook` of the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```
@@ -1063,13 +1063,9 @@ class Book:
 
         Property changes and method calls on Office.js objects are recorded in Python and only run in Excel when you call `await ctx.sync()`. To read a property, request it with `load()` and sync first. After a sync, a collection gives you its loaded items as `items`, and a method that returns a value, such as `getCount()`, gives it as `value`. Pass arguments by position, and option objects as dictionaries.
 
-        Pending xlwings actions are flushed when the session starts. While the session is open, xlwings itself can't read from or write to Excel: do this before or after the block, or through Office.js inside it. When the block ends, unsynced Office.js work is synced, and xlwings reloads the workbook if the session wrote anything. Until then, cell values that xlwings loaded before, e.g. for `.value`, don't show the Office.js changes. If the block raises an exception or a sync fails, unsynced work is discarded. Everything that was synced before stays applied, and a failed sync may have applied part of its changes. A session can't sync again after a failed sync, and only one session can be open at a time.
+        Pending xlwings actions are flushed when the session starts. While the session is open, xlwings itself can't read from or write to Excel: do this before or after the block, or through Office.js inside it. When the block ends, unsynced Office.js work is synced, and xlwings reloads the workbook if the session wrote anything. Until then, cell values that xlwings loaded before, e.g. for `.value`, don't show the Office.js changes. If the block raises an exception or a sync fails, unsynced work is discarded. Everything that was synced before stays applied, and a failed sync may have applied part of its changes. A session can't sync again after a failed sync, and only one session can be open at a time. Errors that Excel reports, and recorded code that can't run, raise `xw.OfficeJsError` with the Office.js error `code`.
 
         For a guide, see [Office.js API](https://lite.xlwings.org/officejs) in the xlwings Lite docs.
-
-        ```{warning}
-        Experimental: the API may change.
-        ```
 
         Examples:
             ```python
@@ -1561,7 +1557,7 @@ class Sheet:
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
 
-        In xlwings Lite, this is the Office.js `Worksheet` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session (experimental). Outside of a session, it raises an `XlwingsError`.
+        In xlwings Lite, this is the Office.js `Worksheet` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```
@@ -2184,7 +2180,7 @@ class Range:
     def api(self) -> Any:
         """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
 
-        In xlwings Lite, this is the Office.js `Range` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session (experimental). Outside of a session, it raises an `XlwingsError`.
+        In xlwings Lite, this is the Office.js `Range` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```

@@ -874,3 +874,11 @@ def test_macro_arguments_use_the_data_dict(book, client):
     action = book.impl.json()["actions"][-1]
     assert action["func"] == "runMacro"
     assert action["args"][1:] == [[(None,)]]
+
+
+def test_office_js_errors_are_public():
+    from xlwings.pro import _officejs
+
+    assert xw.OfficeJsError is _officejs.OfficeJsError is OfficeJsError
+    assert issubclass(xw.OfficeJsWriteWithheld, xw.OfficeJsError)
+    assert issubclass(xw.OfficeJsError, xw.XlwingsError)

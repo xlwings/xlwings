@@ -84,6 +84,7 @@ license
 
 api/top_level_functions
 api/udf_decorators
+api/exceptions
 api/app
 api/apps
 api/autofilter

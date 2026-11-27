@@ -16,44 +16,9 @@ import json
 import math
 import numbers
 
-from .. import XlwingsError
+from .. import OfficeJsError, OfficeJsWriteWithheld, XlwingsError
 
 _session_ids = itertools.count(1)
-
-
-class OfficeJsError(XlwingsError):
-    """Raised when Office.js work in a {meth}`Book.officejs <xlwings.Book.officejs>` session fails (xlwings Lite only).
-
-    This happens when Excel rejects what `await ctx.sync()` or the end of the session sent, when recorded code can't run (e.g. a method that doesn't exist), and when an Office.js object is used as a value before the property is loaded and synced. After a failed sync, the session can't sync again and discards its unsynced work when it ends. What was synced before stays applied, and the failed sync may have applied part of its changes.
-
-    Attributes:
-        code: Office.js error code such as `"ItemNotFound"`, if there is one.
-        name: Name of the JavaScript error, such as `"RichApi.Error"`.
-        op: The recorded expression that failed, such as `context.workbook.worksheets.getItem("Sheet1").getRange("A1").nope()`, or `book.sheets["Sheet1"]["$A$1"].api.nope()` for an object from `.api`. `None` for errors that Excel reports for a whole sync.
-        debug_info: The `debugInfo` of an Office.js error as a dictionary, e.g. with the `errorLocation`.
-
-    ```{warning}
-    Experimental: the API may change.
-    ```
-    """
-
-    def __init__(self, message, *, code=None, name=None, op=None, debug_info=None):
-        super().__init__(message)
-        self.code = code
-        self.name = name
-        self.op = op
-        self.debug_info = debug_info
-
-
-class OfficeJsWriteWithheld(OfficeJsError):
-    """Raised when a Wingman dry run in xlwings Lite reaches an Office.js write.
-
-    A dry run withholds workbook writes. It can't continue past an Office.js write, because the code after it may depend on objects that the write would have created, so the preview ends here. Nothing from the withheld sync is written, and the session discards its unsynced work when it ends.
-
-    ```{warning}
-    Experimental: the API may change.
-    ```
-    """
 
 
 def _encode(value):
