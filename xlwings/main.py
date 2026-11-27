@@ -254,6 +254,12 @@ class Engine:
         return f"<Engine {self.name}>"
 
 
+def _native_api(impl: Any) -> Any:
+    # In xlwings Lite, `.api` is the Office.js object in the open session.
+    officejs_api = getattr(impl, "officejs_api", None)
+    return officejs_api() if officejs_api is not None else impl.api
+
+
 class Apps:
     """A collection of all `app` objects:
 
@@ -1034,12 +1040,12 @@ class Book:
         """Returns the native object (`pywin32` or `appscript` obj) of the engine being
         used.
 
-        In xlwings Lite, this is the remote backend's internal workbook data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
+        In xlwings Lite, this is the Office.js `Workbook` of the open {meth}`officejs` session and raises outside a session.
 
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def json(self) -> dict[str, Any]:
         """Returns a JSON serializable object as expected by the MS Office Scripts or
@@ -1540,12 +1546,12 @@ class Sheet:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        In xlwings Lite, this is the remote backend's internal worksheet data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
+        In xlwings Lite, this is the Office.js `Worksheet` in the open {meth}`Book.officejs` session and raises outside a session.
 
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -2164,10 +2170,12 @@ class Range:
         """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
+        In xlwings Lite, this is the Office.js `Range` in the open {meth}`Book.officejs` session and raises outside a session.
+
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def __eq__(self, other: object) -> bool:
         return (

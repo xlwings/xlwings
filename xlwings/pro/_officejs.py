@@ -5,8 +5,10 @@ Proxies record property gets, method calls and property sets as plain-data ops.
 generic executor replays them against Office.js inside one held `Excel.run`
 per session, and returns the values requested with `load()`.
 
-This is the vertical slice of plans/officejs-access.md in the xlwings Lite repo:
-`.api`, curated-call blocking and cache invalidation are not implemented yet.
+While a session is open, `book.api`, `sheet.api` and `range.api` return proxies
+bound to it, and the curated API doesn't talk to Excel (see
+`_xlremote.check_no_officejs_session`). If the session wrote anything, the
+book's snapshot is reloaded when it ends.
 """
 
 import itertools
@@ -76,7 +78,13 @@ class OfficeJsSession:
         self._returns = {}
         self._proxies = {0: None}
         self._labels = {}
+        # `.api` proxies, so repeated accesses return the same object
+        self._api_proxies = {}
         self._state = "new"
+        # Set once a batch with write ops may have reached Excel
+        self.wrote = False
+        # Set when a blocked curated call may have changed the local snapshot
+        self.snapshot_changed = False
         self.discard_error = None
         self.context = Proxy(self, None, "context", kind="root", handle=0)
         self._proxies[0] = self.context
@@ -103,17 +111,37 @@ class OfficeJsSession:
         self._ops, self._returns = [], {}
         self._state = "closed"
         self._book._officejs_session = None
-        if not discard:
-            await self._request("officejs.close", ops=ops)
-            return False
         try:
-            response = await self._request("officejs.close", discard=True)
-            self.discard_error = response.get("discardError")
-        except Exception:
-            # Don't mask the exception that ended the session.
-            if exc_type is None:
-                raise
+            if not discard:
+                await self._request("officejs.close", ops=ops)
+            else:
+                try:
+                    response = await self._request("officejs.close", discard=True)
+                    self.discard_error = response.get("discardError")
+                except Exception:
+                    # Don't mask the exception that ended the session.
+                    if exc_type is None:
+                        raise
+        except BaseException:
+            await self._reload(quiet=True)
+            raise
+        await self._reload(quiet=exc_type is not None)
         return False
+
+    async def _reload(self, quiet):
+        """Refresh the book's snapshot if the session may have changed Excel, or
+        a blocked curated call may have changed the snapshot itself.
+
+        Also after a failed or discarded session: earlier syncs may have
+        committed, and the script may catch the exception and go on.
+        """
+        if not (self.wrote or self.snapshot_changed):
+            return
+        try:
+            await self._book.reload_after_officejs()
+        except Exception:
+            if not quiet:
+                raise
 
     async def sync(self):
         """Run the recorded ops in Excel and fetch the values requested with `load()`."""
@@ -141,13 +169,42 @@ class OfficeJsSession:
     def _check_open(self):
         if self._state == "closed":
             raise XlwingsError(
-                "This Office.js object belongs to a closed session; Office.js "
-                "objects are only valid inside their 'async with book.officejs()' block."
+                "This Office.js object belongs to a closed session. After the "
+                "'async with book.officejs()' block, you can only read properties "
+                "that were loaded and synced inside it."
             )
         if self._state == "new":
             raise XlwingsError(
                 "Use the session with 'async with book.officejs() as ctx'."
             )
+
+    # `.api` of xlwings objects
+
+    def _api_proxy(self, key, make):
+        proxy = self._api_proxies.get(key)
+        if proxy is None:
+            proxy = self._api_proxies[key] = make()
+        return proxy
+
+    def book_api(self):
+        return self.workbook
+
+    def sheet_api(self, sheet):
+        """`worksheets.getItem()` by sheet ID, so a rename doesn't break it."""
+        key = sheet.api.get("id") or sheet.name
+        return self._api_proxy(
+            ("sheet", key), lambda: self.workbook.worksheets.getItem(key)
+        )
+
+    def range_api(self, rng):
+        address = rng.address
+        if address is None:
+            raise XlwingsError("This range has no address (no cells are selected).")
+        sheet = rng.sheet
+        key = sheet.api.get("id") or sheet.name
+        return self._api_proxy(
+            ("range", key, address), lambda: self.sheet_api(sheet).getRange(address)
+        )
 
     def _add_op(self, kind, target, name, label, **fields):
         op_id = next(self._op_ids)
@@ -172,8 +229,11 @@ class OfficeJsSession:
 
             send = js.xlwings.officejs
         response = json.loads(await send(text))
+        error = response.get("error") or {}
+        if response.get("wrote") or error.get("wrote"):
+            self.wrote = True
         if not response.get("ok"):
-            raise self._error(response.get("error") or {})
+            raise self._error(error)
         return response
 
     def _error(self, error):
@@ -203,6 +263,7 @@ _PROXY_SLOTS = (
     "_children",
     "_data",
     "_items",
+    "_plain",
 )
 
 
@@ -226,6 +287,8 @@ class Proxy:
         set_(self, "_children", {})
         set_(self, "_data", None)
         set_(self, "_items", None)
+        # Paths in `_data` of plain object values (not navigation properties)
+        set_(self, "_plain", frozenset())
 
     # Recording
 
@@ -243,12 +306,15 @@ class Proxy:
     def __getattr__(self, name):
         if name.startswith("_"):
             raise AttributeError(name)
-        self._session._check_open()
         if name == "items" and self._items is not None:
             return list(self._items)
-        found, value = self._loaded(name)
-        if found and not isinstance(value, dict):
+        found, value, plain = self._loaded(name)
+        if found and (plain or not isinstance(value, dict)):
             return value
+        if not found:
+            # Loaded data stays readable after the session; anything else
+            # would need a new op.
+            self._session._check_open()
         # Unloaded or navigation property: the same proxy every time
         child = self._children.get(name)
         if child is None:
@@ -294,7 +360,12 @@ class Proxy:
     # Loaded data
 
     def _loaded(self, name):
-        """Find `name` in the data of this object or its nearest loaded ancestor."""
+        """Find `name` in the data of this object or its nearest loaded ancestor.
+
+        Returns `(found, value, plain)`; `plain` is True for an object value
+        that the executor marked as plain data rather than a navigation
+        property (e.g. `ConditionalCellValueRule`).
+        """
         path = [name]
         proxy = self
         while proxy is not None:
@@ -304,15 +375,17 @@ class Proxy:
                     if isinstance(data, dict) and key in data:
                         data = data[key]
                     else:
-                        return False, None
-                return True, data
+                        return False, None, False
+                return True, data, "/".join(path) in proxy._plain
             if proxy._kind != "get":
                 break
             path.insert(0, proxy._name)
             proxy = proxy._parent
-        return False, None
+        return False, None, False
 
     def _bind(self, data):
+        if isinstance(data, dict):
+            object.__setattr__(self, "_plain", frozenset(data.pop("$plain", ())))
         if isinstance(data, dict) and "$items" in data:
             handles = data.pop("$items")
             items_data = data.get("items") or []
@@ -326,9 +399,7 @@ class Proxy:
                     handle=handle,
                     label=f"{self._label}.items[{index}]",
                 )
-                object.__setattr__(
-                    item, "_data", items_data[index] if index < len(items_data) else {}
-                )
+                item._bind(items_data[index] if index < len(items_data) else {})
                 self._session._proxies[handle] = item
                 items.append(item)
             object.__setattr__(self, "_items", items)

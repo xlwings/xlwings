@@ -321,6 +321,33 @@ def _sheet_values_loaded(sheet_api):
     return sheet_api.get(_SHEET_VALUES_LOADED_KEY, False)
 
 
+# Marks a sheet dict that a reload no longer found in the workbook, see
+# _update_api_in_place. Only read locally (never serialized back to JS).
+_SHEET_DELETED_KEY = "_xlwings_deleted"
+
+
+def check_no_officejs_session(book, queuing=False):
+    """Raise if `book` has an open `book.officejs()` session.
+
+    Inside a session, Excel is only reached through Office.js, so queued
+    actions and reads of the curated API can't interleave with it. Snapshot
+    access (sheet names, building ranges for `.api`) keeps working.
+
+    `queuing` is set for a blocked action: many callers update the local
+    snapshot before they queue their action (e.g., `Sheets.add()` inserts the
+    new sheet first), so the session reloads the snapshot when it ends.
+    """
+    session = getattr(book, "_officejs_session", None) if book is not None else None
+    if session is not None:
+        if queuing:
+            session.snapshot_changed = True
+        raise XlwingsError(
+            "xlwings can't read from or write to Excel while an Office.js session "
+            "is open. Do this after the 'async with book.officejs()' block, or "
+            "through Office.js inside it."
+        )
+
+
 async def client_read(book, func, *args):
     """Call the xlwings Lite client read `js.xlwings.<func>(*args)` for `book`.
 
@@ -335,6 +362,7 @@ async def client_read(book, func, *args):
     """
     import js
 
+    check_no_officejs_session(book)
     if book is not None and (book._json["actions"] or book._dispatch is not None):
         await book.flush()
     return await getattr(js.xlwings, func)(*args)
@@ -453,19 +481,32 @@ def _update_pivots_in_place(target, source):
 
 def _update_api_in_place(target, source):
     """Update target dict in-place from source, preserving references to nested dicts
-    inside lists (matched by 'name' key). This ensures that e.g. Sheet or Name objects
-    holding references to dicts inside target['sheets'] see the updated values."""
+    inside lists. This ensures that e.g. Sheet or Name objects holding references to
+    dicts inside target['sheets'] see the updated values.
+
+    Items match by 'id' when both sides have one, so a sheet renamed outside the
+    script keeps its wrappers, and otherwise by 'name'. A sheet that is no longer
+    in the workbook is marked as deleted (see Sheet.index)."""
     for key, value in source.items():
         if isinstance(value, list) and key in target and isinstance(target[key], list):
-            old_by_name = {
-                item["name"]: item
-                for item in target[key]
-                if isinstance(item, dict) and "name" in item
-            }
+            old_items = [item for item in target[key] if isinstance(item, dict)]
+            old_by_id = {item["id"]: item for item in old_items if "id" in item}
+            old_by_name = {item["name"]: item for item in old_items if "name" in item}
+            matched = set()
             new_list = []
             for item in value:
-                if isinstance(item, dict) and item.get("name") in old_by_name:
-                    entry = old_by_name[item["name"]]
+                entry = None
+                if isinstance(item, dict):
+                    if "id" in item:
+                        entry = old_by_id.get(item["id"])
+                    if entry is None:
+                        candidate = old_by_name.get(item.get("name"))
+                        if candidate is not None and (
+                            "id" not in candidate or "id" not in item
+                        ):
+                            entry = candidate
+                if entry is not None and id(entry) not in matched:
+                    matched.add(id(entry))
                     if key == "sheets":
                         item = dict(item)
                         _update_pivots_in_place(entry, item)
@@ -477,6 +518,10 @@ def _update_api_in_place(target, source):
                     new_list.append(entry)
                 else:
                     new_list.append(item)
+            if key == "sheets":
+                for item in old_items:
+                    if id(item) not in matched:
+                        item[_SHEET_DELETED_KEY] = True
             target[key] = new_list
         elif (
             isinstance(value, dict) and key in target and isinstance(target[key], dict)
@@ -892,6 +937,7 @@ class Book(base_classes.Book):
             )
 
     def append_json_action(self, **kwargs):
+        check_no_officejs_session(self, queuing=True)
         args = kwargs.get("args")
         action = {
             "func": kwargs.get("func"),
@@ -923,6 +969,33 @@ class Book(base_classes.Book):
         from ._officejs import OfficeJsSession
 
         return OfficeJsSession(self)
+
+    def officejs_session(self):
+        """The open `book.officejs()` session that `.api` resolves in."""
+        if self._officejs_session is None:
+            raise XlwingsError(
+                "In xlwings Lite, .api returns Office.js objects and only works "
+                "inside 'async with book.officejs():'."
+            )
+        return self._officejs_session
+
+    def officejs_api(self):
+        if sys.platform != "emscripten":
+            return self.api
+        return self.officejs_session().book_api()
+
+    async def reload_after_officejs(self):
+        """Reload the snapshot after an Office.js session that wrote.
+
+        Office.js can change anything, including sheets. An eager book reloads
+        everything; a lazy one reloads metadata and forgets which sheets had
+        their values loaded, so `.value` asks for a fresh load instead of
+        returning stale values.
+        """
+        await self.load(flush=False)
+        if self._lazy:
+            for sheet in self._api.get("sheets", []):
+                sheet.pop(_SHEET_VALUES_LOADED_KEY, None)
 
     async def flush(self):
         if sys.platform != "emscripten":
@@ -1248,7 +1321,17 @@ class Sheet(base_classes.Sheet):
             if sheet is self._api:
                 self._index = ix + 1
                 break
+        else:
+            if self._api.get(_SHEET_DELETED_KEY):
+                # Deleted outside the script's own actions (e.g., through
+                # Office.js): its last index now belongs to another sheet.
+                raise XlwingsError(f"Sheet '{self.name}' was deleted.")
         return self._index
+
+    def officejs_api(self):
+        if sys.platform != "emscripten":
+            return self.api
+        return self.book.officejs_session().sheet_api(self)
 
     @property
     def book(self):
@@ -1392,6 +1475,9 @@ class Sheet(base_classes.Sheet):
         self.append_json_action(func="copySheet", args=[position, target_ix, name])
         api = copy.deepcopy(self.api)
         api["name"] = name
+        # Excel gives the copy its own ID; until a reload reads it, the copy
+        # must not match the source by ID (see _update_api_in_place).
+        api.pop("id", None)
         sheets_api.insert(new_ix, api)
 
     def move(self, before=None, after=None):
@@ -1705,6 +1791,11 @@ class Range(base_classes.Range):
         return get_range_api(
             tuple(tuple(row) for row in self.sheet.api["values"]), self.arg1, self.arg2
         )
+
+    def officejs_api(self):
+        if sys.platform != "emscripten":
+            return self.api
+        return self.sheet.book.officejs_session().range_api(self)
 
     @property
     def coords(self):
