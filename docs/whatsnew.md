@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.37.13 (Nov 28, 2026)
+
+- xlwings Lite: added {meth}`Book.officejs <xlwings.Book.officejs>` to use the Office.js Excel API directly from Python, for features that xlwings doesn't cover. Open a session with `async with book.officejs() as ctx:` and run your Office.js calls in Excel with `await ctx.sync()`, see [Office.js API](https://lite.xlwings.org/officejs).
+
 ## v0.37.12 (Nov 20, 2026)
 
 - {meth}`Table.rows.add <xlwings.main.TableRows.add>` now accepts `date` and `datetime` values and writes them as Excel dates.
