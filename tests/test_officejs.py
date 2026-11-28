@@ -774,29 +774,30 @@ async def test_latest_load_wins_over_an_earlier_nested_load(book, client):
 
 @pytest.mark.anyio
 async def test_items_of_a_collection_loaded_through_its_parent(book, client):
+    # Office.js's toJSON() has a collection loaded through its parent as a list
     client.responses["officejs.sync"] = lambda r: {
-        "results": (
-            {
-                "1": {
-                    "worksheets": {"items": [{"name": "S1"}, {"name": "S2"}]},
-                    "$itemsAt": {
-                        "worksheets": ["1.worksheets:0~1", "1.worksheets:1~1"]
-                    },
-                }
+        "results": {
+            "1": {
+                "worksheets": [{"name": "S1"}, {"name": "S2"}],
+                "$itemsAt": {"worksheets": ["1.worksheets:0~1", "1.worksheets:1~1"]},
             }
-            if r["return"]
-            else {}
-        )
+        }
+        if r["return"]
+        else {}
     }
     async with book.officejs() as ctx:
         ctx.workbook.load("worksheets/items/name")
         await ctx.sync()
-        items = ctx.workbook.worksheets.items
-        assert [s.name for s in items] == ["S1", "S2"]
-        assert repr(items[1]) == "<Proxy context.workbook.worksheets.items[1]>"
-        items[1].delete()
+        sheets = ctx.workbook.worksheets
+        assert [s.name for s in sheets.items] == ["S1", "S2"]
+        assert repr(sheets.items[1]) == "<Proxy context.workbook.worksheets.items[1]>"
+        with pytest.raises(OfficeJsError, match=r"not a value.*\.items for a collec"):
+            len(sheets)
+        sheets.items[1].delete()
         await ctx.sync()
         assert ops(client.requests[-1]) == [("call", "1.worksheets:1~1", "delete", [])]
+    # Loaded data stays readable after the session
+    assert [s.name for s in ctx.workbook.worksheets.items] == ["S1", "S2"]
 
 
 @pytest.mark.anyio

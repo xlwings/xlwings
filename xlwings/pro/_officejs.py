@@ -342,15 +342,21 @@ class Proxy:
             items = owner._items.get("/".join(path[:-1]))
             if items is not None:
                 return list(items)
-        if found and (plain or not isinstance(value, dict)):
+        # A collection loaded through its parent is a list in its data, but it
+        # stays a proxy, with `items`
+        collection = (
+            found and isinstance(value, list) and "/".join(path) in owner._items
+        )
+        if found and not collection and (plain or not isinstance(value, dict)):
             return value
-        if not found:
-            # Loaded data stays readable after the session; anything else
-            # would need a new op.
-            self._session._check_open()
         # Unloaded or navigation property: the same proxy every time
         child = self._children.get(name)
         if child is None:
+            if not found:
+                # Loaded data stays readable after the session, also through
+                # proxies from inside it (e.g. `ctx.workbook`); anything else
+                # would need a new op.
+                self._session._check_open()
             child = Proxy(
                 self._session, self, name, kind="get", label=f"{self._label}.{name}"
             )
@@ -419,6 +425,9 @@ class Proxy:
             ):
                 data = proxy._data
                 for key in path:
+                    if isinstance(data, list) and key == "items":
+                        # `items` of a collection that is a list in its parent's data
+                        continue
                     if not (isinstance(data, dict) and key in data):
                         break
                     data = data[key]
@@ -447,8 +456,10 @@ class Proxy:
                     container = (
                         container.get(key) if isinstance(container, dict) else None
                     )
+                # A collection loaded through its parent is a list in the
+                # parent's data, e.g. {"worksheets": [{"name": "Sheet1"}]}
                 items_data = (
-                    container.get("items") if isinstance(container, dict) else None
+                    container.get("items") if isinstance(container, dict) else container
                 )
                 items_data = items_data if isinstance(items_data, list) else []
                 label = "".join(f".{key}" for key in [self._label, *keys])[1:]
@@ -475,7 +486,9 @@ class Proxy:
     def _is_loaded_object(self):
         """Whether loaded data shows this property to be an object, e.g. after
         `workbook.load("worksheets")`."""
-        found, value, plain = self._parent._loaded(self._name)
+        found, value, plain, owner, path = self._parent._find(self._name)
+        if found and isinstance(value, list):
+            return "/".join(path) in owner._items
         return found and isinstance(value, dict) and not plain
 
     def _no_value(self, *args, **kwargs):
