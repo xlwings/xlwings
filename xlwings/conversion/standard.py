@@ -132,7 +132,7 @@ class WriteValueToRangeStage:
             setattr(rng.impl, write_property, value)
 
     def _write_value(self, rng, value, scalar, write_property, engine_type):
-        if rng.api and value:
+        if rng.impl.api and value:
             # it is assumed by this stage that value is a list of lists
             if scalar:
                 value = value[0][0]

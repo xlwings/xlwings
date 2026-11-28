@@ -26,24 +26,54 @@ else:
 
 # Errors
 class XlwingsError(Exception):
-    pass
+    """Base class of the errors that xlwings raises."""
 
 
 class LicenseError(XlwingsError):
-    pass
+    """Raised when an xlwings PRO feature can't find a valid license key."""
 
 
 class ShapeAlreadyExists(XlwingsError):
-    pass
+    """Raised when a chart or picture name is already used on the sheet, e.g. by
+    {meth}`Pictures.add <xlwings.main.Pictures.add>` without `update=True`."""
 
 
 class NoSuchObjectError(XlwingsError):
-    pass
+    """Raised when a sheet, address or named range doesn't exist (xlwings Reader,
+    xlwings Server and xlwings Lite)."""
+
+
+class OfficeJsError(XlwingsError):
+    """Raised when Office.js work in a {meth}`Book.officejs <xlwings.Book.officejs>` session fails (xlwings Lite only).
+
+    This happens when Excel rejects what `await ctx.sync()` or the end of the session sent, when recorded code can't run (e.g. a method that doesn't exist), and when an Office.js object is used as a value before the property is loaded and synced. After a failed sync, the session can't sync again and discards its unsynced work when it ends. What was synced before stays applied, and the failed sync may have applied part of its changes.
+
+    It has the following attributes:
+
+    - `code`: Office.js error code such as `"ItemNotFound"`, if there is one.
+    - `name`: Name of the JavaScript error, such as `"RichApi.Error"`.
+    - `op`: The recorded expression that failed, such as `context.workbook.worksheets.getItem("Sheet1").getRange("A1").nope()`, or `book.sheets["Sheet1"]["$A$1"].api.nope()` for an object from `.api`. `None` for errors that Excel reports for a whole sync.
+    - `debug_info`: The `debugInfo` of an Office.js error as a dictionary, e.g. with the `errorLocation`.
+    """
+
+    def __init__(self, message, *, code=None, name=None, op=None, debug_info=None):
+        super().__init__(message)
+        self.code = code
+        self.name = name
+        self.op = op
+        self.debug_info = debug_info
+
+
+class OfficeJsWriteWithheld(OfficeJsError):
+    """Raised when a Wingman dry run in xlwings Lite reaches an Office.js write.
+
+    A dry run withholds workbook writes. It can't continue past an Office.js write, because the code after it may depend on objects that the write would have created, so the preview ends here. Nothing from the withheld sync is written, and the session discards its unsynced work when it ends.
+    """
 
 
 class ObjectCacheMissError(XlwingsError):
     """Raised when an object handle can't be resolved from the object cache, e.g.,
-    because the cached object has expired or been evicted. Carries the cache ``key`` so
+    because the cached object has expired or been evicted. Carries the cache `key` so
     that the caller can render a "stale" object handle instead of a hard error."""
 
     def __init__(self, key=None):
@@ -256,6 +286,7 @@ __all__ = (
     "Name",
     "Note",
     "Notes",
+    "OfficeJsError",
     "CachedObject",
     "CustomFunctionResult",
     "ObjectCacheMissError",

@@ -254,6 +254,12 @@ class Engine:
         return f"<Engine {self.name}>"
 
 
+def _native_api(impl: Any) -> Any:
+    # In xlwings Lite, `.api` is the Office.js object in the open session.
+    officejs_api = getattr(impl, "officejs_api", None)
+    return officejs_api() if officejs_api is not None else impl.api
+
+
 class Apps:
     """A collection of all `app` objects:
 
@@ -1031,15 +1037,14 @@ class Book:
 
     @property
     def api(self) -> Any:
-        """Returns the native object (`pywin32` or `appscript` obj) of the engine being
-        used.
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
 
-        In xlwings Lite, this is the remote backend's internal workbook data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
+        In xlwings Lite, this is the Office.js `Workbook` of the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def json(self) -> dict[str, Any]:
         """Returns a JSON serializable object as expected by the MS Office Scripts or
@@ -1050,6 +1055,40 @@ class Book:
         ```
         """
         return self.impl.json()
+
+    def officejs(self) -> Any:
+        """Opens an Office.js session to use the Office.js Excel API directly, for features that xlwings doesn't cover.
+
+        Use it as an asynchronous context manager in an `async def` script. The session (`ctx` in the example) has `await ctx.sync()` and forwards Office.js members to the `RequestContext`, e.g. `ctx.workbook` (the Office.js `Workbook`) or `ctx.application`; `ctx.context` is the `RequestContext` itself. Inside the block, {attr}`Book.api <xlwings.Book.api>`, {attr}`Sheet.api <xlwings.Sheet.api>` and {attr}`Range.api <xlwings.Range.api>` return the Office.js object of an xlwings object.
+
+        Property changes and method calls on Office.js objects are recorded in Python and only run in Excel when you call `await ctx.sync()`. To read a property, request it with `load()` and sync first. After a sync, a collection gives you its loaded items as `items`, and a method that returns a value, such as `getCount()`, gives it as `value`. Pass arguments by position, and option objects as dictionaries.
+
+        Pending xlwings actions are flushed when the session starts. While the session is open, xlwings itself can't read from or write to Excel: do this before or after the block, or through Office.js inside it. When the block ends, unsynced Office.js work is synced, and xlwings reloads the workbook if the session wrote anything. Until then, cell values that xlwings loaded before, e.g. for `.value`, don't show the Office.js changes. If the block raises an exception or a sync fails, unsynced work is discarded. Everything that was synced before stays applied, and a failed sync may have applied part of its changes. A session can't sync again after a failed sync, and only one session can be open at a time. Errors that Excel reports, and recorded code that can't run, raise `xw.OfficeJsError` with the Office.js error `code`.
+
+        For a guide, see [Office.js API](https://lite.xlwings.org/officejs) in the xlwings Lite docs.
+
+        Examples:
+            ```python
+            async with book.officejs() as ctx:
+                rng = book.sheets["Sheet1"]["A1:B2"].api
+                rng.format.fill.color = "yellow"
+                rng.load("values")
+                await ctx.sync()
+                print(rng.values)
+
+                # Start from the workbook for objects that xlwings doesn't have
+                sheets = ctx.workbook.worksheets
+                sheets.load("items/name")
+                await ctx.sync()
+                print([sheet.name for sheet in sheets.items])
+            ```
+
+        Requires xlwings Lite.
+
+        ```{versionadded} 0.37.13
+        ```
+        """
+        return self.impl.officejs()
 
     async def flush(self) -> None:
         """Flushes all pending actions to Excel and lets the Output pane update.
@@ -1516,15 +1555,14 @@ class Sheet:
 
     @property
     def api(self) -> Any:
-        """Returns the native object (`pywin32` or `appscript` obj)
-        of the engine being used.
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
 
-        In xlwings Lite, this is the remote backend's internal worksheet data dictionary. It does not expose the Office.js API; use the public xlwings methods and properties for workbook operations.
+        In xlwings Lite, this is the Office.js `Worksheet` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -2140,13 +2178,14 @@ class Range:
 
     @property
     def api(self) -> Any:
-        """Returns the native object (`pywin32` or `appscript` obj)
-        of the engine being used.
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine being used.
+
+        In xlwings Lite, this is the Office.js `Range` in the open {meth}`Book.officejs <xlwings.Book.officejs>` session. Outside of a session, it raises an `XlwingsError`.
 
         ```{versionadded} 0.9.0
         ```
         """
-        return self.impl.api
+        return _native_api(self.impl)
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -9258,7 +9297,8 @@ class Macro:
     def run(self, *args: Any) -> Any:
         args = [
             (
-                i.api
+                # impl.api: in xlwings Lite, the public .api is Office.js only
+                i.impl.api
                 if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
                 else i
             )
